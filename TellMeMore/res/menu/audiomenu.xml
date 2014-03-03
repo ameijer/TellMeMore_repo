@@ -1,0 +1,17 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/resume_audio"
+        android:title="@string/resume_audio"  
+        android:icon="@drawable/ic_play" /> 
+        
+    <item
+        android:id="@+id/reset_audio"
+        android:title="@string/reset_audio"  
+        android:icon="@drawable/ic_reset" /> 
+        
+    <item
+        android:id="@+id/quit_audio"
+        android:title="@string/quit_audio"  
+        android:icon="@drawable/ic_stop" /> 
+</menu>
+
