@@ -175,7 +175,7 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 
 				//Toast toast = Toast.makeText(context, text, duration);
 				//toast.show();
-				startService(new Intent(this, TextViewerSupportService.class));
+				//startService(new Intent(this, TextViewerSupportService.class));
 				resultIntent= new Intent(this, TextViewer.class);
 			}
 

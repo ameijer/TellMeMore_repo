@@ -1,10 +1,12 @@
+
+
 package com.google.android.glass.TMM;
 
-import android.R;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 
+/**
+ * @author alex
+ *
+ */
 public class AudioCard extends TMMCard{
 	public static final String TAG = "TMM" +", " + AudioCard.class.getSimpleName();
 	//length of clip in milliseconds

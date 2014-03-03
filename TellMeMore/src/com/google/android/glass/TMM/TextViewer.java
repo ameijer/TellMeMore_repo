@@ -107,16 +107,7 @@ public class TextViewer extends Activity{
 		this.mGestureDetector = createGestureDetector(this);
 		act_context = this;
 
-		//	mediaPlayer.setOnCompletionListener(new OnCompletionListener() {
-
-		//		public void onCompletion(MediaPlayer mp) {
-
-		//			peaceOut(act_context);
-
-		//		}
-		//	});
-
-
+		startService(new Intent(this, TextViewerSupportService.class));
 
 
 		Log.i(TAG, "onCreate finished");
@@ -127,6 +118,7 @@ public class TextViewer extends Activity{
 	private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
+			Log.i(TAG, "onReceive called in textviewer");
 			TextViewerBundle bundl = (TextViewerBundle) intent.getParcelableExtra("data");
 			toShow = bundl.getElems();
 			if(toShow.size() < 1) {
