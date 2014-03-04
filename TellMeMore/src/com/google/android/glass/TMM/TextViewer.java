@@ -40,9 +40,9 @@ public class TextViewer extends Activity{
 	private static final int DEFAULT_POS = 0;
 	private static final int DEFAULT_ID = 0;
 	//private myListener mlistener;
-	private int cardPos, cardId;
+	private long cardPos, cardId;
 	private Context act_context; 
-	private ImageView bkgrnd, stat_icon; 
+	//private ImageView bkgrnd, stat_icon; 
 	//private TextView help_txt;
 	//private SliderView prog;
 	//private FrameLayout layout;
@@ -63,22 +63,22 @@ public class TextViewer extends Activity{
 		//lastPos =  getIntent().getIntExtra(EXTRA_LAST_PLAYER_POS, DEFAULT_POS);
 		Log.i(TAG, "this card is at position: " + cardPos);
 		setContentView(R.layout.audio_player_layout);
-		bkgrnd = (ImageView)findViewById(R.id.background_audio_activity);
-		stat_icon = (ImageView)findViewById(R.id.status_icon);
+		//bkgrnd = (ImageView)findViewById(R.id.background_audio_activity);
+		//stat_icon = (ImageView)findViewById(R.id.status_icon);
 		//help_txt = (TextView)findViewById(R.id.audio_activity_helper);
 		//prog = (SliderView) findViewById(R.id.prog);
 		//layout = (FrameLayout) findViewById(R.id.audioPlayerFrame);
 		Log.i(TAG, "cardid passed: " + cardId);
 		//player = this;
 		//TODO - replace with DB calls
-		AudioCard thisCard = (AudioCard) SelectCardActivity.getTestCards(10)[cardPos];
-		if(thisCard.getBackground() == null){
+		TextCard thisCard = (TextCard) SelectCardActivity.getTestCards(10)[(int) cardPos];
+		//if(thisCard.getBackground() == null){
 			//set a black background
 			//	layout.setBackgroundColor(getResources().getColor(R.color.black));
-		} else {
-			bkgrnd.setImageBitmap(BitmapFactory.decodeByteArray(thisCard.getBackground(), 0, thisCard.getBackground().length));
-		}
-		stat_icon.setImageResource(R.drawable.ic_pause);
+		//} else {
+		//	bkgrnd.setImageBitmap(BitmapFactory.decodeByteArray(thisCard.getBackground(), 0, thisCard.getBackground().length));
+		//}
+		//stat_icon.setImageResource(R.drawable.ic_pause);
 		//TODO
 		//help_txt.setText("tap to pause");
 
@@ -153,7 +153,7 @@ public class TextViewer extends Activity{
 		}
 
 		//help_txt.setText("tap to pause");
-		stat_icon.setImageResource(R.drawable.ic_pause);
+		//stat_icon.setImageResource(R.drawable.ic_pause);
 
 		//mediaPlayer.setOnCompletionListener(new OnCompletionListener() {
 
@@ -176,7 +176,7 @@ public Context getContext(){
 @Override
 public void onPause() {
 	super.onPause();
-	stat_icon.setImageResource(R.color.black);
+	//stat_icon.setImageResource(R.color.black);
 	//help_txt.setText(R.string.null_string);
 	//progUpdater.interrupt();
 

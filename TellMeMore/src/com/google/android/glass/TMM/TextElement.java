@@ -86,6 +86,15 @@ public class TextElement implements Parcelable{
 	public Type getType() {
 		return type;
 	}
+	
+	@Override
+	public String toString(){
+		if(type == Type.IMAGE){
+			return "Image, with caption: " + text;
+		} else {
+			return "Text block, contents: " + text;
+		}
+	}
 
 	public void setType(Type type) {
 		this.type = type;
