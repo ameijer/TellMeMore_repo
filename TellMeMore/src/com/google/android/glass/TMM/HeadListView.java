@@ -8,6 +8,8 @@ import android.hardware.SensorManager;
 import android.util.AttributeSet;
 import android.widget.ListView;
 
+
+//credit to https://github.com/pscholl/glass_snippets/blob/master/imu_listview/src/de/tud/ess/ImuListView.java
 public class HeadListView extends ListView implements SensorEventListener {
 
 	private static final float INVALID_X = 10;
