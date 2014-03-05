@@ -1,5 +1,6 @@
 package com.google.android.glass.TMM;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.android.glass.TMM.TextElement.Type;
@@ -10,23 +11,35 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.TextView;
 import android.widget.ImageView;
 
-public class TextViewerListAdapter extends ArrayAdapter<TextElement>{
+public class TextViewerListAdapter extends BaseAdapter{
 
-	public TextViewerListAdapter(Context context, int textViewResourceId,
-			List<TextElement> objects) {
-		super(context, textViewResourceId, objects);
-		// TODO Auto-generated constructor stub
+	private ArrayList<TextElement> elems;
+	private Context context;
+	
+	public TextViewerListAdapter(Context context,
+			ArrayList<TextElement> objects) {
+		if (objects != null){
+		elems = objects;
+		} else {
+			elems = new ArrayList<TextElement>();
+		}
+		this.context = context;
 	}
 
-	public TextViewerListAdapter(Context context, int textViewResourceId) {
-		super(context, textViewResourceId);
-	}
+	 @Override
+     public TextElement getItem(int position) {
+         return elems.get(position);
+     }
 
-
-
+	 public boolean addContent(ArrayList<TextElement> elements){
+		 this.elems = elements;
+		 notifyDataSetChanged();
+		 return true;
+	 }
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
@@ -37,12 +50,14 @@ public class TextViewerListAdapter extends ArrayAdapter<TextElement>{
 		if (v == null) {
 
 			LayoutInflater vi;
-			vi = LayoutInflater.from(getContext());
+			vi = LayoutInflater.from(context);
 
 			if(p.getType() == Type.IMAGE){
 				v = vi.inflate(R.layout.image_element, null);
+				v.setBackgroundResource(R.color.black);
 			} else {
 				v = vi.inflate(R.layout.text_element, null);
+				v.setBackgroundResource(R.color.black);
 			}
 
 		}
@@ -66,5 +81,17 @@ public class TextViewerListAdapter extends ArrayAdapter<TextElement>{
 
 		}
 		return v;
+	}
+	
+	@Override
+	public int getCount() {
+	
+		return elems.size();
+	}
+
+	@Override
+	public long getItemId(int position) {
+		
+		return position;
 	}
 }

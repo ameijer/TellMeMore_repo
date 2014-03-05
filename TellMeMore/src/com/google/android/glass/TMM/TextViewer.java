@@ -2,6 +2,7 @@ package com.google.android.glass.TMM;
 
 import java.util.ArrayList;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -18,6 +19,8 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.google.android.glass.media.Sounds;
@@ -28,6 +31,7 @@ import com.google.android.glass.touchpad.GestureDetector;
 import com.google.glass.widget.SliderView;
 
 
+@SuppressLint("ResourceAsColor")
 public class TextViewer extends Activity{
 	public static final String TAG = "TMM" +", " + TextViewer.class.getSimpleName();
 	private GestureDetector mGestureDetector;
@@ -53,6 +57,9 @@ public class TextViewer extends Activity{
 	//Thread progUpdater;
 	private int lastPos;
 	private ArrayList<TextElement> toShow;
+	private ListView mView;
+	private TextViewerListAdapter customAdapter;
+	private HeadListView headScroll;
 
 
 	@Override
@@ -62,7 +69,7 @@ public class TextViewer extends Activity{
 		cardId =  getIntent().getIntExtra(EXTRA_SELECTED_ID, DEFAULT_ID);
 		//lastPos =  getIntent().getIntExtra(EXTRA_LAST_PLAYER_POS, DEFAULT_POS);
 		Log.i(TAG, "this card is at position: " + cardPos);
-		setContentView(R.layout.audio_player_layout);
+		//setContentView(R.layout.audio_player_layout);
 		//bkgrnd = (ImageView)findViewById(R.id.background_audio_activity);
 		//stat_icon = (ImageView)findViewById(R.id.status_icon);
 		//help_txt = (TextView)findViewById(R.id.audio_activity_helper);
@@ -81,10 +88,12 @@ public class TextViewer extends Activity{
 		//stat_icon.setImageResource(R.drawable.ic_pause);
 		//TODO
 		//help_txt.setText("tap to pause");
-
+		setContentView(R.layout.textviewer_layout);
+		mView = (ListView) findViewById(R.id.textList);
 		mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
-
+		
+		
 		//		int resID=getResources().getIdentifier("powerpointdemo", "raw", getPackageName());
 		//		if(resID == 0){
 		//			Log.e(TAG, "sound resource not found");
@@ -108,9 +117,18 @@ public class TextViewer extends Activity{
 		act_context = this;
 
 		startService(new Intent(this, TextViewerSupportService.class));
+		customAdapter = new TextViewerListAdapter(this, toShow);
 
-
+		Log.i(TAG, "Textviewadapter customadapter: " + customAdapter);
+		Log.i(TAG, "View being used: " + mView);
+		mView.setAdapter(customAdapter);
+		mView.setBackgroundColor(getResources().getColor(R.color.black_trans));
+		
+		
+		
+		headScroll = (HeadListView) findViewById(R.id.textList);
 		Log.i(TAG, "onCreate finished");
+		
 
 	}
 
@@ -127,8 +145,11 @@ public class TextViewer extends Activity{
 			}
 
 			cardId = bundl.getId();
+			// get data from the table by the ListAdapter
+			customAdapter.addContent(toShow);
+			
 			for(int i = 0; i < toShow.size(); i ++){
-				Log.i(TAG, "text contents of element " + i + ": " + toShow.get(i));
+				Log.v(TAG, "text contents of element " + i + ": " + toShow.get(i));
 			}
 		}
 	};
@@ -136,6 +157,7 @@ public class TextViewer extends Activity{
 
 	@Override
 	public void onResume(){
+		headScroll.activate();
 		super.onResume();
 		cardPos =  getIntent().getIntExtra(EXTRA_SELECTED_POS, DEFAULT_POS);
 		cardId =  getIntent().getIntExtra(EXTRA_SELECTED_ID, DEFAULT_ID);
@@ -175,6 +197,7 @@ public Context getContext(){
 
 @Override
 public void onPause() {
+	headScroll.deactivate();
 	super.onPause();
 	//stat_icon.setImageResource(R.color.black);
 	//help_txt.setText(R.string.null_string);
