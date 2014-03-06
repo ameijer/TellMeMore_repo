@@ -1,0 +1,12 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/narrate"
+        android:title="@string/resume_audio"  
+        android:icon="@drawable/ic_read_aloud" /> 
+       
+    <item
+        android:id="@+id/quit_text"
+        android:title="@string/quit_audio"  
+        android:icon="@drawable/ic_stop" /> 
+</menu>
+

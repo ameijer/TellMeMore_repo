@@ -37,6 +37,7 @@ public class TextViewer extends Activity{
 	private GestureDetector mGestureDetector;
 	public static final String EXTRA_SELECTED_POS = "selected_pos";
 	public static final String EXTRA_SELECTED_ID = "selected_id";
+	public static final String EXTRA_LAST_TEXT_POS = "last_TEXT_pos";
 	//public static final String EXTRA_PLAYER_POS = "selected_player_pos";
 	//public static final String EXTRA_LAST_PLAYER_POS = "last_player_pos";
 	public static final int TIME_TO_SEEK = 100;
@@ -226,7 +227,7 @@ private GestureDetector createGestureDetector(Context context) {
 			mAudioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
 			if (gesture == Gesture.TAP){
 
-				Intent menuintent = new Intent(getContext(), AudioMenu.class);
+				Intent menuintent = new Intent(getContext(), TextMenu.class);
 			//	menuintent.putExtra(EXTRA_LAST_PLAYER_POS, mediaPlayer.getCurrentPosition());
 				menuintent.putExtra(EXTRA_SELECTED_ID, cardId);
 				menuintent.putExtra(EXTRA_SELECTED_POS, cardPos);
