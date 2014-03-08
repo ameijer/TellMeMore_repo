@@ -68,8 +68,8 @@ public class TextViewerListAdapter extends BaseAdapter{
 
 			if(p.getType() == Type.IMAGE){
 				ImageView pic = (ImageView) v.findViewById(R.id.picView);
-				TextView cap = (TextView) v.findViewById(R.id.picCap);
-				cap.setText(p.getText());
+				//TextView cap = (TextView) v.findViewById(R.id.picCap);
+				//cap.setText(p.getText());
 				pic.setImageBitmap(BitmapFactory.decodeByteArray(p.getImg(), 0, p.getImg().length));
 				
 			} else {

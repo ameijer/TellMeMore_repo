@@ -13,6 +13,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -37,7 +38,10 @@ public class TextViewer extends Activity{
 	private GestureDetector mGestureDetector;
 	public static final String EXTRA_SELECTED_POS = "selected_pos";
 	public static final String EXTRA_SELECTED_ID = "selected_id";
+	public static final String EXTRA_REQUESTED_NARRATION = "narration_requested";
+	public static final boolean DEFAULT_NARR = false;
 	public static final String EXTRA_LAST_TEXT_POS = "last_TEXT_pos";
+	public static final int DEFAULT_TEXT_POS = -1;
 	//public static final String EXTRA_PLAYER_POS = "selected_player_pos";
 	//public static final String EXTRA_LAST_PLAYER_POS = "last_player_pos";
 	public static final int TIME_TO_SEEK = 100;
@@ -52,6 +56,7 @@ public class TextViewer extends Activity{
 	//private SliderView prog;
 	//private FrameLayout layout;
 	private AudioManager mAudioManager;
+	private TextToSpeech mSpeech;
 	//private boolean paused;
 	//public static Activity player; 
 	//MediaPlayer mediaPlayer;
@@ -68,7 +73,7 @@ public class TextViewer extends Activity{
 		super.onCreate(savedInstanceState);
 		cardPos =  getIntent().getIntExtra(EXTRA_SELECTED_POS, DEFAULT_POS);
 		cardId =  getIntent().getIntExtra(EXTRA_SELECTED_ID, DEFAULT_ID);
-		//lastPos =  getIntent().getIntExtra(EXTRA_LAST_PLAYER_POS, DEFAULT_POS);
+		lastPos =  getIntent().getIntExtra(EXTRA_LAST_TEXT_POS, DEFAULT_TEXT_POS);
 		Log.i(TAG, "this card is at position: " + cardPos);
 		//setContentView(R.layout.audio_player_layout);
 		//bkgrnd = (ImageView)findViewById(R.id.background_audio_activity);
@@ -81,8 +86,8 @@ public class TextViewer extends Activity{
 		//TODO - replace with DB calls
 		TextCard thisCard = (TextCard) SelectCardActivity.getTestCards(10)[(int) cardPos];
 		//if(thisCard.getBackground() == null){
-			//set a black background
-			//	layout.setBackgroundColor(getResources().getColor(R.color.black));
+		//set a black background
+		//	layout.setBackgroundColor(getResources().getColor(R.color.black));
 		//} else {
 		//	bkgrnd.setImageBitmap(BitmapFactory.decodeByteArray(thisCard.getBackground(), 0, thisCard.getBackground().length));
 		//}
@@ -93,8 +98,8 @@ public class TextViewer extends Activity{
 		mView = (ListView) findViewById(R.id.textList);
 		mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
-		
-		
+
+
 		//		int resID=getResources().getIdentifier("powerpointdemo", "raw", getPackageName());
 		//		if(resID == 0){
 		//			Log.e(TAG, "sound resource not found");
@@ -124,12 +129,18 @@ public class TextViewer extends Activity{
 		Log.i(TAG, "View being used: " + mView);
 		mView.setAdapter(customAdapter);
 		mView.setBackgroundColor(getResources().getColor(R.color.black_trans));
-		
-		
-		
+
+		mSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+			@Override
+			public void onInit(int status) {
+				// Do nothing.
+				mSpeech.speak("Narrator initialized", TextToSpeech.QUEUE_FLUSH, null);
+			}
+		});
+
 		headScroll = (HeadListView) findViewById(R.id.textList);
 		Log.i(TAG, "onCreate finished");
-		
+
 
 	}
 
@@ -148,7 +159,7 @@ public class TextViewer extends Activity{
 			cardId = bundl.getId();
 			// get data from the table by the ListAdapter
 			customAdapter.addContent(toShow);
-			
+
 			for(int i = 0; i < toShow.size(); i ++){
 				Log.v(TAG, "text contents of element " + i + ": " + toShow.get(i));
 			}
@@ -162,191 +173,152 @@ public class TextViewer extends Activity{
 		super.onResume();
 		cardPos =  getIntent().getIntExtra(EXTRA_SELECTED_POS, DEFAULT_POS);
 		cardId =  getIntent().getIntExtra(EXTRA_SELECTED_ID, DEFAULT_ID);
-		//lastPos =  getIntent().getIntExtra(EXTRA_LAST_PLAYER_POS, DEFAULT_POS);
+		lastPos =  getIntent().getIntExtra(EXTRA_LAST_TEXT_POS, DEFAULT_TEXT_POS);
+		boolean narrate = getIntent().getBooleanExtra(EXTRA_REQUESTED_NARRATION, DEFAULT_NARR);
 
-		try {
-			//	mediaPlayer.seekTo(lastPos);
-			//	mediaPlayer.start();
+		//if the user wanted narration, then play the clip
+		//TODO - check if this runs in a separate thread as implemented
+		//if not, this will have to be encapsulated in a runnable so the user can still browse the text while 
+		//it is narrating
 
-		} catch (IllegalStateException e){
-			//	mediaPlayer = MediaPlayer.create(this,R.raw.powerpointdemo);
-			//	mediaPlayer.seekTo(lastPos);
-			//	mediaPlayer.start();
-			Log.w(TAG, "onresume illegal state exception caught, initing new mediaplayer");
+		if(narrate && lastPos > -1){
+			String toSpeak = customAdapter.getItem(lastPos).getText();
+			mSpeech.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, null);
 		}
-
-		//help_txt.setText("tap to pause");
-		//stat_icon.setImageResource(R.drawable.ic_pause);
-
-		//mediaPlayer.setOnCompletionListener(new OnCompletionListener() {
-
-	//	public void onCompletion(MediaPlayer mp) {
-
-	//		peaceOut(act_context);
-//
-	//	}
-	//});
-
-}
-
-public Context getContext(){
-	return this;
-}
-
-
-
-
-@Override
-public void onPause() {
-	headScroll.deactivate();
-	super.onPause();
-	//stat_icon.setImageResource(R.color.black);
-	//help_txt.setText(R.string.null_string);
-	//progUpdater.interrupt();
-
-	try {
-		//		progUpdater.interrupt();
-		//	mediaPlayer.release();
-		//		if(prog != null){
-		////			prog.dismissManualProgress();
-
-		//		}
-	}catch (IllegalStateException e){
-		Log.w(TAG, "illegal state exception thrown when calling onpuase");
 	}
 
-}
+	public Context getContext(){
+		return this;
+	}
 
 
-private GestureDetector createGestureDetector(Context context) {
-	GestureDetector gestureDetector = new GestureDetector(context);
-	//Create a base listener for generic gestures
-	gestureDetector.setBaseListener( new GestureDetector.BaseListener() {
-		@Override
-		public boolean onGesture(Gesture gesture) {
-			mAudioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
-			if (gesture == Gesture.TAP){
-
-				Intent menuintent = new Intent(getContext(), TextMenu.class);
-			//	menuintent.putExtra(EXTRA_LAST_PLAYER_POS, mediaPlayer.getCurrentPosition());
-				menuintent.putExtra(EXTRA_SELECTED_ID, cardId);
-				menuintent.putExtra(EXTRA_SELECTED_POS, cardPos);
-				Log.i(TAG, "cardPos passed to menu: " + cardPos);
-				//		mediaPlayer.release();
-				startActivity(menuintent);
-			} if (gesture == Gesture.SWIPE_RIGHT) {
-				// do something on right (forward) swipe
-				Log.i(TAG, "swipe_right method called");
-				//mAudioManager.playSoundEffect(Sounds.DISMISSED);
-				//peaceOut(act_context);
-			} else if (gesture == Gesture.SWIPE_LEFT) {
-				// do something on left (backwards) swipe
-				Log.i(TAG, "swipe_left method called");
-				//mAudioManager.playSoundEffect(Sounds.);
-
-				//if(mediaPlayer.isPlaying()){
-				//	mediaPlayer.seek(mediaPlayer.getCurrentPosition() + TIME_TO_SEEK);
-				//}
 
 
-				//peaceOut(act_context);
-			} else if(gesture == Gesture.SWIPE_DOWN){
-				Log.i(TAG, "swipe_down method called");
-				mAudioManager.playSoundEffect(Sounds.DISMISSED);
-				peaceOut(act_context);
-				finish();
+	@Override
+	public void onPause() {
+		headScroll.deactivate();
+		super.onPause();
+		mSpeech.stop();
+
+	}
+
+
+
+	private GestureDetector createGestureDetector(Context context) {
+		GestureDetector gestureDetector = new GestureDetector(context);
+		//Create a base listener for generic gestures
+		gestureDetector.setBaseListener( new GestureDetector.BaseListener() {
+			@Override
+			public boolean onGesture(Gesture gesture) {
+				mAudioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
+				if (gesture == Gesture.TAP){
+
+					Intent menuintent = new Intent(getContext(), TextMenu.class);
+					//	menuintent.putExtra(EXTRA_LAST_PLAYER_POS, mediaPlayer.getCurrentPosition());
+					menuintent.putExtra(EXTRA_SELECTED_ID, cardId);
+					menuintent.putExtra(EXTRA_SELECTED_POS, cardPos);
+					menuintent.putExtra(EXTRA_LAST_TEXT_POS, headScroll.getLastVisiblePosition());
+					Log.i(TAG, "cardPos passed to menu: " + cardPos);
+					//		mediaPlayer.release();
+					startActivity(menuintent);
+				} if (gesture == Gesture.SWIPE_RIGHT) {
+					// do something on right (forward) swipe
+					Log.i(TAG, "swipe_right method called");
+					//mAudioManager.playSoundEffect(Sounds.DISMISSED);
+					//peaceOut(act_context);
+				} else if (gesture == Gesture.SWIPE_LEFT) {
+					// do something on left (backwards) swipe
+					Log.i(TAG, "swipe_left method called");
+					//mAudioManager.playSoundEffect(Sounds.);
+
+					//if(mediaPlayer.isPlaying()){
+					//	mediaPlayer.seek(mediaPlayer.getCurrentPosition() + TIME_TO_SEEK);
+					//}
+
+
+					//peaceOut(act_context);
+				} else if(gesture == Gesture.SWIPE_DOWN){
+					Log.i(TAG, "swipe_down method called");
+					mAudioManager.playSoundEffect(Sounds.DISMISSED);
+					peaceOut(act_context);
+					finish();
+				}
+				return false;
 			}
-			return false;
-		}
-	});
-	gestureDetector.setFingerListener(new GestureDetector.FingerListener() {
-		@Override
-		public void onFingerCountChanged(int previousCount, int currentCount) {
-			// do something on finger count changes
-			Log.i(TAG, "Finger count changed");
-		}
-	});
-	gestureDetector.setScrollListener(new GestureDetector.ScrollListener() {
-		@Override
-		public boolean onScroll(float displacement, float delta, float velocity) {
-
-			mAudioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
-			try{
-				//seeking 
-				//	if(velocity > 0){
-				Log.i(TAG, "scroll detected, velocity: " + velocity);
-				//	if(mediaPlayer.getCurrentPosition() > TIME_TO_SEEK){
-				//			mediaPlayer.seekTo((int) (mediaPlayer.getCurrentPosition() +  TIME_TO_SEEK * velocity ));
-				//		}
-			} catch (IllegalStateException e){
-
+		});
+		gestureDetector.setFingerListener(new GestureDetector.FingerListener() {
+			@Override
+			public void onFingerCountChanged(int previousCount, int currentCount) {
+				// do something on finger count changes
+				Log.i(TAG, "Finger count changed");
 			}
+		});
+		gestureDetector.setScrollListener(new GestureDetector.ScrollListener() {
+			@Override
+			public boolean onScroll(float displacement, float delta, float velocity) {
 
+				mAudioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
+				try{
+					//seeking 
+					//	if(velocity > 0){
+					Log.i(TAG, "scroll detected, velocity: " + velocity);
+					//	if(mediaPlayer.getCurrentPosition() > TIME_TO_SEEK){
+					//			mediaPlayer.seekTo((int) (mediaPlayer.getCurrentPosition() +  TIME_TO_SEEK * velocity ));
+					//		}
+				} catch (IllegalStateException e){
+
+				}
+
+				return true;
+			}
+		});
+		return gestureDetector;
+
+	}
+
+	//hacky... hopefully google will integrate the gesture class in better
+	//atm011
+	@Override
+	public boolean onKeyUp(int keyCode, KeyEvent event)
+	{
+		if (keyCode == KEY_SWIPE_DOWN)
+		{
+			// there was a swipe down event
+			Log.i(TAG, "hacky swipe_down method called");
+			mAudioManager.playSoundEffect(Sounds.DISMISSED);
+			peaceOut(TextViewer.this);
 			return true;
 		}
-	});
-	return gestureDetector;
-
-}
-
-//hacky... hopefully google will integrate the gesture class in better
-//atm011
-@Override
-public boolean onKeyUp(int keyCode, KeyEvent event)
-{
-	if (keyCode == KEY_SWIPE_DOWN)
-	{
-		// there was a swipe down event
-		Log.i(TAG, "hacky swipe_down method called");
-		mAudioManager.playSoundEffect(Sounds.DISMISSED);
-		peaceOut(TextViewer.this);
-		return true;
-	}
-	return false;
-}
-
-
-/*
- * Send generic motion events to the gesture detector
- */
-@Override
-public boolean onGenericMotionEvent(MotionEvent event) {
-	this.dispatchTouchEvent(event);
-	if (mGestureDetector != null) {
-		return mGestureDetector.onMotionEvent(event);
+		return false;
 	}
 
-	return false;
-}
 
-@Override
-public void onDestroy() {
-	super.onDestroy();
-	//progUpdater.interrupt();
-	//	if(mediaPlayer != null)
-	//		mediaPlayer.release();
+	/*
+	 * Send generic motion events to the gesture detector
+	 */
+	@Override
+	public boolean onGenericMotionEvent(MotionEvent event) {
+		this.dispatchTouchEvent(event);
+		if (mGestureDetector != null) {
+			return mGestureDetector.onMotionEvent(event);
+		}
 
-	//if(prog != null){
-	//		prog.dismissManualProgress();
+		return false;
+	}
 
-	//}
-	finish();
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		mSpeech.shutdown();
+		finish();
 
-}
+	}
 
-public void peaceOut(Context context){
-	//progUpdater.interrupt();
-	//	if(mediaPlayer != null)
-	//		mediaPlayer.release();
-
-	//	if(prog != null){
-	//		prog.dismissManualProgress();
-	//
-	//	}
-	Intent backToCardsIntent= new Intent(context, SelectCardActivity.class);
-	backToCardsIntent.putExtra(EXTRA_SELECTED_POS, cardPos);
-	setResult(RESULT_OK, backToCardsIntent);
-	startActivity(backToCardsIntent);
-	finish();
-}
+	public void peaceOut(Context context){
+		Intent backToCardsIntent= new Intent(context, SelectCardActivity.class);
+		backToCardsIntent.putExtra(EXTRA_SELECTED_POS, cardPos);
+		setResult(RESULT_OK, backToCardsIntent);
+		startActivity(backToCardsIntent);
+		finish();
+	}
 }

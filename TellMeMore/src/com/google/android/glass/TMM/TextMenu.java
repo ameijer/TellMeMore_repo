@@ -21,8 +21,11 @@ public class TextMenu extends Activity {
 	public static final String EXTRA_SELECTED_POS = "selected_pos";
 	public static final String EXTRA_SELECTED_ID = "selected_id";
 	public static final String EXTRA_LAST_TEXT_POS = "last_TEXT_pos";
+	public static final String EXTRA_NARRATION_REQUESTED = "narration_requested";
+	public static final int DEFAULT_TEXT_POS = -1;
 	private static final int DEFAULT_ID = 0;
 	private static final int DEFAULT_POS = 0;
+	public static final boolean DEFAULT_NARR = false;
 	private int lastPos, cardPos, cardId; 
 	private AudioManager mAudioManager;
     @Override
@@ -36,7 +39,7 @@ public class TextMenu extends Activity {
     	mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.textmenu, menu);
-        lastPos =  getIntent().getIntExtra(EXTRA_LAST_TEXT_POS, DEFAULT_POS);
+        lastPos =  getIntent().getIntExtra(EXTRA_LAST_TEXT_POS, DEFAULT_TEXT_POS);
         cardPos =  getIntent().getIntExtra(EXTRA_SELECTED_POS, DEFAULT_POS);
 		cardId =  getIntent().getIntExtra(EXTRA_SELECTED_ID, DEFAULT_ID);
 	
@@ -52,17 +55,21 @@ public class TextMenu extends Activity {
             case R.id.narrate:
             	Log.i("TMM", "narrate text item selected");
                 //stopService(new Intent(this, ScanActivity.class));
-                Intent intent = new Intent(this, AudioPlayer.class);
+                Intent intent = new Intent(this, TextViewer.class);
                 
                 Log.i(TAG, "last posit passed through to new player: " + lastPos);
                 intent.putExtra(EXTRA_LAST_TEXT_POS, lastPos);
+                intent.putExtra(EXTRA_NARRATION_REQUESTED, true);
                 intent.putExtra(EXTRA_SELECTED_POS, cardPos);
+                
+                
                 startActivity(intent);
                 return true;
             case R.id.quit_text:
-            	closeAudioPlayer(this);
+            	closeTextViewer(this);
             	intent = new Intent(this, SelectCardActivity.class);
             	intent.putExtra(EXTRA_SELECTED_POS, cardPos);
+            	intent.putExtra(EXTRA_LAST_TEXT_POS,  DEFAULT_TEXT_POS);
         		setResult(RESULT_OK, intent);
         		startActivity(intent);
                 return true;
@@ -71,8 +78,8 @@ public class TextMenu extends Activity {
         }
     }
 
-    public static void closeAudioPlayer(Context context) {
-        Intent intent = new Intent("AudioPlayer");
+    public static void closeTextViewer(Context context) {
+        Intent intent = new Intent("TextViewer");
         intent.putExtra("action", "close");
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
