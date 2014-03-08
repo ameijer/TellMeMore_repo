@@ -56,21 +56,21 @@ public class TMMService extends Service {
 	private TimelineManager mTimelineManager;
 	private LiveCard mLiveCard;
 
-	
-	
-	
+
+
+
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		
-		
-		
-		
+
+
+
+
 		mTimelineManager = TimelineManager.from(this);
 		//mTimerDrawer = new TimerDrawer(this);
-running = true;
+		running = true;
 
-		
+
 
 	}
 
@@ -118,50 +118,50 @@ running = true;
 		//        }
 		Log.i("TMM", "TMM service started");
 		running = true;
-        new BlinkLiveCardTask().execute(this);
-		
+		new BlinkLiveCardTask().execute(this);
+
 		return START_STICKY;
 	}
-	
 
-	 private class BlinkLiveCardTask extends AsyncTask<Context, Integer, Long> {
-	     protected Long doInBackground(Context...contexts) {
-	         Log.i("TMM","doing in background");
-	         while(running){
-	        	
-	        	
-	     		publishCard(contexts[0]);
-	     		try {
-	     			Thread.sleep(7000);
-	     		} catch (InterruptedException e) {
-	     			// TODO Auto-generated catch block
-	     			e.printStackTrace();
-	     		}
-	     		
-	     			
 
-	     			unpublishCard(contexts[0]);
+	private class BlinkLiveCardTask extends AsyncTask<Context, Integer, Long> {
+		protected Long doInBackground(Context...contexts) {
+			Log.i("TMM","doing in background");
+			while(running){
 
-	     			try {
-	     				Thread.sleep(7000);
-	     			} catch (InterruptedException e) {
-	     				// TODO Auto-generated catch block
-	     				e.printStackTrace();
-	     			}
 
-	     		}
-	         
-	         return (long) 100;
-	     }
+				publishCard(contexts[0]);
+				try {
+					Thread.sleep(7000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 
-	     protected void onProgressUpdate() {
-	        
-	     }
 
-	     protected void onPostExecute() {
-	        
-	     }
-	 }
+
+				unpublishCard(contexts[0]);
+
+				try {
+					Thread.sleep(7000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
+
+			return (long) 100;
+		}
+
+		protected void onProgressUpdate() {
+
+		}
+
+		protected void onPostExecute() {
+
+		}
+	}
 
 
 	@Override
@@ -169,7 +169,7 @@ running = true;
 		if (mLiveCard != null && mLiveCard.isPublished()) {
 			mLiveCard.unpublish();
 			mLiveCard = null;
-			
+
 		}
 		running = false;
 		super.onDestroy();
