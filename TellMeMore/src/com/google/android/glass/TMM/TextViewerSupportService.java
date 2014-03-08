@@ -22,13 +22,15 @@ public class TextViewerSupportService extends Service{
 	public static final String TAG = "TMM" +", " + TextViewerSupportService.class.getSimpleName();
 
 	/////////////////////
+
+	//unused, we will store in DB as JDO and not our own binary blob implementation
 	public static final String caption1 = "Caption for photo 1";
 	public static final String caption2 = "Caption for photo 2";
 	public static final String photo_sentinel = "@@";
 	public static final String caption_sentinel = "}{";
 
-	public static final String text_above_pic = "Arma virumque cano, Troiae qui primus ab oris\nItaliam, fato profugus, Laviniaque venit\nlitora, multum ille et terris iactatus et alto\nvi superum saevae memorem Iunonis ob iram;\nmulta quoque et bello passus, dum conderet urbem, \ninferretque deos Latio, genus unde Latinum,\nAlbanique patres, atque altae moenia Romae. ";
-	public static final String text_below_pic = "Musa, mihi causas memora, quo numine laeso, quidve dolens, regina deum tot volvere casus\ninsignem pietate virum, tot adire labores\nimpulerit. Tantaene animis caelestibus irae? ";
+	public static final String[] text_above_pic = new String[]{"Arma virumque cano, Troiae qui primus ab oris", "Italiam, fato profugus, Laviniaque venit", "litora, multum ille et terris iactatus et alto", "vi superum saevae memorem Iunonis ob iram;", "multa quoque et bello passus, dum conderet urbem,", "inferretque deos Latio, genus unde Latinum,", "Albanique patres, atque altae moenia Romae."};
+	public static final String[] text_below_pic = new String[]{ "Musa, mihi causas memora, quo numine laeso,", "quidve dolens, regina deum tot volvere casus", "insignem pietate virum, tot adire labores", "impulerit. Tantaene animis caelestibus irae?"};
 
 	////////////////
 
@@ -77,11 +79,13 @@ public class TextViewerSupportService extends Service{
 		ArrayList<byte[]> pics = new ArrayList<byte[]>();
 
 		ArrayList<TextElement> retVals = new ArrayList<TextElement>();
+		TextElement e1;
+		for(int i = 0; i < text_above_pic.length; i++){
+			e1 = new TextElement(TextElement.Type.TEXT_, text_above_pic[i]);
+			retVals.add(e1);
+		}
 
-		TextElement e1 = new TextElement(TextElement.Type.TEXT_, text_above_pic);
 
-
-		retVals.add(e1);
 
 		Bitmap bmp1 = BitmapFactory.decodeResource(this.getResources(), R.raw.pic1);
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -91,9 +95,11 @@ public class TextViewerSupportService extends Service{
 		TextElement e2 = new TextElement(TextElement.Type.IMAGE, caption1, byteArray);
 		retVals.add(e2);
 
-
-		TextElement e3 = new TextElement(TextElement.Type.TEXT_, text_below_pic);
-		retVals.add(e3);
+		TextElement e3;
+		for(int i = 0; i < text_below_pic.length; i++){
+			 e3 = new TextElement(TextElement.Type.TEXT_, text_below_pic[i]);
+			retVals.add(e3);
+		}
 
 		Bitmap bmp2 = BitmapFactory.decodeResource(this.getResources(), R.raw.pic2);
 		ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
