@@ -10,7 +10,7 @@
  */
 
 
-package com.directchat;
+package com.google.android.glass.TMM;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -29,37 +29,32 @@ public class DBHelper extends SQLiteOpenHelper{
 	private static final int DATABASE_VERSION = 1;
 
 
-	//User Table
-	public static final String USER_TABLE_NAME = "user";
-	public static final String USER_ID = "_id";
+	//Cards table
+	public static final String CARD_TABLE_NAME = "cards";
+	public static final String CARD_ID = "_id";
 	
-	//columns in user table
-	public static final String COLUMN_USER = "user";
-	public static final String COLUMN_FIRST_SEEN = "first_seen";
-	public static final String COLUMN_LAST_SEEN = "last_seen";
-	public static final String COLUMN_IS_ONLINE = "is_online";
-	public static final String COLUMN_IP = "ip";
+	//columns in cards table
+	public static final String COLUMN_CARD_DATA = "card_data";
+	public static final String COLUMN_MODIFIED = "date_modified";
+	public static final String COLUMN_SERVER = "card_server_info";
 	
-	//message table
-	public static final String MESSAGE_TABLE_NAME = "message";
+	//server table
+	public static final String MESSAGE_TABLE_NAME = "servers";
 	public static final String MESSAGE_ID = "_id";
 	
-	//columns in message table 
-	public static final String COLUMN_MESSAGE_TEXT = "message_text";
-	public static final String COLUMN_MESSAGE_TIME_RECEIVED = "message_time_received";
-	public static final String COLUMN_MESSAGE_FROM = "message_from";
-	public static final String COLUMN_MESSAGE_TO = "message_to";
-	public static final String COLUMN_MESSAGE_ISREAD = "is_read";
+	//columns in server table 
+	public static final String COLUMN_IP = "ip";
+	public static final String COLUMN_API_INFO = "api_tags";
+	public static final String COLUMN_FIRST_USED = "date_first_used";
+	public static final String COLUMN_LAST_USED = "date_last_used";
 
 	//yucky SQL statement to create users table
-	private String CREATE_USER_TABLE = "create table "
-            + USER_TABLE_NAME + "("
-            + USER_ID + " integer primary key autoincrement, "
-            + COLUMN_USER + " text not null, "
-            + COLUMN_FIRST_SEEN + " text not null, "
-            + COLUMN_LAST_SEEN + " text not null, "
-            + COLUMN_IS_ONLINE + " INTEGER, "
-            + COLUMN_IP + " text not null );";
+	private String CREATE_CARD_TABLE = "create table "
+            + CARD_TABLE_NAME + "("
+            + CARD_ID + " integer primary key autoincrement, "
+            + COLUMN_CARD_DATA + " BLOB not null, "
+            + COLUMN_MODIFIED + " INTEGER not null, "
+            + COLUMN_SERVER + " text not null );";
 
 	//yucky SQL statement to create message table
 		private String CREATE_MESSAGE_TABLE = "create table "
