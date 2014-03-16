@@ -13,8 +13,8 @@ public class TextCard extends TMMCard implements Serializable{
 	private String line1, line2, line3;
 	private ArrayList<TextElement> contents;
 
-	public TextCard(int handle, int id, int priority, String cardTitle, byte[] icon_img) {
-		super(handle, id, priority, cardTitle);
+	public TextCard(int handle, int priority, String cardTitle, byte[] icon_img) {
+		super(handle, priority, cardTitle);
 		this.icon = icon_img;
 	}
 	

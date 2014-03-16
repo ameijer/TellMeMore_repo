@@ -18,8 +18,8 @@ public class VideoCard extends TMMCard implements Serializable{
 
 
 
-	public VideoCard(int handle, int id, int priority, String cardTitle) {
-		super(handle, id, priority, cardTitle);
+	public VideoCard(int handle, int priority, String cardTitle) {
+		super(handle, priority, cardTitle);
 
 	}
 

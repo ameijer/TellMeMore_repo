@@ -26,8 +26,8 @@ public class AudioCard extends TMMCard implements Serializable{
 	private byte[] audioClip;
 
 
-	public AudioCard(int handle, int id, int priority, String cardTitle) {
-		super(handle, id, priority, cardTitle);
+	public AudioCard(int handle, int priority, String cardTitle) {
+		super(handle, priority, cardTitle);
 		
 		this.background = null;
 		this.audioClip = null;

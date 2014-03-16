@@ -37,34 +37,37 @@ public class DBHelper extends SQLiteOpenHelper{
 	public static final String COLUMN_CARD_DATA = "card_data";
 	public static final String COLUMN_MODIFIED = "date_modified";
 	public static final String COLUMN_SERVER = "card_server_info";
+	public static final String COLUMN_CARD_TYPE = "card_type";
+	
+	//some constants we can use for the current three types of cards
+	public static final String AUDIO = "AUDIO";
+	public static final String VIDEO = "VIDEO";
+	public static final String TEXT = "TEXT";
+	
 	
 	//server table
-	public static final String MESSAGE_TABLE_NAME = "servers";
-	public static final String MESSAGE_ID = "_id";
+	public static final String SERVER_TABLE_NAME = "servers";
+	public static final String SERVER_ID = "_id";
 	
 	//columns in server table 
-	public static final String COLUMN_IP = "ip";
-	public static final String COLUMN_API_INFO = "api_tags";
-	public static final String COLUMN_FIRST_USED = "date_first_used";
-	public static final String COLUMN_LAST_USED = "date_last_used";
+	public static final String COLUMN_SERVER_NAME = "server_name";
+	public static final String COLUMN_SERVER_DATA = "server_data";
 
-	//yucky SQL statement to create users table
+	//SQL statement to create cards table
 	private String CREATE_CARD_TABLE = "create table "
             + CARD_TABLE_NAME + "("
-            + CARD_ID + " integer primary key autoincrement, "
+            + CARD_ID + " INTEGER primary key autoincrement, "
+            + COLUMN_CARD_TYPE + " TEXT not null,"
             + COLUMN_CARD_DATA + " BLOB not null, "
             + COLUMN_MODIFIED + " INTEGER not null, "
-            + COLUMN_SERVER + " text not null );";
+            + COLUMN_SERVER + " TEXT not null );";
 
-	//yucky SQL statement to create message table
-		private String CREATE_MESSAGE_TABLE = "create table "
-	            + MESSAGE_TABLE_NAME + "("
-	            + MESSAGE_ID + " integer primary key autoincrement, "
-	            + COLUMN_MESSAGE_TEXT + " text not null, "
-	            + COLUMN_MESSAGE_TIME_RECEIVED + " text not null, "
-	            + COLUMN_MESSAGE_FROM + " text not null, "
-	            + COLUMN_MESSAGE_TO + " text not null, "
-	            + COLUMN_MESSAGE_ISREAD + " INTEGER );";
+	// SQL statement to create server table
+		private String CREATE_SERVER_TABLE = "create table "
+	            + SERVER_TABLE_NAME + "("
+	            + SERVER_ID + " INTEGER primary key autoincrement, "
+	            + COLUMN_SERVER_NAME + " TEXT not null, "
+	            + COLUMN_SERVER_DATA + " BLOB not null );";
 		
 		
 	public DBHelper(Context context) {
@@ -78,8 +81,8 @@ public class DBHelper extends SQLiteOpenHelper{
 	public void onCreate(SQLiteDatabase db) {
 		
 		//use the sql from above
-		db.execSQL(CREATE_MESSAGE_TABLE);
-		db.execSQL(CREATE_USER_TABLE);
+		db.execSQL(CREATE_CARD_TABLE);
+		db.execSQL(CREATE_SERVER_TABLE);
 		
 		Log.i(TAG, "Creating database...");
 
@@ -90,8 +93,8 @@ public class DBHelper extends SQLiteOpenHelper{
 		Log.w(DBHelper.class.getName(),
 		        "Upgrading database from version " + oldVersion + " to "
 		            + newVersion + ", deleting old data");
-		    db.execSQL("DROP TABLE IF EXISTS " + USER_TABLE_NAME);
-		    db.execSQL("DROP TABLE IF EXISTS " + MESSAGE_TABLE_NAME);
+		    db.execSQL("DROP TABLE IF EXISTS " + SERVER_TABLE_NAME);
+		    db.execSQL("DROP TABLE IF EXISTS " + CARD_TABLE_NAME);
 		    onCreate(db);
 
 	}
