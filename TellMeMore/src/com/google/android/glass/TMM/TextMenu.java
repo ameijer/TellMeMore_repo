@@ -22,6 +22,8 @@ public class TextMenu extends Activity {
 	public static final String EXTRA_SELECTED_ID = "selected_id";
 	public static final String EXTRA_LAST_TEXT_POS = "last_TEXT_pos";
 	public static final String EXTRA_NARRATION_REQUESTED = "narration_requested";
+	
+	
 	public static final int DEFAULT_TEXT_POS = -1;
 	private static final int DEFAULT_ID = 0;
 	private static final int DEFAULT_POS = 0;
@@ -87,13 +89,6 @@ public class TextMenu extends Activity {
     @Override
     public void onOptionsMenuClosed(Menu menu) {
     	mAudioManager.playSoundEffect(Sounds.DISMISSED);
-        // assume the user wants to resume
-    	Intent intent = new Intent(this, AudioPlayer.class);
-        
-        Log.i(TAG, "last posit passed through to new player: " + lastPos);
-        intent.putExtra(EXTRA_LAST_TEXT_POS, lastPos);
-        intent.putExtra(EXTRA_SELECTED_POS, cardPos);
-        startActivity(intent);
         finish();
     }
 }

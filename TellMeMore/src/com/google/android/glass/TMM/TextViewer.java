@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -16,14 +17,21 @@ import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.View;
+import android.view.View.MeasureSpec;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.google.android.glass.TMM.TextElement.Type;
 import com.google.android.glass.media.Sounds;
 //import com.google.android.glass.app.Card;
 //import com.google.android.glass.timeline.TimelineManager;
@@ -42,30 +50,19 @@ public class TextViewer extends Activity{
 	public static final boolean DEFAULT_NARR = false;
 	public static final String EXTRA_LAST_TEXT_POS = "last_TEXT_pos";
 	public static final int DEFAULT_TEXT_POS = -1;
-	//public static final String EXTRA_PLAYER_POS = "selected_player_pos";
-	//public static final String EXTRA_LAST_PLAYER_POS = "last_player_pos";
 	public static final int TIME_TO_SEEK = 100;
 	private static final int KEY_SWIPE_DOWN = 4;
 	private static final int DEFAULT_POS = 0;
 	private static final int DEFAULT_ID = 0;
-	//private myListener mlistener;
+	int height;
 	private long cardPos, cardId;
 	private Context act_context; 
-	//private ImageView bkgrnd, stat_icon; 
-	//private TextView help_txt;
-	//private SliderView prog;
-	//private FrameLayout layout;
 	private AudioManager mAudioManager;
 	private TextToSpeech mSpeech;
-	//private boolean paused;
-	//public static Activity player; 
-	//MediaPlayer mediaPlayer;
-	//Thread progUpdater;
-	private int lastPos;
+	private int lastPos, temp;
 	private ArrayList<TextElement> toShow;
-	private ListView mView;
-	private TextViewerListAdapter customAdapter;
-	private HeadListView headScroll;
+	private LinearLayout mView;
+	private HeadScrollView scroller;
 
 
 	@Override
@@ -95,7 +92,8 @@ public class TextViewer extends Activity{
 		//TODO
 		//help_txt.setText("tap to pause");
 		setContentView(R.layout.textviewer_layout);
-		mView = (ListView) findViewById(R.id.textList);
+	
+		scroller = (HeadScrollView) findViewById(R.id.outertextList);
 		mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
 
@@ -123,12 +121,12 @@ public class TextViewer extends Activity{
 		act_context = this;
 
 		startService(new Intent(this, TextViewerSupportService.class));
-		customAdapter = new TextViewerListAdapter(this, toShow);
+		//customAdapter = new TextViewerListAdapter(this, toShow);
 
-		Log.i(TAG, "Textviewadapter customadapter: " + customAdapter);
+		mView = (LinearLayout) findViewById(R.id.innertextList);
+		//Log.i(TAG, "Textviewadapter customadapter: " + customAdapter);
 		Log.i(TAG, "View being used: " + mView);
-		mView.setAdapter(customAdapter);
-		mView.setBackgroundColor(getResources().getColor(R.color.black_trans));
+		mView.setBackgroundColor(getResources().getColor(R.color.black));
 
 		mSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
 			@Override
@@ -138,10 +136,20 @@ public class TextViewer extends Activity{
 			}
 		});
 
-		headScroll = (HeadListView) findViewById(R.id.textList);
+	//	headScroll = (HeadListView) findViewById(R.id.textList);
 		Log.i(TAG, "onCreate finished");
+		scroller.enableScrolling();
 
-
+		new Thread(new Runnable() {
+			public void run() {
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				scroller.enableScrolling();
+			}
+		}).start();
 	}
 
 
@@ -150,26 +158,66 @@ public class TextViewer extends Activity{
 		public void onReceive(Context context, Intent intent) {
 			Log.i(TAG, "onReceive called in textviewer");
 			TextViewerBundle bundl = (TextViewerBundle) intent.getParcelableExtra("data");
+			if(bundl != null){
 			toShow = bundl.getElems();
+			cardId = bundl.getId();
+			} else {
+				//we have received a close order since ther is no data to parse
+				peaceOut(context);
+				
+			}
 			if(toShow.size() < 1) {
 				Log.i(TAG, "NOTHING TO SHOW IN TEXTVIEW");
 				peaceOut(getContext());
 			}
 
-			cardId = bundl.getId();
+			
 			// get data from the table by the ListAdapter
-			customAdapter.addContent(toShow);
+			//customAdapter.addContent(toShow);
 
 			for(int i = 0; i < toShow.size(); i ++){
 				Log.v(TAG, "text contents of element " + i + ": " + toShow.get(i));
+				TextElement p = toShow.get(i);
+				if( p.getType() == Type.IMAGE){
+					ImageView pic = new ImageView(context);
+					Bitmap bmp = BitmapFactory.decodeByteArray(p.getImg(), 0, p.getImg().length);
+					Log.d(TAG, "length of bitmap to be decoded: " + p.getImg().length);
+					Log.d(TAG, "BMP Generated: " + bmp);
+					pic.setImageBitmap(bmp);
+					mView.addView(pic);
+					TextView cap = new TextView(context);
+					cap.setText(p.getText());
+					cap.setGravity(Gravity.CENTER);
+					cap.setPadding(0, -10, 0, 30);
+					mView.addView(cap);
+				}else if( p.getType() == Type.TEXT_){
+					TextView cap = new TextView(context);
+					cap.setText(p.getText());
+					mView.addView(cap);
+				}
+				
+				
 			}
+			
+			
+			new Thread(new Runnable() {
+				public void run() {
+					try {
+						Thread.sleep(2000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					scroller.enableScrolling();
+				}
+			}).start();
+			
 		}
 	};
 
 
 	@Override
 	public void onResume(){
-		headScroll.activate();
+		scroller.activate();
 		super.onResume();
 		cardPos =  getIntent().getIntExtra(EXTRA_SELECTED_POS, DEFAULT_POS);
 		cardId =  getIntent().getIntExtra(EXTRA_SELECTED_ID, DEFAULT_ID);
@@ -182,8 +230,8 @@ public class TextViewer extends Activity{
 		//it is narrating
 
 		if(narrate && lastPos > -1){
-			String toSpeak = customAdapter.getItem(lastPos).getText();
-			mSpeech.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, null);
+	//		String toSpeak = customAdapter.getItem(lastPos).getText();
+		//	mSpeech.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, null);
 		}
 	}
 
@@ -196,7 +244,7 @@ public class TextViewer extends Activity{
 
 	@Override
 	public void onPause() {
-		headScroll.deactivate();
+	scroller.deactivate();
 		super.onPause();
 		mSpeech.stop();
 
@@ -217,7 +265,7 @@ public class TextViewer extends Activity{
 					//	menuintent.putExtra(EXTRA_LAST_PLAYER_POS, mediaPlayer.getCurrentPosition());
 					menuintent.putExtra(EXTRA_SELECTED_ID, cardId);
 					menuintent.putExtra(EXTRA_SELECTED_POS, cardPos);
-					menuintent.putExtra(EXTRA_LAST_TEXT_POS, headScroll.getLastVisiblePosition());
+				//	menuintent.putExtra(EXTRA_LAST_TEXT_POS, headScroll.getLastVisiblePosition());
 					Log.i(TAG, "cardPos passed to menu: " + cardPos);
 					//		mediaPlayer.release();
 					startActivity(menuintent);
@@ -230,10 +278,8 @@ public class TextViewer extends Activity{
 					// do something on left (backwards) swipe
 					Log.i(TAG, "swipe_left method called");
 					//mAudioManager.playSoundEffect(Sounds.);
-
-					//if(mediaPlayer.isPlaying()){
-					//	mediaPlayer.seek(mediaPlayer.getCurrentPosition() + TIME_TO_SEEK);
-					//}
+					
+					
 
 
 					//peaceOut(act_context);
@@ -257,17 +303,7 @@ public class TextViewer extends Activity{
 			@Override
 			public boolean onScroll(float displacement, float delta, float velocity) {
 
-				mAudioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
-				try{
-					//seeking 
-					//	if(velocity > 0){
-					Log.i(TAG, "scroll detected, velocity: " + velocity);
-					//	if(mediaPlayer.getCurrentPosition() > TIME_TO_SEEK){
-					//			mediaPlayer.seekTo((int) (mediaPlayer.getCurrentPosition() +  TIME_TO_SEEK * velocity ));
-					//		}
-				} catch (IllegalStateException e){
-
-				}
+				
 
 				return true;
 			}

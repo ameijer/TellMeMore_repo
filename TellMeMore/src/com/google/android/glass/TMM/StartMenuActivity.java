@@ -42,6 +42,11 @@ public class StartMenuActivity extends Activity {
                 Intent intent = new Intent(this, ScanActivity.class);
                 startActivity(intent);
                 return true;
+                
+            case R.id.disable_tooltip_item:
+            	stopService(new Intent(StartMenuActivity.this, TMMService.class));
+            	finish();
+            	return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

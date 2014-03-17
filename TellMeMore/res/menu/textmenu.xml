@@ -1,7 +1,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/narrate"
-        android:title="@string/resume_audio"  
+        android:title="@string/narrate_txt"  
         android:icon="@drawable/ic_read_aloud" /> 
        
     <item

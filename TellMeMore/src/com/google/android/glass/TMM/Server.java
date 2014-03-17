@@ -81,5 +81,8 @@ public class Server implements Serializable{
 		this.id = int1;
 		
 	}
+	public long getId(){
+		return id;
+	}
 
 }
