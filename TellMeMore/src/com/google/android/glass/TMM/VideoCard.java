@@ -22,6 +22,12 @@ public class VideoCard extends TMMCard implements Serializable{
 		super(handle, priority, cardTitle);
 
 	}
+	
+	public VideoCard(int handle, int priority, String cardTitle, String ytId) {
+		super(handle, priority, cardTitle);
+		YTtag = ytId;
+
+	}
 
 	public VideoCard(int handle, int id, int priority, String cardTitle, byte[] screenshot) {
 		super(handle, id, priority, cardTitle);

@@ -23,38 +23,40 @@ public class AudioCard extends TMMCard implements Serializable{
 	
 	private byte[] background;
 	
-	private byte[] audioClip;
+	private String audioClipPath;
 
 
-	public AudioCard(int handle, int priority, String cardTitle) {
+	public AudioCard(int handle, int priority, String cardTitle, String path) {
 		super(handle, priority, cardTitle);
 		
 		this.background = null;
-		this.audioClip = null;
+		this.audioClipPath = path;
 	}
 	
 	public AudioCard(int handle, int id, int priority, String cardTitle, int length, byte[] background) {
 		super(handle, id, priority, cardTitle);
 		this.lengthMillis = length;
 		this.background = background;
+		this.audioClipPath = null;
 	}
 	
 	public AudioCard(int handle, int id, int priority, String cardTitle, byte[] background) {
 		super(handle, id, priority, cardTitle);
 		this.background = background;
+		this.audioClipPath = null;
 	}
 	
-	public AudioCard(int handle, int id, int priority, String cardTitle, int length, byte[] background, byte[] content) {
+	public AudioCard(int handle, int id, int priority, String cardTitle, int length, byte[] background, String contentPath) {
 		super(handle, id, priority, cardTitle);
 		this.lengthMillis = length;
 		this.background = background;
-		this.audioClip = content;
+		this.audioClipPath = contentPath;
 	}
 	
-	public AudioCard(int handle, int id, int priority, String cardTitle, byte[] background, byte[] content) {
+	public AudioCard(int handle, int id, int priority, String cardTitle, byte[] background, String contentPath) {
 		super(handle, id, priority, cardTitle);
 		this.background = background;
-		this.audioClip = content;
+		this.audioClipPath = contentPath;
 	}
 
 	public int getNumPlays() {
@@ -81,12 +83,12 @@ public class AudioCard extends TMMCard implements Serializable{
 		this.background = background;
 	}
 
-	public byte[] getAudioClip() {
-		return audioClip;
+	public String getAudioClipPath() {
+		return audioClipPath;
 	}
 
-	public void setAudioClip(byte[] audioClip) {
-		this.audioClip = audioClip;
+	public void setAudioClip(String audioClipPath) {
+		this.audioClipPath = audioClipPath;
 	}
 
 

@@ -107,7 +107,7 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 			} else {
 				//1, 5, 7
 				//create audio card
-				toReturn[i] = new AudioCard(i,  i, "Audio Card title: Card " + uniqueId);
+				toReturn[i] = new AudioCard(i,  i, "Audio Card title: Card " + uniqueId, "path/to/file");
 			}
 
 

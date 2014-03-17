@@ -18,6 +18,11 @@ public class TextCard extends TMMCard implements Serializable{
 		this.icon = icon_img;
 	}
 	
+	public TextCard(int handle, int priority, String cardTitle) {
+		super(handle, priority, cardTitle);
+		this.icon = null;
+	}
+	
 	public TextCard(int handle, int id, int priority, String cardTitle) {
 		super(handle, id, priority, cardTitle);
 		this.icon = null;

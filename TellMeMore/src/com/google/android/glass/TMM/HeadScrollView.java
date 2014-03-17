@@ -96,9 +96,7 @@ public class HeadScrollView extends ScrollView implements SensorEventListener {
 		SensorManager.remapCoordinateSystem(mat, SensorManager.AXIS_X, SensorManager.AXIS_Z, mat);
 		SensorManager.getOrientation(mat, orientation);
 
-		float z = orientation[0], // see https://developers.google.com/glass/develop/gdk/location-sensors/index
-				x = orientation[1],
-				y = orientation[2];
+		float z = orientation[0], x = orientation[1], y = orientation[2];
 
 
 		float diff =  ((x - lastX) * 100); 
