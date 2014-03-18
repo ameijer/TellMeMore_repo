@@ -39,7 +39,10 @@
         android:label="your tests label"
         android:targetPackage="com.google.android.glass.TMM" />
 
+  
+    
     <application
+        android:name=".TellMeMoreApplication"
         android:allowBackup="true"
         android:icon="@drawable/ic_tell_me_more"
         android:label="@string/app_name" >
@@ -113,6 +116,13 @@
             android:enabled="true"
             android:label="@string/app_name" >
         </service>
+        
+        <service
+            android:name="com.google.android.glass.TMM.CardLoaderService"
+            android:enabled="true"
+            android:label="@string/app_name" >
+        </service>
+        
         <service
             android:name="com.google.android.glass.TMM.TMMService"
             android:enabled="true"

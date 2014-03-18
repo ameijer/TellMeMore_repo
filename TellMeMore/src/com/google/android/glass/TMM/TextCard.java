@@ -24,12 +24,12 @@ public class TextCard extends TMMCard implements Serializable{
 	}
 	
 	public TextCard(int handle, int id, int priority, String cardTitle, Server source) {
-		super(handle, priority, cardTitle, source);
+		super(handle, id, priority, cardTitle, source);
 		this.icon = null;
 		
 	}
 	public TextCard(int handle, int id, int priority, String cardTitle, String line1, String line2, String line3, Server source) {
-		super(handle, priority, cardTitle, source);
+		super(handle, id, priority, cardTitle, source);
 		this.icon = null;
 		this.line1 = line1;
 		this.line2 = line2;
@@ -38,7 +38,7 @@ public class TextCard extends TMMCard implements Serializable{
 	}
 	
 	public TextCard(int handle, int id, int priority, String cardTitle, String line1, String line2, String line3, byte[] icon_img, Server source) {
-		super(handle, priority, cardTitle, source);
+		super(handle, id, priority, cardTitle, source);
 		this.icon = null;
 		this.line1 = line1;
 		this.line2 = line2;
@@ -48,7 +48,7 @@ public class TextCard extends TMMCard implements Serializable{
 	}
 	
 	public TextCard(int handle, int id, int priority, String cardTitle, String line1, String line2, String line3, ArrayList<TextElement> content, Server source) {
-		super(handle, priority, cardTitle, source);
+		super(handle, id, priority, cardTitle, source);
 		this.icon = null;
 		this.line1 = line1;
 		this.line2 = line2;
@@ -57,8 +57,30 @@ public class TextCard extends TMMCard implements Serializable{
 		
 	}
 	
-	public TextCard(int handle, int id, int priority, String cardTitle, String line1, String line2, String line3, byte[] icon_img, ArrayList<TextElement> content, Server source) {
+	public TextCard(int handle, int priority, String cardTitle, String line1, String line2, String line3, ArrayList<TextElement> content, Server source) {
 		super(handle, priority, cardTitle, source);
+		this.icon = null;
+		this.line1 = line1;
+		this.line2 = line2;
+		this.line3 = line3;
+		this.icon = null;
+		this.setContents(content);
+		
+	}
+	
+	public TextCard(int handle, int priority, String cardTitle, String line1, String line2, String line3, byte[] icon_img, ArrayList<TextElement> content, Server source) {
+		super(handle, priority, cardTitle, source);
+		this.icon = null;
+		this.line1 = line1;
+		this.line2 = line2;
+		this.line3 = line3;
+		this.icon = icon_img;
+		this.setContents(content);
+		
+	}
+	
+	public TextCard(int handle, int id, int priority, String cardTitle, String line1, String line2, String line3, byte[] icon_img, ArrayList<TextElement> content, Server source) {
+		super(handle, id, priority, cardTitle, source);
 		this.icon = null;
 		this.line1 = line1;
 		this.line2 = line2;
