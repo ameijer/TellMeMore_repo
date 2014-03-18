@@ -12,7 +12,7 @@
      distributed under the License is distributed on an "AS IS" BASIS,
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
-     limitations under the License.
+     limitations under the License.
 -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
@@ -34,6 +34,11 @@
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
+    <instrumentation
+        android:name="android.test.InstrumentationTestRunner"
+        android:label="your tests label"
+        android:targetPackage="com.google.android.glass.TMM" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_tell_me_more"
@@ -43,6 +48,8 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+
+        <uses-library android:name="android.test.runner" />
 
         <activity
             android:name="com.google.android.glass.TMM.VideoPlayer"
@@ -55,7 +62,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
 
                 <action android:name="android.intent.action.MAIN" />
-            </intent-filter>
+            </intent-filter>
             -->
         </activity>
         <activity

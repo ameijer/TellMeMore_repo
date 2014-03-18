@@ -20,24 +20,35 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 
 	//the DB id
 	private long id;
+	
+	private Server source = new Server("NO SERVER ASSIGNED", "NO SERVER ASSIGNED", 0, 0);
 
 
 
 
 	//only for use when creating card from DB
-	public TMMCard(int handle, int id, int priority, String cardTitle){
+	public TMMCard(int handle, int id, int priority, String cardTitle, Server source){
 		this.handle= handle;
 		this.id=id;
 		this.priority = priority;
 		this.title = cardTitle;
+		
+		if(source != null){
+			this.source = source;
+		}
 	}
 
 	//only for use when creating card from DB
-	public TMMCard(int handle,  int priority, String cardTitle){
+	public TMMCard(int handle,  int priority, String cardTitle, Server source){
 		this.handle= handle;
 		this.id= -1;
 		this.priority = priority;
 		this.title = cardTitle;
+		
+		if(source != null){
+			this.source = source;
+		}
+		
 	}
 
 
@@ -99,6 +110,14 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 	@Override
 	public String toString(){
 		return "TMM Card: " + title + " with DB id: " + id;
+	}
+
+	public Server getSource() {
+		return source;
+	}
+
+	public void setSource(Server source) {
+		this.source = source;
 	}
 
 

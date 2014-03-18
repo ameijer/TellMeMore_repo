@@ -91,23 +91,23 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 				//create text card
 				//	toReturn[i] = new TextCard
 				if(flag){
-					toReturn[i] = new TextCard(i, i, i, "Text Card title: Card " + uniqueId, "Summary info line 1", "Summary info line 2", "Summary info line 3");
+					toReturn[i] = new TextCard(i, i, i, "Text Card title: Card " + uniqueId, "Summary info line 1", "Summary info line 2", "Summary info line 3", null);
 					flag = !flag;
 
 				} else {
 					byte[] junkBytes = new byte[]{0x34, 0x41};
 
-					toReturn[i] = new TextCard(i, i, i, "Text Card title: Card " + uniqueId, "Summary info line 1", "Summary info line 2", "Summary info line 3", junkBytes );
+					toReturn[i] = new TextCard(i, i, i, "Text Card title: Card " + uniqueId, "Summary info line 1", "Summary info line 2", "Summary info line 3", junkBytes, null);
 					flag= !flag;
 				}
 			} else if(i%2 == 0){
 				//2, 4, 8
 				//create video card
-				toReturn[i] = new VideoCard(i, i, "Video Card title: Card " + uniqueId);
+				toReturn[i] = new VideoCard(i, i, "Video Card title: Card " + uniqueId, null);
 			} else {
 				//1, 5, 7
 				//create audio card
-				toReturn[i] = new AudioCard(i,  i, "Audio Card title: Card " + uniqueId, "path/to/file");
+				toReturn[i] = new AudioCard(i,  i, "Audio Card title: Card " + uniqueId, "path/to/file", null);
 			}
 
 

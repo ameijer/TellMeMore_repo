@@ -18,40 +18,40 @@ public class VideoCard extends TMMCard implements Serializable{
 
 
 
-	public VideoCard(int handle, int priority, String cardTitle) {
-		super(handle, priority, cardTitle);
+	public VideoCard(int handle, int priority, String cardTitle, Server source) {
+		super(handle, priority, cardTitle, source);
 
 	}
 	
-	public VideoCard(int handle, int priority, String cardTitle, String ytId) {
-		super(handle, priority, cardTitle);
+	public VideoCard(int handle, int priority, String cardTitle, String ytId, Server source) {
+		super(handle, priority, cardTitle, source);
 		YTtag = ytId;
 
 	}
 
-	public VideoCard(int handle, int id, int priority, String cardTitle, byte[] screenshot) {
-		super(handle, id, priority, cardTitle);
+	public VideoCard(int handle, int id, int priority, String cardTitle, byte[] screenshot, Server source) {
+		super(handle, priority, cardTitle, source);
 		this.setScreenshot(screenshot);
 
 	}
 
-	public VideoCard(int handle, int id, int priority, String cardTitle, byte[] screenshot, int playcount) {
-		super(handle, id, priority, cardTitle);
+	public VideoCard(int handle, int id, int priority, String cardTitle, byte[] screenshot, int playcount, Server source) {
+		super(handle, priority, cardTitle, source);
 		this.setScreenshot(screenshot);
 		this.playCount = playcount;
 
 	}
 	
 	
-	public VideoCard(int handle, int id, int priority, String cardTitle, byte[] screenshot, String youTubeTag) {
-		super(handle, id, priority, cardTitle);
+	public VideoCard(int handle, int id, int priority, String cardTitle, byte[] screenshot, String youTubeTag, Server source) {
+		super(handle, priority, cardTitle, source);
 		this.setScreenshot(screenshot);
 		this.setYTtag(youTubeTag);
 
 	}
 
-	public VideoCard(int handle, int id, int priority, String cardTitle, byte[] screenshot, int playcount, String youTubeTag) {
-		super(handle, id, priority, cardTitle);
+	public VideoCard(int handle, int id, int priority, String cardTitle, byte[] screenshot, int playcount, String youTubeTag, Server source) {
+		super(handle, priority, cardTitle, source);
 		this.setScreenshot(screenshot);
 		this.playCount = playcount;
 		this.setYTtag(youTubeTag);

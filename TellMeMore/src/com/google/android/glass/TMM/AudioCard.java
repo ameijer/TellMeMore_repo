@@ -26,35 +26,35 @@ public class AudioCard extends TMMCard implements Serializable{
 	private String audioClipPath;
 
 
-	public AudioCard(int handle, int priority, String cardTitle, String path) {
-		super(handle, priority, cardTitle);
+	public AudioCard(int handle, int priority, String cardTitle, String path, Server source) {
+		super(handle, priority, cardTitle, source);
 		
 		this.background = null;
 		this.audioClipPath = path;
 	}
 	
-	public AudioCard(int handle, int id, int priority, String cardTitle, int length, byte[] background) {
-		super(handle, id, priority, cardTitle);
+	public AudioCard(int handle, int id, int priority, String cardTitle, int length, byte[] background, Server source) {
+		super(handle, id, priority, cardTitle, source);
 		this.lengthMillis = length;
 		this.background = background;
 		this.audioClipPath = null;
 	}
 	
-	public AudioCard(int handle, int id, int priority, String cardTitle, byte[] background) {
-		super(handle, id, priority, cardTitle);
+	public AudioCard(int handle, int id, int priority, String cardTitle, byte[] background, Server source) {
+		super(handle, id, priority, cardTitle, source);
 		this.background = background;
 		this.audioClipPath = null;
 	}
 	
-	public AudioCard(int handle, int id, int priority, String cardTitle, int length, byte[] background, String contentPath) {
-		super(handle, id, priority, cardTitle);
+	public AudioCard(int handle, int id, int priority, String cardTitle, int length, byte[] background, String contentPath, Server source) {
+		super(handle, id, priority, cardTitle, source);
 		this.lengthMillis = length;
 		this.background = background;
 		this.audioClipPath = contentPath;
 	}
 	
-	public AudioCard(int handle, int id, int priority, String cardTitle, byte[] background, String contentPath) {
-		super(handle, id, priority, cardTitle);
+	public AudioCard(int handle, int id, int priority, String cardTitle, byte[] background, String contentPath, Server source) {
+		super(handle, id, priority, cardTitle, source);
 		this.background = background;
 		this.audioClipPath = contentPath;
 	}

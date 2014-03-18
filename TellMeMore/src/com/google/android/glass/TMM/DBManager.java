@@ -54,51 +54,58 @@ public class DBManager {
 		return database.rawQuery("select * from " + table_name,null);
 	}
 
-	public void deleteDB(Context context){
+	public boolean deleteDB(Context context){
 		close();
 		ContextWrapper wrapper = new ContextWrapper(context);
 		boolean result = wrapper.deleteDatabase(DBHelper.DATABASE_NAME);
 		Log.d(TAG, "DB deleted, delete returned " + result);
+		return result;
 	}
 
 	private Server cursorToServer(Cursor cursor){
-		//convert blob to server data
+		if(cursor.getCount() > 0){
+			//convert blob to server data
 
-		byte[] blob = cursor.getBlob(cursor.getColumnIndexOrThrow(DBHelper.COLUMN_SERVER_DATA));
-		//a straightforward de-serialization process
-		ObjectInputStream in;
-		try {
-			in = new ObjectInputStream(new ByteArrayInputStream(blob));
-		} catch (StreamCorruptedException e1) {
-			e1.printStackTrace();
-			return null;
-		} catch (IOException e1) {
-			e1.printStackTrace();
-			return null;
-		}
+			byte[] blob = cursor.getBlob(cursor.getColumnIndexOrThrow(DBHelper.COLUMN_SERVER_DATA));
+			//a straightforward de-serialization process
+			ObjectInputStream in;
+			try {
+				in = new ObjectInputStream(new ByteArrayInputStream(blob));
+			} catch (StreamCorruptedException e1) {
+				e1.printStackTrace();
+				return null;
+			} catch (IOException e1) {
+				e1.printStackTrace();
+				return null;
+			}
 
-		Server thisServer;
-		try {
-			//read in an object input stream into a new TMMCARD
-			thisServer = (Server) in.readObject();
-		} catch (OptionalDataException e) {
-			e.printStackTrace();
-			return null;
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-			return null;
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
+			Server thisServer;
+			try {
+				//read in an object input stream into a new TMMCARD
+				thisServer = (Server) in.readObject();
+			} catch (OptionalDataException e) {
+				e.printStackTrace();
+				return null;
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+				return null;
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
 
-		if (thisServer != null){
-			thisServer.setId(cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.SERVER_ID)));
-			thisServer.setName(cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.COLUMN_SERVER_NAME)));
+			if (thisServer != null){
+				thisServer.setId(cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.SERVER_ID)));
+				thisServer.setName(cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.COLUMN_SERVER_NAME)));
+			} else {
+				Log.e(TAG, "NULL CARD RETURNED");
+			}
+			return thisServer;
 		} else {
-			Log.e(TAG, "NULL CARD RETURNED");
+			Log.w(TAG, "Attempted to convert an empty cursor to a server object");
+			return null;
 		}
-		return thisServer;
+
 	}
 
 
@@ -106,54 +113,63 @@ public class DBManager {
 	private TMMCard cursorToCard(Cursor cursor){
 		//convert blob to TMMcard
 
-		byte[] blob = cursor.getBlob(cursor.getColumnIndexOrThrow(DBHelper.COLUMN_CARD_DATA));
-		//a straightforward de-serialization process
-		ObjectInputStream in;
-		try {
-			in = new ObjectInputStream(new ByteArrayInputStream(blob));
+		//if cursor has nothing in it, then we return a null for the created card 
+		if(cursor.getCount() > 0){
+			int blobIndex = cursor.getColumnIndexOrThrow(DBHelper.COLUMN_CARD_DATA); 
+			Log.d(TAG, "column index of blob: " + blobIndex);
+			
+			byte[] blob = cursor.getBlob(blobIndex);
+			//a straightforward de-serialization process
+			ObjectInputStream in;
+			try {
+				in = new ObjectInputStream(new ByteArrayInputStream(blob));
 
-		} catch (StreamCorruptedException e1) {
-			e1.printStackTrace();
-			return null;
-		} catch (IOException e1) {
-			e1.printStackTrace();
-			return null;
-		}
+			} catch (StreamCorruptedException e1) {
+				e1.printStackTrace();
+				return null;
+			} catch (IOException e1) {
+				e1.printStackTrace();
+				return null;
+			}
 
-		TMMCard dbcard;
-		try {
-			//read in an object input stream into a new TMMCARD
-			dbcard = (TMMCard) in.readObject();
-			in.close();
-		} catch (OptionalDataException e) {
-			e.printStackTrace();
-			return null;
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-			return null;
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
-		if (dbcard != null){
-			dbcard.setId(cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.CARD_ID)));
+			TMMCard dbcard;
+			try {
+				//read in an object input stream into a new TMMCARD
+				dbcard = (TMMCard) in.readObject();
+				in.close();
+			} catch (OptionalDataException e) {
+				e.printStackTrace();
+				return null;
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+				return null;
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
+			if (dbcard != null){
+				dbcard.setId(cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.CARD_ID)));
+			} else {
+				Log.e(TAG, "NULL CARD RETURNED");
+			}
+			return dbcard;
 		} else {
-			Log.e(TAG, "NULL CARD RETURNED");
+			Log.w(TAG, "tried to create a card from an empty cursor. returning null card");
+			return null;
 		}
-		return dbcard;
 	}
 
 
 
 	public TMMCard findCardById(long id){
 		Cursor cursor = database.query(DBHelper.CARD_TABLE_NAME, null, DBHelper.CARD_ID + " = " + id, null, null, null, null);
-		
+		cursor.moveToFirst();
 		return cursorToCard(cursor);
 	}
 
 
 	//returns the message as it exists in the DB
-	public synchronized TMMCard addCard(TMMCard toAdd, Server origin) throws IOException{
+	public synchronized TMMCard addCard(TMMCard toAdd) throws IOException{
 
 		//check if card already exists. 
 		if(toAdd.getId() > 0){
@@ -183,7 +199,7 @@ public class DBManager {
 		//time received, as millis
 		values.put(DBHelper.COLUMN_MODIFIED, System.currentTimeMillis());
 		//server data
-		values.put(DBHelper.COLUMN_SERVER, origin.getName());
+		values.put(DBHelper.COLUMN_SERVER, toAdd.getSource().getName());
 		//type of card, as string
 		if(toAdd instanceof AudioCard){
 			values.put(DBHelper.COLUMN_CARD_TYPE, DBHelper.AUDIO);
@@ -229,7 +245,7 @@ public class DBManager {
 		}
 
 		//check if server with same name exists. we will delete the existing server to enforce the uniqueness of server names 
-		
+
 		Server existing = findServerByName(toAdd.getName());
 		if(existing != null) {
 			deleteServer(existing);
@@ -293,7 +309,7 @@ public class DBManager {
 
 	public synchronized TMMCard deleteCard(TMMCard toDelete){
 		TMMCard existing = findCardById(toDelete.getId());
-		
+
 		if(existing != null){
 			if(database.delete(DBHelper.CARD_TABLE_NAME, DBHelper.CARD_ID + " = '" + existing.getId() + "'", null) < 0) {
 				return null; //error
@@ -303,59 +319,59 @@ public class DBManager {
 
 	}
 
-	
+
 	//not really sure what to do for our cleaning method in this context. Leaving my old code here for reference
-//	public synchronized void cleanDB(){
-//		Thread clean_db = new Thread() {
-//			public void run(){
-//				ArrayList<User> userlist = new ArrayList<User>();
-//				Cursor cursor = database.rawQuery("SELECT * FROM " + DBHelper.USER_TABLE_NAME, null);
-//
-//				if(cursor.moveToFirst()){
-//					userlist.add(cursorToUser(cursor));
-//					Log.d(TAG, "added user: " + cursorToUser(cursor).getName() + " to user list from DB");
-//					Log.d(TAG, "Cursor at pos: " + cursor.getPosition());
-//					Log.d(TAG, "Moving Cursor Pos...");
-//					while(cursor.moveToNext()){
-//						userlist.add(cursorToUser(cursor));
-//						Log.d(TAG, "Cursor at pos: " + cursor.getPosition());
-//						Log.d(TAG, "added user: " + cursorToUser(cursor).getName() + " to user list from DB");
-//					}
-//
-//				}
-//				for(int i = 0; i < userlist.size(); i++){
-//					User userToCompare = userlist.get(i);
-//					Cursor userCursor = database.query(DBHelper.USER_TABLE_NAME, null, DBHelper.COLUMN_IP + "=?", new String[]{userToCompare.getIp()}, null, null, null);
-//					//should only be one user, the first one...
-//					if(userCursor.getCount() > 1){
-//						//then there are multiple users with the ip
-//						Log.d("clean", "Duplicates found. Num: " + userCursor.getCount());
-//						userCursor.moveToFirst();
-//						User target = cursorToUser(userCursor);
-//						if(target.getLast_seen() > userToCompare.getLast_seen()){
-//							database.delete(DBHelper.USER_TABLE_NAME, DBHelper.COLUMN_USER + " = '" + userToCompare.getName() + "'", null);
-//							Log.d("clean", "Removed user: " + userToCompare.getName() + " was same Ip as " + target.getName());
-//							userToCompare = target;
-//						}
-//						while(userCursor.moveToNext()){
-//							target = cursorToUser(userCursor);
-//							if(target.getLast_seen() > userToCompare.getLast_seen()){
-//								database.delete(DBHelper.USER_TABLE_NAME, DBHelper.COLUMN_USER + " = '" + userToCompare.getName() + "'", null);
-//								Log.d("clean", "Removed user: " + userToCompare.getName() + " was same Ip as " + target.getName());
-//								userToCompare = target;
-//							}
-//						}
-//					}
-//				}
-//
-//
-//
-//
-//			}
-//
-//		};
-//		clean_db.start();
-//	}
+	//	public synchronized void cleanDB(){
+	//		Thread clean_db = new Thread() {
+	//			public void run(){
+	//				ArrayList<User> userlist = new ArrayList<User>();
+	//				Cursor cursor = database.rawQuery("SELECT * FROM " + DBHelper.USER_TABLE_NAME, null);
+	//
+	//				if(cursor.moveToFirst()){
+	//					userlist.add(cursorToUser(cursor));
+	//					Log.d(TAG, "added user: " + cursorToUser(cursor).getName() + " to user list from DB");
+	//					Log.d(TAG, "Cursor at pos: " + cursor.getPosition());
+	//					Log.d(TAG, "Moving Cursor Pos...");
+	//					while(cursor.moveToNext()){
+	//						userlist.add(cursorToUser(cursor));
+	//						Log.d(TAG, "Cursor at pos: " + cursor.getPosition());
+	//						Log.d(TAG, "added user: " + cursorToUser(cursor).getName() + " to user list from DB");
+	//					}
+	//
+	//				}
+	//				for(int i = 0; i < userlist.size(); i++){
+	//					User userToCompare = userlist.get(i);
+	//					Cursor userCursor = database.query(DBHelper.USER_TABLE_NAME, null, DBHelper.COLUMN_IP + "=?", new String[]{userToCompare.getIp()}, null, null, null);
+	//					//should only be one user, the first one...
+	//					if(userCursor.getCount() > 1){
+	//						//then there are multiple users with the ip
+	//						Log.d("clean", "Duplicates found. Num: " + userCursor.getCount());
+	//						userCursor.moveToFirst();
+	//						User target = cursorToUser(userCursor);
+	//						if(target.getLast_seen() > userToCompare.getLast_seen()){
+	//							database.delete(DBHelper.USER_TABLE_NAME, DBHelper.COLUMN_USER + " = '" + userToCompare.getName() + "'", null);
+	//							Log.d("clean", "Removed user: " + userToCompare.getName() + " was same Ip as " + target.getName());
+	//							userToCompare = target;
+	//						}
+	//						while(userCursor.moveToNext()){
+	//							target = cursorToUser(userCursor);
+	//							if(target.getLast_seen() > userToCompare.getLast_seen()){
+	//								database.delete(DBHelper.USER_TABLE_NAME, DBHelper.COLUMN_USER + " = '" + userToCompare.getName() + "'", null);
+	//								Log.d("clean", "Removed user: " + userToCompare.getName() + " was same Ip as " + target.getName());
+	//								userToCompare = target;
+	//							}
+	//						}
+	//					}
+	//				}
+	//
+	//
+	//
+	//
+	//			}
+	//
+	//		};
+	//		clean_db.start();
+	//	}
 
 	//return ALL cards from all servers, sorted by priority
 	public synchronized ArrayList<TMMCard> getAllCards(){
@@ -413,10 +429,10 @@ public class DBManager {
 		}
 
 		cardCursor.close();
-		
+
 		//sort cards by priority
 		Collections.sort(matches);
-		
+
 		return matches;
 	}
 
