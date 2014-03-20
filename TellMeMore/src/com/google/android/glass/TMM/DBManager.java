@@ -306,6 +306,14 @@ public class DBManager {
 		return toDel;
 	}
 
+	public boolean deleteCardsByServer(String serverName){
+		ArrayList<TMMCard> toDel = findCardsbyServer(serverName);
+		
+		for(TMMCard temp : toDel){
+			deleteCard(temp);
+		}
+		return true;
+	}
 
 	public synchronized TMMCard deleteCard(TMMCard toDelete){
 		TMMCard existing = findCardById(toDelete.getId());

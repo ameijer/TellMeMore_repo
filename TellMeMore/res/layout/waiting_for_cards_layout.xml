@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/watingforcardsparent"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:keepScreenOn="true"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/watingforcardschild"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" 
+        android:text="downloading cards..."
+        />
+
+</LinearLayout>

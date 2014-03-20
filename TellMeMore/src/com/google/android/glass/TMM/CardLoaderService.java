@@ -11,12 +11,10 @@ import java.util.ArrayList;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
 import android.os.IBinder;
-import android.os.Parcelable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -25,23 +23,46 @@ import android.util.Log;
 public class CardLoaderService extends Service{
 	public static final String TAG = "TMM" +", " + CardLoaderService.class.getSimpleName();
 	private TellMeMoreApplication app;
+	public static final String TARGET_SERVER_KEY = "target_server";
+	public static final String EXAMPLE_CARD_SERVER = "example card generator";
+	private String targetServer;
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 
+		targetServer = intent.getStringExtra(TARGET_SERVER_KEY);
+		Log.d(TAG, "target server retreived from intent: " + targetServer);
+		
+		
+		if(targetServer == null){
+			Log.e(TAG, "no target server retreived! Using example server");
+			targetServer = EXAMPLE_CARD_SERVER;
+		}
+		
+		if(targetServer.equalsIgnoreCase(EXAMPLE_CARD_SERVER)){
+			app.db.deleteCardsByServer(EXAMPLE_CARD_SERVER);
+					try {
+						loadDBWithSamples();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+			
+			
+		} else { //we have an actual target
+			//TODO
+			//check DB for already existing cards
+			//if there aren't any already in the DB, then download it
+			//etc etc
+			
+			
+			//once cards are stored in the DB, alert the selectcardactivity
+			broadcastCardsLoaded(this, targetServer);
+			
+		}
 		//obtain a reference to the application singleton
 		app = ((TellMeMoreApplication)this.getApplication());
-		/*Parcelable toReturn = null;
-		try {
-			toReturn = makeDataBundle(0);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-
-		sendData(this, toReturn);
-		 */
+		
 		try {
 			loadDBWithSamples();
 		} catch (IOException e) {
@@ -52,8 +73,8 @@ public class CardLoaderService extends Service{
 	}
 
 	private void loadDBWithSamples() throws IOException{
-		Server source1 = new Server("CardloaderService's sample card generator first 'server'", "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
-		Server source2 = new Server("CardloaderService's sample card generator second 'server'", "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
+		Server source1 = new Server(EXAMPLE_CARD_SERVER, "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
+		//Server source2 = new Server("CardloaderService's sample card generator second 'server'", "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
 
 
 
@@ -106,6 +127,17 @@ public class CardLoaderService extends Service{
 
 		AudioCard audioCard1 = new AudioCard(0, 97, "Hear A Narration by the Student", file.getAbsolutePath(), source1);
 		app.db.addCard(audioCard1);
+		
+		VideoCard videoCard1 = new VideoCard(0, 90, "Watch the Experiment", "wtnI3kyCnmA", source1);
+		VideoCard videoCard2 = new VideoCard(0, 89, "View the presentation", "cn5mMJiPYmw", source1);
+		app.db.addCard(videoCard1);
+		app.db.addCard(videoCard2);
+		
+		app.db.addServer(source1);
+		//app.db.addServer(source2);
+		
+		//notify any waiting activities that we have finished loading the cards
+		broadcastCardsLoaded(this, source1.getName());
 	}
 
 
@@ -115,10 +147,6 @@ public class CardLoaderService extends Service{
 		String text_below_pic = "Later in life, A. Student went to Africa where he photographed all manner of things. In the western sahara, he captured another famous photo of the setting african sun that won him a prize.";
 		String caption1 = "\"When Clouds Attack\"";
 		String caption2 = "\"A Nice Orange Sunset\"";
-
-		ArrayList<String> textBlocks = new ArrayList<String>();
-		ArrayList<String> captions = new ArrayList<String>();
-		ArrayList<byte[]> pics = new ArrayList<byte[]>();
 
 		ArrayList<TextElement> retVals = new ArrayList<TextElement>();
 		TextElement e1;
@@ -158,10 +186,6 @@ public class CardLoaderService extends Service{
 		String caption2 = "The performance results.";
 		String caption3 = "The device used to make measurements.";
 
-		ArrayList<String> textBlocks = new ArrayList<String>();
-		ArrayList<String> captions = new ArrayList<String>();
-		ArrayList<byte[]> pics = new ArrayList<byte[]>();
-
 		ArrayList<TextElement> retVals = new ArrayList<TextElement>();
 		TextElement e1;
 
@@ -187,7 +211,7 @@ public class CardLoaderService extends Service{
 
 		Bitmap bmp3 = BitmapFactory.decodeResource(this.getResources(), R.raw.figure_3);
 		ByteArrayOutputStream stream3 = new ByteArrayOutputStream();
-		bmp2.compress(Bitmap.CompressFormat.PNG, 100, stream3);
+		bmp3.compress(Bitmap.CompressFormat.PNG, 100, stream3);
 		byte[] byteArray3 = stream3.toByteArray();
 
 		TextElement e5 = new TextElement(TextElement.Type.IMAGE, caption3, byteArray3);
@@ -200,29 +224,11 @@ public class CardLoaderService extends Service{
 
 
 	//we will use this to broadcast to the app when the cards are loaded
-	//TODO
-	public static void broadcastCardsLoaded(Context context, Parcelable data) {
-		//Intent intent = new Intent("TextViewer");
-		//intent.putExtra("data", data);
-		//LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+	public static void broadcastCardsLoaded(Context context, String serverName) {
+		Intent intent = new Intent("cards_loaded");
+		intent.putExtra("server_used", serverName);
+		LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 	}
-
-	//public synchronized TextViewerBundle makeDataBundle(int id) throws IOException{
-
-	//byte[] toDecode;
-	//make DB call using ID here, get array elements list
-	//	ArrayList<TextElement> contents = this.getSampleArr();
-
-	//TextViewerBundle toRet = new TextViewerBundle(id, contents);
-
-
-
-	//	return toRet;
-
-
-
-	//}
-
 
 
 	@Override

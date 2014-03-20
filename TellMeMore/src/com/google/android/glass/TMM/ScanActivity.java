@@ -41,6 +41,8 @@ public class ScanActivity extends Activity
 {
 	public static final String TAG = "TMM" +", " + ScanActivity.class.getSimpleName();
 	public static char uniqueId;
+	public static final String TARGET_SERVER_KEY = "target_server";
+	public static final String EXAMPLE_CARD_SERVER = "example card generator";
 	private GestureDetector mGestureDetector;
 	private TimelineManager mTimelineManager;
 	private static final int KEY_SWIPE_DOWN = 4;
@@ -109,6 +111,7 @@ public class ScanActivity extends Activity
 	{
 		if (keyCode == KEY_SWIPE_DOWN)
 		{
+			startCardDownload(EXAMPLE_CARD_SERVER);
 			// there was a swipe down event
 			Log.i(TAG, "hacky swipe_down method called");
 			mAudioManager.playSoundEffect(Sounds.DISMISSED);
@@ -191,7 +194,7 @@ public class ScanActivity extends Activity
 				SymbolSet syms = scanner.getResults();
 				for (Symbol sym : syms) {
 					text = sym.getData();
-					parseWifiInfo(text);
+					startCardDownload(text);
 					break;
 				}
 				mAudioManager.playSoundEffect(Sounds.SUCCESS);
@@ -230,9 +233,15 @@ public class ScanActivity extends Activity
 		}
 	};
 
-	void parseWifiInfo(String text)
+	void startCardDownload(String url)
 	{
-		Toast t = Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT);
+		
+		//start the card download service
+		//TODO -perform sanity check on the scanned text
+		Intent intent = new Intent(this, CardLoaderService.class);
+		intent.putExtra(TARGET_SERVER_KEY, url);
+        startService(intent);
+		Toast t = Toast.makeText(getApplicationContext(), url, Toast.LENGTH_SHORT);
 		t.show();
 		return;
 	}
