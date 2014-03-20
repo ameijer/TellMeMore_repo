@@ -2,6 +2,8 @@ package com.google.android.glass.TMM;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -12,6 +14,7 @@ import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Environment;
 import android.os.IBinder;
 import android.os.Parcelable;
 import android.support.v4.content.LocalBroadcastManager;
@@ -56,17 +59,53 @@ public class CardLoaderService extends Service{
 
 		TextCard textCard1 = new TextCard(0, 100, "About the Author", "A. Student", "", "Tap to read more", getSampleArr1(), source1);
 
-		
+
 		Bitmap bmp2 = BitmapFactory.decodeResource(this.getResources(), R.raw.acmicon);
 		ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
 		bmp2.compress(Bitmap.CompressFormat.PNG, 100, stream2);
 		byte[] iconArray = stream2.toByteArray();
-		
-		TextCard textCard2 = new TextCard(0, 99, "Read Paper Abstract", "From ACM PAUC", "A. Student and Dr. SoAndSo", "Published 1 Mar 2009",  iconArray, getSampleArr2(), source1);
 
-		
+		TextCard textCard2 = new TextCard(0, 99, "Read Paper Abstract", "From ACM PAUC", "A. Student and Dr. XYZ", "Published 1 Mar 2009",  iconArray, getSampleArr2(), source1);
+
 		app.db.addCard(textCard2);
 		app.db.addCard(textCard1);
+
+		String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm/powerpointdemo.mp3";
+		File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm");
+		dir.mkdirs();
+
+		File file = new File(dir, "powerpointdemo.mp3");
+
+		//manually write the audio file to the external to emulate it being downloaded
+		InputStream fIn = getBaseContext().getResources().openRawResource(R.raw.powerpointdemo);
+		byte[] buffer = null;
+		try {
+			int size = fIn.available();
+			buffer = new byte[size];
+			fIn.read(buffer);
+			fIn.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+			
+		}
+		
+		FileOutputStream save;
+	     try {
+	         save = new FileOutputStream(file);
+	         save.write(buffer);
+	         save.flush();
+	         save.close();
+	     } catch (FileNotFoundException e) {
+	         Log.e(TAG, "FileNotFoundException in second part");
+	         
+	     } catch (IOException e) {
+	         Log.e(TAG, "IOException in second part");
+	      
+	     }    
+	     
+
+		AudioCard audioCard1 = new AudioCard(0, 97, "Hear A Narration by the Student", file.getAbsolutePath(), source1);
+		app.db.addCard(audioCard1);
 	}
 
 
@@ -96,8 +135,8 @@ public class CardLoaderService extends Service{
 		retVals.add(e2);
 
 		TextElement e3;
-			e3 = new TextElement(TextElement.Type.TEXT_, text_below_pic);
-			retVals.add(e3);
+		e3 = new TextElement(TextElement.Type.TEXT_, text_below_pic);
+		retVals.add(e3);
 
 
 		Bitmap bmp2 = BitmapFactory.decodeResource(this.getResources(), R.raw.pic2);
@@ -107,11 +146,11 @@ public class CardLoaderService extends Service{
 
 		TextElement e4 = new TextElement(TextElement.Type.IMAGE, caption2, byteArray2);
 		retVals.add(e4);
-		
+
 		return retVals;
 	}
-	
-	
+
+
 	private ArrayList<TextElement> getSampleArr2(){
 
 		String text_above_pic = "In modern systems today, there is not really a good way to differentiate between blah and blahblah. In this paper, we present such and such novel solution. In inital testing, our solution provides several benefits while only incurring a 98% performance overhead.";
@@ -145,7 +184,7 @@ public class CardLoaderService extends Service{
 
 		TextElement e4 = new TextElement(TextElement.Type.IMAGE, caption2, byteArray2);
 		retVals.add(e4);
-		
+
 		Bitmap bmp3 = BitmapFactory.decodeResource(this.getResources(), R.raw.figure_3);
 		ByteArrayOutputStream stream3 = new ByteArrayOutputStream();
 		bmp2.compress(Bitmap.CompressFormat.PNG, 100, stream3);
@@ -153,11 +192,11 @@ public class CardLoaderService extends Service{
 
 		TextElement e5 = new TextElement(TextElement.Type.IMAGE, caption3, byteArray3);
 		retVals.add(e5);
-		
+
 		return retVals;
 	}
-	
-	
+
+
 
 
 	//we will use this to broadcast to the app when the cards are loaded
