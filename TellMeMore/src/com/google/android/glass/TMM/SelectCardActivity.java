@@ -49,57 +49,57 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 
 		// Register mMessageReceiver to receive messages.
 		LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("cards_loaded"));
-		
+
 		setContentView(R.layout.waiting_for_cards_layout);
 	}
 
 	private void registerListener(){
 		mDetector = new GestureDetector(this).setBaseListener(this);
 	}
-	
+
 	// handler for received Intents for the "my-event" event 
 	private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
-	  @Override
-	  public void onReceive(Context context, Intent intent) {
-	    // Extract data included in the Intent
-	    String serverName = intent.getStringExtra("server_used");
-	    Log.d(TAG, "Got message: " + serverName);
-	    
-	    
-	    cardArr = (TMMCard[]) app.db.findCardsbyServer(serverName).toArray();
-		mAdapter = new SelectCardScrollAdapter(
-				context, cardArr.length, cardArr );
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			// Extract data included in the Intent
+			String serverName = intent.getStringExtra("server_used");
+			Log.d(TAG, "Got message: " + serverName);
 
 
-		mView = new CardScrollView(context) {
-			@Override
-			public final boolean dispatchGenericFocusedEvent(MotionEvent event) {
-				if (mDetector.onMotionEvent(event)) {
-					return true;
+			cardArr = (TMMCard[]) app.db.findCardsbyServer(serverName).toArray();
+			mAdapter = new SelectCardScrollAdapter(
+					context, cardArr.length, cardArr );
+
+
+			mView = new CardScrollView(context) {
+				@Override
+				public final boolean dispatchGenericFocusedEvent(MotionEvent event) {
+					if (mDetector.onMotionEvent(event)) {
+						return true;
+					}
+					return super.dispatchGenericFocusedEvent(event);
 				}
-				return super.dispatchGenericFocusedEvent(event);
-			}
-		};
+			};
 
-		mView.deactivate();
-		mView.setHorizontalScrollBarEnabled(true);
+			mView.deactivate();
+			mView.setHorizontalScrollBarEnabled(true);
 
-		mView.setAdapter(mAdapter);
+			mView.setAdapter(mAdapter);
 
-		Log.i(TAG, "trying to start with card at postion: " + lastCard);
-		setContentView(mView);
-		//		Object id = mView.getItemForChildAt(lastCard);
-		//		if (id != null){
-		//			mView.setIdSelection(id);
-		//		}
-		mView.activate();
-		//mView.setSelection(lastCard);
-		registerListener();
-	  }
+			Log.i(TAG, "trying to start with card at postion: " + lastCard);
+			setContentView(mView);
+			//		Object id = mView.getItemForChildAt(lastCard);
+			//		if (id != null){
+			//			mView.setIdSelection(id);
+			//		}
+			mView.activate();
+			//mView.setSelection(lastCard);
+			registerListener();
+		}
 	};
-	
-	
-	
+
+
+
 	public static TMMCard[] getTestCards(int num) {
 
 		TMMCard[] toReturn = new TMMCard[num];
@@ -149,14 +149,18 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 	@Override
 	public void onResume() {
 		super.onResume();
-		mView.activate();
-		mView.setSelection(getIntent().getIntExtra(EXTRA_INITIAL_VALUE, 0));
+		if(mView != null){
+			mView.activate();
+			mView.setSelection(getIntent().getIntExtra(EXTRA_INITIAL_VALUE, 0));
+		}
 	}
 
 	@Override
 	public void onPause() {
-		super.onPause();
-		mView.deactivate();
+		if(mView != null){
+			super.onPause();
+			mView.deactivate();
+		}
 	}
 
 	@Override

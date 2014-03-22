@@ -117,7 +117,7 @@ public class DBManager {
 		if(cursor.getCount() > 0){
 			int blobIndex = cursor.getColumnIndexOrThrow(DBHelper.COLUMN_CARD_DATA); 
 			Log.d(TAG, "column index of blob: " + blobIndex);
-			
+
 			byte[] blob = cursor.getBlob(blobIndex);
 			//a straightforward de-serialization process
 			ObjectInputStream in;
@@ -215,6 +215,7 @@ public class DBManager {
 		//insert the new card data
 		long insert_id = database.insert(DBHelper.CARD_TABLE_NAME, null, values);
 
+		Log.d(TAG, "Card inserted with id: " + insert_id);
 		//query the message in the table and return it to make sure its there correctly
 		Cursor cursor = database.query(DBHelper.CARD_TABLE_NAME,
 				null, DBHelper.CARD_ID + " = " + insert_id, null,
@@ -308,7 +309,7 @@ public class DBManager {
 
 	public boolean deleteCardsByServer(String serverName){
 		ArrayList<TMMCard> toDel = findCardsbyServer(serverName);
-		
+
 		for(TMMCard temp : toDel){
 			deleteCard(temp);
 		}
@@ -416,26 +417,27 @@ public class DBManager {
 		Cursor cardCursor = database.query(DBHelper.CARD_TABLE_NAME, null, DBHelper.COLUMN_SERVER + "=?", new String[]{server}, null, null, null);
 		//should only be one user, the first one...
 		Log.d("findCardsbyServer", "number of rows found with that server: " + cardCursor.getCount());
-		cardCursor.moveToFirst();
-
 		ArrayList<TMMCard> matches = new ArrayList<TMMCard>();
+		if(cardCursor.getCount() > 0){
+			//cardCursor.moveToFirst();
+			
+			Log.d("findCardsbyServer", "number of rows found with that server before movetofirst: " + cardCursor.getCount());
+			if(cardCursor.moveToFirst()){
 
-		if(cardCursor.moveToFirst()){
-
-			//obtain the blob from the card, convert the card from that, and add it to the list
-			TMMCard temp = cursorToCard(cardCursor);
-			matches.add(temp);
-			Log.d(TAG, "added card: " + temp + " to card list from DB");
-			Log.d(TAG, "Cursor at pos: " + cardCursor.getPosition());
-			Log.d(TAG, "Moving Cursor Pos...");
-			while(cardCursor.moveToNext()){
-				temp = cursorToCard(cardCursor);
+				//obtain the blob from the card, convert the card from that, and add it to the list
+				TMMCard temp = cursorToCard(cardCursor);
 				matches.add(temp);
-				Log.d(TAG, "Cursor at pos: " + cardCursor.getPosition());
 				Log.d(TAG, "added card: " + temp + " to card list from DB");
+				Log.d(TAG, "Cursor at pos: " + cardCursor.getPosition());
+				Log.d(TAG, "Moving Cursor Pos...");
+				while(cardCursor.moveToNext()){
+					temp = cursorToCard(cardCursor);
+					matches.add(temp);
+					Log.d(TAG, "Cursor at pos: " + cardCursor.getPosition());
+					Log.d(TAG, "added card: " + temp + " to card list from DB");
+				}
 			}
-		}
-
+		}	
 		cardCursor.close();
 
 		//sort cards by priority

@@ -13,6 +13,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
@@ -27,118 +28,134 @@ public class CardLoaderService extends Service{
 	public static final String EXAMPLE_CARD_SERVER = "example card generator";
 	private String targetServer;
 
+
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
+		Server source1 = new Server(EXAMPLE_CARD_SERVER, "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
 
+		//obtain a reference to the application singleton
+		app = ((TellMeMoreApplication)this.getApplication());
 		targetServer = intent.getStringExtra(TARGET_SERVER_KEY);
 		Log.d(TAG, "target server retreived from intent: " + targetServer);
-		
-		
+
+
 		if(targetServer == null){
 			Log.e(TAG, "no target server retreived! Using example server");
 			targetServer = EXAMPLE_CARD_SERVER;
 		}
-		
+
 		if(targetServer.equalsIgnoreCase(EXAMPLE_CARD_SERVER)){
+			Log.d(TAG, "Cardloader service is using DB: " + app.db);
 			app.db.deleteCardsByServer(EXAMPLE_CARD_SERVER);
-					try {
-						loadDBWithSamples();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-			
-			
+			new loadDBWithSamplesTask().execute(this);
+			broadcastCardsLoaded(this, source1.getName());
 		} else { //we have an actual target
 			//TODO
 			//check DB for already existing cards
 			//if there aren't any already in the DB, then download it
 			//etc etc
-			
-			
+
+
 			//once cards are stored in the DB, alert the selectcardactivity
 			broadcastCardsLoaded(this, targetServer);
-			
+
 		}
-		//obtain a reference to the application singleton
-		app = ((TellMeMoreApplication)this.getApplication());
+
 		
-		try {
-			loadDBWithSamples();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		return Service.START_STICKY;
 	}
 
-	private void loadDBWithSamples() throws IOException{
-		Server source1 = new Server(EXAMPLE_CARD_SERVER, "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
-		//Server source2 = new Server("CardloaderService's sample card generator second 'server'", "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
+	private class loadDBWithSamplesTask extends AsyncTask<Context, Integer, Long> {
+		protected Long doInBackground(Context... contexts) {
 
+			Server source1 = new Server(EXAMPLE_CARD_SERVER, "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
+			//Server source2 = new Server("CardloaderService's sample card generator second 'server'", "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
 
+			TextCard textCard1 = new TextCard(0, 100, "About the Author", "A. Student", "", "Tap to read more", getSampleArr1(), source1);
 
-		TextCard textCard1 = new TextCard(0, 100, "About the Author", "A. Student", "", "Tap to read more", getSampleArr1(), source1);
+			Bitmap bmp2 = BitmapFactory.decodeResource(contexts[0].getResources(), R.raw.acmicon);
+			ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
+			bmp2.compress(Bitmap.CompressFormat.PNG, 100, stream2);
+			byte[] iconArray = stream2.toByteArray();
 
+			TextCard textCard2 = new TextCard(0, 99, "Read Paper Abstract", "From ACM PAUC", "A. Student and Dr. XYZ", "Published 1 Mar 2009",  iconArray, getSampleArr2(), source1);
 
-		Bitmap bmp2 = BitmapFactory.decodeResource(this.getResources(), R.raw.acmicon);
-		ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
-		bmp2.compress(Bitmap.CompressFormat.PNG, 100, stream2);
-		byte[] iconArray = stream2.toByteArray();
+			try {
+				Log.d(TAG, "text card 2 added, returned: " + app.db.addCard(textCard2));
+				Log.d(TAG, "text card 1 added, returned: " + app.db.addCard(textCard1));
+			} catch (IOException e1) {
 
-		TextCard textCard2 = new TextCard(0, 99, "Read Paper Abstract", "From ACM PAUC", "A. Student and Dr. XYZ", "Published 1 Mar 2009",  iconArray, getSampleArr2(), source1);
+				Log.e(TAG, "IOexception adding sample text cards", e1);
+			}
 
-		app.db.addCard(textCard2);
-		app.db.addCard(textCard1);
+			String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm/powerpointdemo.mp3";
+			File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm");
+			dir.mkdirs();
 
-		String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm/powerpointdemo.mp3";
-		File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm");
-		dir.mkdirs();
+			File file = new File(dir, "powerpointdemo.mp3");
 
-		File file = new File(dir, "powerpointdemo.mp3");
+			//manually write the audio file to the external to emulate it being downloaded
+			InputStream fIn = getBaseContext().getResources().openRawResource(R.raw.powerpointdemo);
+			byte[] buffer = null;
+			try {
+				int size = fIn.available();
+				buffer = new byte[size];
+				fIn.read(buffer);
+				fIn.close();
+			} catch (IOException e) {
+				Log.e(TAG, "IOException first part");
 
-		//manually write the audio file to the external to emulate it being downloaded
-		InputStream fIn = getBaseContext().getResources().openRawResource(R.raw.powerpointdemo);
-		byte[] buffer = null;
-		try {
-			int size = fIn.available();
-			buffer = new byte[size];
-			fIn.read(buffer);
-			fIn.close();
-		} catch (IOException e) {
-			Log.e(TAG, "IOException first part");
+			}
+
+			FileOutputStream save;
+			try {
+				save = new FileOutputStream(file);
+				save.write(buffer);
+				save.flush();
+				save.close();
+			} catch (FileNotFoundException e) {
+				Log.e(TAG, "FileNotFoundException in second part");
+
+			} catch (IOException e) {
+				Log.e(TAG, "IOException in second part");
+
+			}    
+
+			AudioCard audioCard1 = new AudioCard(0, 97, "Hear A Narration by the Student", file.getAbsolutePath(), source1);
+			try{
+				Log.d(TAG, "audio card 1 added, returned: " + app.db.addCard(audioCard1));
+			} catch (IOException e1) {
+
+				Log.e(TAG, "IOexception adding sample audio card", e1);
+			}
 			
-		}
-		
-		FileOutputStream save;
-	     try {
-	         save = new FileOutputStream(file);
-	         save.write(buffer);
-	         save.flush();
-	         save.close();
-	     } catch (FileNotFoundException e) {
-	         Log.e(TAG, "FileNotFoundException in second part");
-	         
-	     } catch (IOException e) {
-	         Log.e(TAG, "IOException in second part");
-	      
-	     }    
-	     
+			VideoCard videoCard1 = new VideoCard(0, 90, "Watch the Experiment", "wtnI3kyCnmA", source1);
+			VideoCard videoCard2 = new VideoCard(0, 89, "View the presentation", "cn5mMJiPYmw", source1);
+			try{
+				Log.d(TAG, "video card 1 added, returned: " + app.db.addCard(videoCard1));
+				Log.d(TAG, "video card 2 added, returned: " + app.db.addCard(videoCard2));
 
-		AudioCard audioCard1 = new AudioCard(0, 97, "Hear A Narration by the Student", file.getAbsolutePath(), source1);
-		app.db.addCard(audioCard1);
-		
-		VideoCard videoCard1 = new VideoCard(0, 90, "Watch the Experiment", "wtnI3kyCnmA", source1);
-		VideoCard videoCard2 = new VideoCard(0, 89, "View the presentation", "cn5mMJiPYmw", source1);
-		app.db.addCard(videoCard1);
-		app.db.addCard(videoCard2);
-		
-		app.db.addServer(source1);
-		//app.db.addServer(source2);
-		
-		//notify any waiting activities that we have finished loading the cards
-		broadcastCardsLoaded(this, source1.getName());
+				Log.d(TAG, "server source 1 added, returned: " + app.db.addServer(source1));
+			} catch (IOException e1) {
+
+				Log.e(TAG, "IOexception adding sample video cards", e1);
+			}
+			//app.db.addServer(source2);
+
+			//notify any waiting activities that we have finished loading the cards
+			return (long) 1;
+
+		}
+
+		protected void onProgressUpdate(Integer... progress) {
+
+		}
+
+		protected void onPostExecute(Long result) {
+
+		}
 	}
+
 
 
 	private ArrayList<TextElement> getSampleArr1(){

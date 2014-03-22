@@ -1,11 +1,17 @@
 package com.google.android.glass.TMM;
 
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class TextElement implements Parcelable{
+public class TextElement implements Parcelable, Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3730074042585803658L;
+
 	public enum Type {
 		TEXT_, IMAGE;
 	}
