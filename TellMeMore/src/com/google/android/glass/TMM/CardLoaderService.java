@@ -171,6 +171,13 @@ public class CardLoaderService extends Service{
 		e1 = new TextElement(TextElement.Type.TEXT_, text_above_pic);
 		retVals.add(e1);
 
+		
+		
+		
+		
+		
+		
+		
 		Bitmap bmp1 = BitmapFactory.decodeResource(this.getResources(), R.raw.pic1);
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		bmp1.compress(Bitmap.CompressFormat.PNG, 100, stream);

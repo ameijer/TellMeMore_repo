@@ -92,7 +92,7 @@ public class TextViewer extends Activity{
 		//TODO
 		//help_txt.setText("tap to pause");
 		setContentView(R.layout.textviewer_layout);
-	
+
 		scroller = (HeadScrollView) findViewById(R.id.outertextList);
 		mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
@@ -111,7 +111,7 @@ public class TextViewer extends Activity{
 		}
 		//	mediaPlayer.start();
 
-		LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter("TextViewer"));
+		//LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter("TextViewer"));
 		//	//prog.startProgress(/*mediaPlayer.getDuration()*/ 30000);
 		//	progUpdater = new updaterControl();
 		//	progUpdater.start();
@@ -136,7 +136,7 @@ public class TextViewer extends Activity{
 			}
 		});
 
-	//	headScroll = (HeadListView) findViewById(R.id.textList);
+		//	headScroll = (HeadListView) findViewById(R.id.textList);
 		Log.i(TAG, "onCreate finished");
 		scroller.enableScrolling();
 
@@ -153,66 +153,70 @@ public class TextViewer extends Activity{
 	}
 
 
-	private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			Log.i(TAG, "onReceive called in textviewer");
-			TextViewerBundle bundl = (TextViewerBundle) intent.getParcelableExtra("data");
-			if(bundl != null){
-			toShow = bundl.getElems();
-			cardId = bundl.getId();
-			} else {
-				//we have received a close order since ther is no data to parse
-				peaceOut(context);
-				
-			}
-			if(toShow.size() < 1) {
-				Log.i(TAG, "NOTHING TO SHOW IN TEXTVIEW");
-				peaceOut(getContext());
-			}
-
-			
-			// get data from the table by the ListAdapter
-			//customAdapter.addContent(toShow);
-
-			for(int i = 0; i < toShow.size(); i ++){
-				Log.v(TAG, "text contents of element " + i + ": " + toShow.get(i));
-				TextElement p = toShow.get(i);
-				if( p.getType() == Type.IMAGE){
-					ImageView pic = new ImageView(context);
-					Bitmap bmp = BitmapFactory.decodeByteArray(p.getImg(), 0, p.getImg().length);
-					Log.d(TAG, "length of bitmap to be decoded: " + p.getImg().length);
-					Log.d(TAG, "BMP Generated: " + bmp);
-					pic.setImageBitmap(bmp);
-					mView.addView(pic);
-					TextView cap = new TextView(context);
-					cap.setText(p.getText());
-					cap.setGravity(Gravity.CENTER);
-					cap.setPadding(0, -10, 0, 30);
-					mView.addView(cap);
-				}else if( p.getType() == Type.TEXT_){
-					TextView cap = new TextView(context);
-					cap.setText(p.getText());
-					mView.addView(cap);
-				}
-				
-				
-			}
-			
-			
-			new Thread(new Runnable() {
-				public void run() {
-					try {
-						Thread.sleep(2000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					scroller.enableScrolling();
-				}
-			}).start();
-			
-		}
-	};
+//	private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+//		@Override
+//		public void onReceive(Context context, Intent intent) {
+//			Log.i(TAG, "onReceive called in textviewer");
+//			//TextViewerBundle bundl = (TextViewerBundle) intent.getParcelableExtra("data");
+//			if(bundl != null){
+//				toShow = bundl.getElems();
+//				cardId = bundl.getId();
+//			} else {
+//				//we have received a close order since ther is no data to parse
+//				peaceOut(context);
+//
+//			}
+//			if(toShow.size() < 1) {
+//				Log.i(TAG, "NOTHING TO SHOW IN TEXTVIEW");
+//				peaceOut(getContext());
+//			}
+//
+//
+//			// get data from the table by the ListAdapter
+//			//customAdapter.addContent(toShow);
+//
+//			BitmapFactory.Options options = new BitmapFactory.Options();
+//			options.inSampleSize = 2;
+//
+//			Bitmap bm = BitmapFactory.decodeFile(, options);
+//			for(int i = 0; i < toShow.size(); i ++){
+//				Log.v(TAG, "text contents of element " + i + ": " + toShow.get(i));
+//				TextElement p = toShow.get(i);
+//				if( p.getType() == Type.IMAGE){
+//					ImageView pic = new ImageView(context);
+//					Bitmap bmp = BitmapFactory.decodeByteArray(p.getImg(), 0, p.getImg().length);
+//					Log.d(TAG, "path to be decoded: " + p.getImg().length);
+//					Log.d(TAG, "BMP Generated: " + bmp);
+//					pic.setImageBitmap(bmp);
+//					mView.addView(pic);
+//					TextView cap = new TextView(context);
+//					cap.setText(p.getText());
+//					cap.setGravity(Gravity.CENTER);
+//					cap.setPadding(0, -10, 0, 30);
+//					mView.addView(cap);
+//				}else if( p.getType() == Type.TEXT_){
+//					TextView cap = new TextView(context);
+//					cap.setText(p.getText());
+//					mView.addView(cap);
+//				}
+//
+//
+//			}
+//
+//
+//			new Thread(new Runnable() {
+//				public void run() {
+//					try {
+//						Thread.sleep(2000);
+//					} catch (InterruptedException e) {
+//						e.printStackTrace();
+//					}
+//					scroller.enableScrolling();
+//				}
+//			}).start();
+//
+//		}
+//	};
 
 
 	@Override
@@ -230,8 +234,8 @@ public class TextViewer extends Activity{
 		//it is narrating
 
 		if(narrate && lastPos > -1){
-	//		String toSpeak = customAdapter.getItem(lastPos).getText();
-		//	mSpeech.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, null);
+			//		String toSpeak = customAdapter.getItem(lastPos).getText();
+			//	mSpeech.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, null);
 		}
 	}
 
@@ -244,7 +248,7 @@ public class TextViewer extends Activity{
 
 	@Override
 	public void onPause() {
-	scroller.deactivate();
+		scroller.deactivate();
 		super.onPause();
 		mSpeech.stop();
 
@@ -265,7 +269,7 @@ public class TextViewer extends Activity{
 					//	menuintent.putExtra(EXTRA_LAST_PLAYER_POS, mediaPlayer.getCurrentPosition());
 					menuintent.putExtra(EXTRA_SELECTED_ID, cardId);
 					menuintent.putExtra(EXTRA_SELECTED_POS, cardPos);
-				//	menuintent.putExtra(EXTRA_LAST_TEXT_POS, headScroll.getLastVisiblePosition());
+					//	menuintent.putExtra(EXTRA_LAST_TEXT_POS, headScroll.getLastVisiblePosition());
 					Log.i(TAG, "cardPos passed to menu: " + cardPos);
 					//		mediaPlayer.release();
 					startActivity(menuintent);
@@ -278,8 +282,8 @@ public class TextViewer extends Activity{
 					// do something on left (backwards) swipe
 					Log.i(TAG, "swipe_left method called");
 					//mAudioManager.playSoundEffect(Sounds.);
-					
-					
+
+
 
 
 					//peaceOut(act_context);
@@ -303,7 +307,7 @@ public class TextViewer extends Activity{
 			@Override
 			public boolean onScroll(float displacement, float delta, float velocity) {
 
-				
+
 
 				return true;
 			}

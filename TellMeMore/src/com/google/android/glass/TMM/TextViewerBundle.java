@@ -27,7 +27,7 @@ public class TextViewerBundle implements Parcelable{
 		
 		public TextViewerBundle(Parcel in){
 			id = in.readInt();
-			in.readTypedList(elems, TextElement.CREATOR);
+		//	in.readTypedList(elems, TextElement.CREATOR);
 		}
 		public TextViewerBundle(int id, ArrayList<TextElement> contents){
 			this.id = id;
@@ -44,7 +44,7 @@ public class TextViewerBundle implements Parcelable{
 		public void writeToParcel(Parcel dest, int flags) {
 			// TODO Auto-generated method stub
 			dest.writeInt(id);
-			dest.writeTypedList(elems);
+			//dest.writeTypedList(elems);
 			
 		}
 		
