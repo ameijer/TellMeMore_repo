@@ -65,8 +65,16 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 			String serverName = intent.getStringExtra("server_used");
 			Log.d(TAG, "Got message: " + serverName);
 
+			//retreive cards from the target server, since they have ostensibly been loaded
+			ArrayList<TMMCard> cardz = app.db.findCardsbyServer(serverName);
+			
+			//TODO
+			//ugly, needs further research into options in this area
+			cardArr = new TMMCard[cardz.size()];
+			for(int i = 0; i < cardz.size(); i++){
+				cardArr[i] = cardz.get(i);
+			}
 
-			cardArr = (TMMCard[]) app.db.findCardsbyServer(serverName).toArray();
 			mAdapter = new SelectCardScrollAdapter(
 					context, cardArr.length, cardArr );
 
@@ -99,52 +107,52 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 	};
 
 
-
-	public static TMMCard[] getTestCards(int num) {
-
-		TMMCard[] toReturn = new TMMCard[num];
-		char uniqueId = 0x41;
-		boolean flag = false;
-		for(int i = 0; i < num; i++){
-
-
-
-			//if num = 10...
-
-
-			uniqueId++;
-			if(i%3 == 0){
-				//0, 3, 6, 9
-				//create text card
-				//	toReturn[i] = new TextCard
-				if(flag){
-					toReturn[i] = new TextCard(i, i, i, "Text Card title: Card " + uniqueId, "Summary info line 1", "Summary info line 2", "Summary info line 3", null);
-					flag = !flag;
-
-				} else {
-					byte[] junkBytes = new byte[]{0x34, 0x41};
-
-					toReturn[i] = new TextCard(i, i, i, "Text Card title: Card " + uniqueId, "Summary info line 1", "Summary info line 2", "Summary info line 3", junkBytes, null);
-					flag= !flag;
-				}
-			} else if(i%2 == 0){
-				//2, 4, 8
-				//create video card
-				toReturn[i] = new VideoCard(i, i, "Video Card title: Card " + uniqueId, null);
-			} else {
-				//1, 5, 7
-				//create audio card
-				toReturn[i] = new AudioCard(i,  i, "Audio Card title: Card " + uniqueId, "path/to/file", null);
-			}
-
-
-		}
-
-
-
-
-		return toReturn;
-	}
+//
+//	public static TMMCard[] getTestCards(int num) {
+//
+//		TMMCard[] toReturn = new TMMCard[num];
+//		char uniqueId = 0x41;
+//		boolean flag = false;
+//		for(int i = 0; i < num; i++){
+//
+//
+//
+//			//if num = 10...
+//
+//
+//			uniqueId++;
+//			if(i%3 == 0){
+//				//0, 3, 6, 9
+//				//create text card
+//				//	toReturn[i] = new TextCard
+//				if(flag){
+//					toReturn[i] = new TextCard(i, i, i, "Text Card title: Card " + uniqueId, "Summary info line 1", "Summary info line 2", "Summary info line 3", null);
+//					flag = !flag;
+//
+//				} else {
+//					byte[] junkBytes = new byte[]{0x34, 0x41};
+//
+//					toReturn[i] = new TextCard(i, i, i, "Text Card title: Card " + uniqueId, "Summary info line 1", "Summary info line 2", "Summary info line 3", junkBytes, null);
+//					flag= !flag;
+//				}
+//			} else if(i%2 == 0){
+//				//2, 4, 8
+//				//create video card
+//				toReturn[i] = new VideoCard(i, i, "Video Card title: Card " + uniqueId, null);
+//			} else {
+//				//1, 5, 7
+//				//create audio card
+//				toReturn[i] = new AudioCard(i,  i, "Audio Card title: Card " + uniqueId, "path/to/file", null);
+//			}
+//
+//
+//		}
+//
+//
+//
+//
+//		return toReturn;
+//	}
 
 	@Override
 	public void onResume() {

@@ -92,8 +92,8 @@ public class TextViewerSupportService extends Service{
 		bmp1.compress(Bitmap.CompressFormat.PNG, 100, stream);
 		byte[] byteArray = stream.toByteArray();
 
-		TextElement e2 = new TextElement(TextElement.Type.IMAGE, caption1, byteArray);
-		retVals.add(e2);
+		//TextElement e2 = new TextElement(TextElement.Type.IMAGE, caption1, byteArray);
+		//retVals.add(e2);
 
 		TextElement e3;
 		for(int i = 0; i < text_below_pic.length; i++){
@@ -106,8 +106,8 @@ public class TextViewerSupportService extends Service{
 		bmp2.compress(Bitmap.CompressFormat.PNG, 100, stream2);
 		byte[] byteArray2 = stream2.toByteArray();
 
-		TextElement e4 = new TextElement(TextElement.Type.IMAGE, caption2, byteArray2);
-		retVals.add(e4);
+		//TextElement e4 = new TextElement(TextElement.Type.IMAGE, caption2, byteArray2);
+		//retVals.add(e4);
 
 		for(int k = 0; k < textBlocks.size(); k++){
 			Log.i(TAG, "contents of text block: " + k + ": " + textBlocks.get(k));

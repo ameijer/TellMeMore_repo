@@ -81,7 +81,7 @@ public class TextViewer extends Activity{
 		Log.i(TAG, "cardid passed: " + cardId);
 		//player = this;
 		//TODO - replace with DB calls
-		TextCard thisCard = (TextCard) SelectCardActivity.getTestCards(10)[(int) cardPos];
+		//TextCard thisCard = (TextCard) SelectCardActivity.getTestCards(10)[(int) cardPos];
 		//if(thisCard.getBackground() == null){
 		//set a black background
 		//	layout.setBackgroundColor(getResources().getColor(R.color.black));

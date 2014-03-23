@@ -38,7 +38,7 @@
     <TextView
         android:id="@+id/audio_title"
         android:layout_width="wrap_content"
-        android:layout_height="90px"
+        android:layout_height="180px"
         android:layout_gravity="center|top"
         android:layout_marginTop="-10px"
         android:textSize="50px"

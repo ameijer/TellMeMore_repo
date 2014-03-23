@@ -91,7 +91,7 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 		} else {//instanceof textcard
 			//Textcard is a good default anyway...
 
-			if(((TextCard) cardArr[position]).getIcon() == null){//no icon specified
+			if(((TextCard) cardArr[position]).getIconPath() == null || ((TextCard) cardArr[position]).getIconPath().equalsIgnoreCase("")){//no icon specified
 				if (convertView == null) {
 					convertView = LayoutInflater.from(mContext).inflate(R.layout.text_card_no_icon, parent);
 				}
@@ -128,7 +128,7 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 				summary3.setText(((TextCard)cardArr[position]).getLine3());
 
 				final ImageView ic = (ImageView) convertView.findViewById(R.id.text_icon);
-				Bitmap bmp = BitmapFactory.decodeByteArray(((TextCard)cardArr[position]).getIcon(), 0, ((TextCard)cardArr[position]).getIcon().length);
+				Bitmap bmp = BitmapFactory.decodeFile(((TextCard)cardArr[position]).getIconPath());
 				if (bmp != null){
 					ic.setImageBitmap(bmp);
 				} else {

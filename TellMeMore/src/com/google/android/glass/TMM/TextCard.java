@@ -9,47 +9,46 @@ public class TextCard extends TMMCard implements Serializable{
 	 */
 	private static final long serialVersionUID = -4719812627361504202L;
 	public static final String TAG = "TMM" +", " + TextCard.class.getSimpleName();
-	private byte[] icon;
+	private String icon_path;
 	private String line1, line2, line3;
 	private ArrayList<TextElement> contents;
 
-	public TextCard(int handle, int priority, String cardTitle, byte[] icon_img, Server source) {
+	public TextCard(int handle, int priority, String cardTitle, String ic_path, Server source) {
 		super(handle, priority, cardTitle, source);
-		this.icon = icon_img;
+		this.icon_path = ic_path;
 	}
 	
 	public TextCard(int handle, int priority, String cardTitle, Server source) {
 		super(handle, priority, cardTitle, source);
-		this.icon = null;
+		this.icon_path = "";
 	}
 	
 	public TextCard(int handle, int id, int priority, String cardTitle, Server source) {
 		super(handle, id, priority, cardTitle, source);
-		this.icon = null;
+		this.icon_path = null;
 		
 	}
 	public TextCard(int handle, int id, int priority, String cardTitle, String line1, String line2, String line3, Server source) {
 		super(handle, id, priority, cardTitle, source);
-		this.icon = null;
+		this.icon_path = null;
 		this.line1 = line1;
 		this.line2 = line2;
 		this.line3 = line3;
 		
 	}
 	
-	public TextCard(int handle, int id, int priority, String cardTitle, String line1, String line2, String line3, byte[] icon_img, Server source) {
+	public TextCard(int handle, int id, int priority, String cardTitle, String line1, String line2, String line3, String ic_path, Server source) {
 		super(handle, id, priority, cardTitle, source);
-		this.icon = null;
 		this.line1 = line1;
 		this.line2 = line2;
 		this.line3 = line3;
-		this.icon = icon_img;
+		this.icon_path = ic_path;
 		
 	}
 	
 	public TextCard(int handle, int id, int priority, String cardTitle, String line1, String line2, String line3, ArrayList<TextElement> content, Server source) {
 		super(handle, id, priority, cardTitle, source);
-		this.icon = null;
+		this.icon_path = null;
 		this.line1 = line1;
 		this.line2 = line2;
 		this.line3 = line3;
@@ -59,43 +58,40 @@ public class TextCard extends TMMCard implements Serializable{
 	
 	public TextCard(int handle, int priority, String cardTitle, String line1, String line2, String line3, ArrayList<TextElement> content, Server source) {
 		super(handle, priority, cardTitle, source);
-		this.icon = null;
+		this.icon_path = null;
 		this.line1 = line1;
 		this.line2 = line2;
 		this.line3 = line3;
-		this.icon = null;
 		this.setContents(content);
 		
 	}
 	
-	public TextCard(int handle, int priority, String cardTitle, String line1, String line2, String line3, byte[] icon_img, ArrayList<TextElement> content, Server source) {
+	public TextCard(int handle, int priority, String cardTitle, String line1, String line2, String line3, String ic_path, ArrayList<TextElement> content, Server source) {
 		super(handle, priority, cardTitle, source);
-		this.icon = null;
 		this.line1 = line1;
 		this.line2 = line2;
 		this.line3 = line3;
-		this.icon = icon_img;
+		this.icon_path = ic_path;
 		this.setContents(content);
 		
 	}
 	
-	public TextCard(int handle, int id, int priority, String cardTitle, String line1, String line2, String line3, byte[] icon_img, ArrayList<TextElement> content, Server source) {
+	public TextCard(int handle, int id, int priority, String cardTitle, String line1, String line2, String line3, String ic_path, ArrayList<TextElement> content, Server source) {
 		super(handle, id, priority, cardTitle, source);
-		this.icon = null;
 		this.line1 = line1;
 		this.line2 = line2;
 		this.line3 = line3;
-		this.icon = icon_img;
+		this.icon_path = ic_path;
 		this.setContents(content);
 		
 	}
 	
-	public byte[] getIcon() {
-		return icon;
+	public String getIconPath() {
+		return icon_path;
 	}
 
-	public void setIcon(byte[] icon) {
-		this.icon = icon;
+	public void setIconPath(String ic_path) {
+		this.icon_path = ic_path;
 	}
 
 	public String getLine1() {

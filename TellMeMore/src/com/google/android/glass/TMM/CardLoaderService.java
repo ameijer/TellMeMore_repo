@@ -31,7 +31,7 @@ public class CardLoaderService extends Service{
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		Server source1 = new Server(EXAMPLE_CARD_SERVER, "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
+
 
 		//obtain a reference to the application singleton
 		app = ((TellMeMoreApplication)this.getApplication());
@@ -46,9 +46,15 @@ public class CardLoaderService extends Service{
 
 		if(targetServer.equalsIgnoreCase(EXAMPLE_CARD_SERVER)){
 			Log.d(TAG, "Cardloader service is using DB: " + app.db);
-			app.db.deleteCardsByServer(EXAMPLE_CARD_SERVER);
+
+			//reset DB for testing purposes
+			app.db.deleteDB(getApplicationContext());
+			app.db = new DBManager(this.getApplicationContext());
+			app.db.open();
+			//
+
 			new loadDBWithSamplesTask().execute(this);
-			broadcastCardsLoaded(this, source1.getName());
+
 		} else { //we have an actual target
 			//TODO
 			//check DB for already existing cards
@@ -61,7 +67,7 @@ public class CardLoaderService extends Service{
 
 		}
 
-		
+
 		return Service.START_STICKY;
 	}
 
@@ -70,15 +76,44 @@ public class CardLoaderService extends Service{
 
 			Server source1 = new Server(EXAMPLE_CARD_SERVER, "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
 			//Server source2 = new Server("CardloaderService's sample card generator second 'server'", "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
-
+			File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm");
 			TextCard textCard1 = new TextCard(0, 100, "About the Author", "A. Student", "", "Tap to read more", getSampleArr1(), source1);
 
-			Bitmap bmp2 = BitmapFactory.decodeResource(contexts[0].getResources(), R.raw.acmicon);
-			ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
-			bmp2.compress(Bitmap.CompressFormat.PNG, 100, stream2);
-			byte[] iconArray = stream2.toByteArray();
+			//			Bitmap bmp2 = BitmapFactory.decodeResource(contexts[0].getResources(), R.raw.acmicon);
+			//			ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
+			//			bmp2.compress(Bitmap.CompressFormat.PNG, 100, stream2);
+			//			byte[] iconArray = stream2.toByteArray();
 
-			TextCard textCard2 = new TextCard(0, 99, "Read Paper Abstract", "From ACM PAUC", "A. Student and Dr. XYZ", "Published 1 Mar 2009",  iconArray, getSampleArr2(), source1);
+			File file0 = new File(dir, "acmicon.jpg");
+
+			//manually write the audio file to the external to emulate it being downloaded
+			InputStream fIn0 = getBaseContext().getResources().openRawResource(R.raw.acmicon);
+			byte[] buffer0 = null;
+			try {
+				int size0 = fIn0.available();
+				buffer0 = new byte[size0];
+				fIn0.read(buffer0);
+				fIn0.close();
+			} catch (IOException e) {
+				Log.e(TAG, "IOException first part");
+
+			}
+
+			FileOutputStream save0;
+			try {
+				save0 = new FileOutputStream(file0);
+				save0.write(buffer0);
+				save0.flush();
+				save0.close();
+			} catch (FileNotFoundException e) {
+				Log.e(TAG, "FileNotFoundException in second part");
+
+			} catch (IOException e) {
+				Log.e(TAG, "IOException in second part");
+			}
+
+
+			TextCard textCard2 = new TextCard(0, 99, "Read Paper Abstract", "From ACM PAUC", "A. Student and Dr. XYZ", "Published 1 Mar 2009",  file0.getAbsolutePath(), getSampleArr2(), source1);
 
 			try {
 				Log.d(TAG, "text card 2 added, returned: " + app.db.addCard(textCard2));
@@ -89,7 +124,7 @@ public class CardLoaderService extends Service{
 			}
 
 			String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm/powerpointdemo.mp3";
-			File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm");
+
 			dir.mkdirs();
 
 			File file = new File(dir, "powerpointdemo.mp3");
@@ -102,7 +137,7 @@ public class CardLoaderService extends Service{
 				buffer = new byte[size];
 				fIn.read(buffer);
 				fIn.close();
-			} catch (IOException e) {
+			} catch (IOException e2) {
 				Log.e(TAG, "IOException first part");
 
 			}
@@ -113,10 +148,10 @@ public class CardLoaderService extends Service{
 				save.write(buffer);
 				save.flush();
 				save.close();
-			} catch (FileNotFoundException e) {
+			} catch (FileNotFoundException e2) {
 				Log.e(TAG, "FileNotFoundException in second part");
 
-			} catch (IOException e) {
+			} catch (IOException e1) {
 				Log.e(TAG, "IOException in second part");
 
 			}    
@@ -128,7 +163,7 @@ public class CardLoaderService extends Service{
 
 				Log.e(TAG, "IOexception adding sample audio card", e1);
 			}
-			
+
 			VideoCard videoCard1 = new VideoCard(0, 90, "Watch the Experiment", "wtnI3kyCnmA", source1);
 			VideoCard videoCard2 = new VideoCard(0, 89, "View the presentation", "cn5mMJiPYmw", source1);
 			try{
@@ -140,13 +175,17 @@ public class CardLoaderService extends Service{
 
 				Log.e(TAG, "IOexception adding sample video cards", e1);
 			}
+
 			//app.db.addServer(source2);
 
 			//notify any waiting activities that we have finished loading the cards
+			//Server source1 = new Server(EXAMPLE_CARD_SERVER, "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
+			broadcastCardsLoaded(contexts[0], source1.getName());
+
 			return (long) 1;
 
-		}
 
+		}
 		protected void onProgressUpdate(Integer... progress) {
 
 		}
@@ -171,19 +210,53 @@ public class CardLoaderService extends Service{
 		e1 = new TextElement(TextElement.Type.TEXT_, text_above_pic);
 		retVals.add(e1);
 
-		
-		
-		
-		
-		
-		
-		
-		Bitmap bmp1 = BitmapFactory.decodeResource(this.getResources(), R.raw.pic1);
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		bmp1.compress(Bitmap.CompressFormat.PNG, 100, stream);
-		byte[] byteArray = stream.toByteArray();
 
-		TextElement e2 = new TextElement(TextElement.Type.IMAGE, caption1, byteArray);
+
+
+
+
+
+
+		//Bitmap bmp1 = BitmapFactory.decodeResource(this.getResources(), R.raw.pic1);
+		//ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		//bmp1.compress(Bitmap.CompressFormat.PNG, 100, stream);
+		//byte[] byteArray = stream.toByteArray();
+
+		File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm");
+		dir.mkdirs();
+
+		File file = new File(dir, "pic1.jpg");
+
+		//manually write the audio file to the external to emulate it being downloaded
+		InputStream fIn = getBaseContext().getResources().openRawResource(R.raw.pic1);
+		byte[] buffer = null;
+		try {
+			int size = fIn.available();
+			buffer = new byte[size];
+			fIn.read(buffer);
+			fIn.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		FileOutputStream save;
+		try {
+			save = new FileOutputStream(file);
+			save.write(buffer);
+			save.flush();
+			save.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+
+		}
+
+
+
+		TextElement e2 = new TextElement(TextElement.Type.IMAGE, caption1, file.getAbsolutePath());
 		retVals.add(e2);
 
 		TextElement e3;
@@ -191,12 +264,43 @@ public class CardLoaderService extends Service{
 		retVals.add(e3);
 
 
-		Bitmap bmp2 = BitmapFactory.decodeResource(this.getResources(), R.raw.pic2);
-		ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
-		bmp2.compress(Bitmap.CompressFormat.PNG, 100, stream2);
-		byte[] byteArray2 = stream2.toByteArray();
+		//		Bitmap bmp2 = BitmapFactory.decodeResource(this.getResources(), R.raw.pic2);
+		//		ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
+		//		bmp2.compress(Bitmap.CompressFormat.PNG, 100, stream2);
+		//		byte[] byteArray2 = stream2.toByteArray();
 
-		TextElement e4 = new TextElement(TextElement.Type.IMAGE, caption2, byteArray2);
+
+		File file2 = new File(dir, "pic2.jpg");
+
+		//manually write the audio file to the external to emulate it being downloaded
+		InputStream fIn2 = getBaseContext().getResources().openRawResource(R.raw.pic2);
+		byte[] buffer2 = null;
+		try {
+			int size2 = fIn2.available();
+			buffer2 = new byte[size2];
+			fIn2.read(buffer2);
+			fIn2.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		FileOutputStream save2;
+		try {
+			save2 = new FileOutputStream(file2);
+			save2.write(buffer2);
+			save2.flush();
+			save2.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+
+		}
+
+
+		TextElement e4 = new TextElement(TextElement.Type.IMAGE, caption2, file2.getAbsolutePath());
 		retVals.add(e4);
 
 		return retVals;
@@ -215,30 +319,117 @@ public class CardLoaderService extends Service{
 
 		e1 = new TextElement(TextElement.Type.TEXT_, text_above_pic);
 		retVals.add(e1);
+		File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm");
+		//		Bitmap bmp1 = BitmapFactory.decodeResource(this.getResources(), R.raw.graph_1);
+		//		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		//		bmp1.compress(Bitmap.CompressFormat.PNG, 100, stream);
+		//		byte[] byteArray = stream.toByteArray();
 
-		Bitmap bmp1 = BitmapFactory.decodeResource(this.getResources(), R.raw.graph_1);
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		bmp1.compress(Bitmap.CompressFormat.PNG, 100, stream);
-		byte[] byteArray = stream.toByteArray();
+		File file2 = new File(dir, "graph_1.jpg");
 
-		TextElement e2 = new TextElement(TextElement.Type.IMAGE, caption1, byteArray);
+		//manually write the audio file to the external to emulate it being downloaded
+		InputStream fIn2 = getBaseContext().getResources().openRawResource(R.raw.graph_1);
+		byte[] buffer2 = null;
+		try {
+			int size2 = fIn2.available();
+			buffer2 = new byte[size2];
+			fIn2.read(buffer2);
+			fIn2.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		FileOutputStream save2;
+		try {
+			save2 = new FileOutputStream(file2);
+			save2.write(buffer2);
+			save2.flush();
+			save2.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+
+		}
+
+		TextElement e2 = new TextElement(TextElement.Type.IMAGE, caption1, file2.getAbsolutePath());
 		retVals.add(e2);
 
 
-		Bitmap bmp2 = BitmapFactory.decodeResource(this.getResources(), R.raw.chart2);
-		ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
-		bmp2.compress(Bitmap.CompressFormat.PNG, 100, stream2);
-		byte[] byteArray2 = stream2.toByteArray();
+		//		Bitmap bmp2 = BitmapFactory.decodeResource(this.getResources(), R.raw.chart2);
+		//		ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
+		//		bmp2.compress(Bitmap.CompressFormat.PNG, 100, stream2);
+		//		byte[] byteArray2 = stream2.toByteArray();
 
-		TextElement e4 = new TextElement(TextElement.Type.IMAGE, caption2, byteArray2);
+		File file3 = new File(dir, "chart2.png");
+
+		//manually write the audio file to the external to emulate it being downloaded
+		InputStream fIn3 = getBaseContext().getResources().openRawResource(R.raw.chart2);
+		byte[] buffer3 = null;
+		try {
+			int size3 = fIn3.available();
+			buffer3 = new byte[size3];
+			fIn3.read(buffer3);
+			fIn3.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		FileOutputStream save3;
+		try {
+			save3 = new FileOutputStream(file3);
+			save3.write(buffer3);
+			save3.flush();
+			save3.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+
+		}
+
+		TextElement e4 = new TextElement(TextElement.Type.IMAGE, caption2, file3.getAbsolutePath());
 		retVals.add(e4);
 
-		Bitmap bmp3 = BitmapFactory.decodeResource(this.getResources(), R.raw.figure_3);
-		ByteArrayOutputStream stream3 = new ByteArrayOutputStream();
-		bmp3.compress(Bitmap.CompressFormat.PNG, 100, stream3);
-		byte[] byteArray3 = stream3.toByteArray();
+		//		Bitmap bmp3 = BitmapFactory.decodeResource(this.getResources(), R.raw.figure_3);
+		//		ByteArrayOutputStream stream3 = new ByteArrayOutputStream();
+		//		bmp3.compress(Bitmap.CompressFormat.PNG, 100, stream3);
+		//		byte[] byteArray3 = stream3.toByteArray();
 
-		TextElement e5 = new TextElement(TextElement.Type.IMAGE, caption3, byteArray3);
+		File file4 = new File(dir, "figure_3.png");
+
+		//manually write the audio file to the external to emulate it being downloaded
+		InputStream fIn4 = getBaseContext().getResources().openRawResource(R.raw.figure_3);
+		byte[] buffer4 = null;
+		try {
+			int size4 = fIn4.available();
+			buffer4 = new byte[size4];
+			fIn4.read(buffer4);
+			fIn4.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		FileOutputStream save4;
+		try {
+			save4 = new FileOutputStream(file4);
+			save4.write(buffer4);
+			save4.flush();
+			save4.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+
+		}
+
+		TextElement e5 = new TextElement(TextElement.Type.IMAGE, caption3, file4.getAbsolutePath());
 		retVals.add(e5);
 
 		return retVals;
@@ -252,6 +443,7 @@ public class CardLoaderService extends Service{
 		Intent intent = new Intent("cards_loaded");
 		intent.putExtra("server_used", serverName);
 		LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+		Log.d(TAG + "broadcast", "cards loaded broadcasted");
 	}
 
 

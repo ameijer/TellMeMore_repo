@@ -68,7 +68,8 @@ public class AudioPlayer extends Activity{
 		Log.i(TAG, "cardid passed: " + cardId);
 		player = this;
 		//TODO - replace with DB calls
-		AudioCard thisCard = (AudioCard) SelectCardActivity.getTestCards(10)[cardPos];
+		//AudioCard thisCard = (AudioCard) SelectCardActivity.getTestCards(10)[cardPos];
+		AudioCard thisCard = null;//TODO fix
 		if(thisCard.getBackground() == null){
 			//set a black background
 			layout.setBackgroundColor(getResources().getColor(R.color.black));
