@@ -32,5 +32,6 @@
     <string name="quit_audio">Exit</string>
     <string name="null_string"></string>
     <string name="narrate_txt">Read Aloud</string>
+    <string name="retData">Retrieving card data... </string>
 
 </resources>

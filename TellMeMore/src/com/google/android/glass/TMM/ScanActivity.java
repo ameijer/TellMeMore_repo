@@ -241,8 +241,8 @@ public class ScanActivity extends Activity
 		Intent intent = new Intent(this, CardLoaderService.class);
 		intent.putExtra(TARGET_SERVER_KEY, url);
         startService(intent);
-		Toast t = Toast.makeText(getApplicationContext(), url, Toast.LENGTH_SHORT);
-		t.show();
+		//Toast t = Toast.makeText(getApplicationContext(), url, Toast.LENGTH_SHORT);
+		//t.show();
 		return;
 	}
 

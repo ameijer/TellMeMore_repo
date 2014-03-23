@@ -77,17 +77,10 @@ public class AudioPlayer extends Activity{
 			bkgrnd.setImageBitmap(BitmapFactory.decodeByteArray(thisCard.getBackground(), 0, thisCard.getBackground().length));
 		}
 		stat_icon.setImageResource(R.drawable.ic_pause);
-		//TODO
 		help_txt.setText("tap to pause");
 
 		mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
-
-		//		int resID=getResources().getIdentifier("powerpointdemo", "raw", getPackageName());
-		//		if(resID == 0){
-		//			Log.e(TAG, "sound resource not found");
-		//			
-		//		}
 		mediaPlayer = MediaPlayer.create(this,R.raw.powerpointdemo);
 		Log.i(TAG, "lastPos as read by audioplayer: " + lastPos);
 		if(lastPos > 0){

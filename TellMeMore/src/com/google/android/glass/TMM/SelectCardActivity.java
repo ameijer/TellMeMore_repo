@@ -20,6 +20,7 @@ import com.google.android.glass.touchpad.Gesture;
 import com.google.android.glass.touchpad.GestureDetector;
 import com.google.android.glass.widget.CardScrollView;
 import com.google.android.glass.TMM.VideoPlayer;
+import com.google.glass.widget.SliderView;
 
 
 public class SelectCardActivity extends Activity implements GestureDetector.BaseListener{
@@ -30,15 +31,16 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 	private static final int DEFAULT_POS = 0;
 	private static final int KEY_SWIPE_DOWN = 4;
 	public static final String TAG = "TMM" +", " + SelectCardActivity.class.getSimpleName();
-	//private static final int DEFAULT_NUM_CARDS = 10;
 	private int lastCard;
-	TMMCard[] cardArr;
+	private static boolean cardsRetreived = false;
+	private static TMMCard[] cardArr;
 	private AudioManager mAudioManager;
 
 	private TellMeMoreApplication app;
 	private GestureDetector mDetector;
 	private CardScrollView mView;
 	private SelectCardScrollAdapter mAdapter;
+	private SliderView mIndeterm;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -49,8 +51,15 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 
 		// Register mMessageReceiver to receive messages.
 		LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("cards_loaded"));
-
-		setContentView(R.layout.waiting_for_cards_layout);
+		if(cardsRetreived){
+			enableCardScroll();
+		} else { 
+			//we are waiting for cards to be obtained
+			// display a progress bar for the user 
+			setContentView(R.layout.waiting_for_cards_layout);
+			mIndeterm = (SliderView) findViewById(R.id.indeterm_slider);
+			mIndeterm.startIndeterminate();
+		}
 	}
 
 	private void registerListener(){
@@ -67,7 +76,7 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 
 			//retreive cards from the target server, since they have ostensibly been loaded
 			ArrayList<TMMCard> cardz = app.db.findCardsbyServer(serverName);
-			
+
 			//TODO
 			//ugly, needs further research into options in this area
 			cardArr = new TMMCard[cardz.size()];
@@ -75,97 +84,72 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 				cardArr[i] = cardz.get(i);
 			}
 
-			mAdapter = new SelectCardScrollAdapter(
-					context, cardArr.length, cardArr );
-
-
-			mView = new CardScrollView(context) {
-				@Override
-				public final boolean dispatchGenericFocusedEvent(MotionEvent event) {
-					if (mDetector.onMotionEvent(event)) {
-						return true;
-					}
-					return super.dispatchGenericFocusedEvent(event);
-				}
-			};
-
-			mView.deactivate();
-			mView.setHorizontalScrollBarEnabled(true);
-
-			mView.setAdapter(mAdapter);
-
-			Log.i(TAG, "trying to start with card at postion: " + lastCard);
-			setContentView(mView);
-			//		Object id = mView.getItemForChildAt(lastCard);
-			//		if (id != null){
-			//			mView.setIdSelection(id);
-			//		}
-			mView.activate();
+			enableCardScroll();
+			cardsRetreived = true;
 			//mView.setSelection(lastCard);
-			registerListener();
+			//registerListener();
 		}
 	};
 
+	private void enableCardScroll(){
+		registerListener();
+		mAdapter = new SelectCardScrollAdapter(
+				this, cardArr.length, cardArr );
 
-//
-//	public static TMMCard[] getTestCards(int num) {
-//
-//		TMMCard[] toReturn = new TMMCard[num];
-//		char uniqueId = 0x41;
-//		boolean flag = false;
-//		for(int i = 0; i < num; i++){
-//
-//
-//
-//			//if num = 10...
-//
-//
-//			uniqueId++;
-//			if(i%3 == 0){
-//				//0, 3, 6, 9
-//				//create text card
-//				//	toReturn[i] = new TextCard
-//				if(flag){
-//					toReturn[i] = new TextCard(i, i, i, "Text Card title: Card " + uniqueId, "Summary info line 1", "Summary info line 2", "Summary info line 3", null);
-//					flag = !flag;
-//
-//				} else {
-//					byte[] junkBytes = new byte[]{0x34, 0x41};
-//
-//					toReturn[i] = new TextCard(i, i, i, "Text Card title: Card " + uniqueId, "Summary info line 1", "Summary info line 2", "Summary info line 3", junkBytes, null);
-//					flag= !flag;
-//				}
-//			} else if(i%2 == 0){
-//				//2, 4, 8
-//				//create video card
-//				toReturn[i] = new VideoCard(i, i, "Video Card title: Card " + uniqueId, null);
-//			} else {
-//				//1, 5, 7
-//				//create audio card
-//				toReturn[i] = new AudioCard(i,  i, "Audio Card title: Card " + uniqueId, "path/to/file", null);
-//			}
-//
-//
-//		}
-//
-//
-//
-//
-//		return toReturn;
-//	}
+
+		mView = new CardScrollView(this) {
+			@Override
+			public final boolean dispatchGenericFocusedEvent(MotionEvent event) {
+				if (mDetector.onMotionEvent(event)) {
+					return true;
+				}
+				return super.dispatchGenericFocusedEvent(event);
+			}
+		};
+
+		mView.deactivate();
+		mView.setHorizontalScrollBarEnabled(true);
+
+		mView.setAdapter(mAdapter);
+
+		Log.i(TAG, "trying to start with card at postion: " + lastCard);
+		setContentView(mView);
+		mView.activate();mAdapter = new SelectCardScrollAdapter(
+				this, cardArr.length, cardArr );
+
+
+		mView = new CardScrollView(this) {
+			@Override
+			public final boolean dispatchGenericFocusedEvent(MotionEvent event) {
+				if (mDetector.onMotionEvent(event)) {
+					return true;
+				}
+				return super.dispatchGenericFocusedEvent(event);
+			}
+		};
+
+		mView.deactivate();
+		mView.setHorizontalScrollBarEnabled(true);
+
+		mView.setAdapter(mAdapter);
+
+		Log.i(TAG, "trying to start with card at postion: " + lastCard);
+		setContentView(mView);
+		mView.activate();
+	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
-		if(mView != null){
+		if(cardsRetreived){
 			mView.activate();
-			mView.setSelection(getIntent().getIntExtra(EXTRA_INITIAL_VALUE, 0));
+			//mView.setSelection(getIntent().getIntExtra(EXTRA_INITIAL_VALUE, 0));
 		}
 	}
 
 	@Override
 	public void onPause() {
-		if(mView != null){
+		if(cardsRetreived){
 			super.onPause();
 			mView.deactivate();
 		}
@@ -211,11 +195,13 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 				resultIntent= new Intent(this, TextViewer.class);
 			}
 
-			resultIntent.putExtra(EXTRA_SELECTED_ID, cardArr[mView.getSelectedItemPosition()].getId());
+			int id =  cardArr[mView.getSelectedItemPosition()].getId();
+			resultIntent.putExtra(EXTRA_SELECTED_ID,id);
 			resultIntent.putExtra(EXTRA_SELECTED_POS, mView.getSelectedItemPosition());
 			setResult(RESULT_OK, resultIntent);
 			mAudioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
 			startActivity(resultIntent);
+			Log.d(TAG, "after gesture handled, cardId sent to viewer/player activity is: " + id);
 			Log.i(TAG, "finishing gesture handling");
 			finish();
 			return true;

@@ -1,16 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/watingforcardsparent"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:keepScreenOn="true"
-    android:orientation="vertical" >
+    android:layout_height="match_parent"
+    android:background="@android:color/black" >
 
     <TextView
-        android:id="@+id/watingforcardschild"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" 
-        android:text="downloading cards..."
-        />
+        android:layout_height="wrap_content"
+  		android:gravity="center"
+        android:layout_centerVertical="true"
+        android:text="@string/retData" 
+        android:textSize="40sp"/>
+ 
+    <com.google.glass.widget.SliderView
+        android:id="@+id/indeterm_slider"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true" />
 
-</LinearLayout>
+</RelativeLayout>

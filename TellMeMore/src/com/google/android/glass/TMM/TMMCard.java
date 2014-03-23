@@ -19,7 +19,7 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 	private int handle;
 
 	//the DB id
-	private long id;
+	private int id;
 	
 	private Server source = new Server("NO SERVER ASSIGNED", "NO SERVER ASSIGNED", 0, 0);
 
@@ -52,13 +52,13 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 	}
 
 
-	public long getId() {
+	public int getId() {
 		return id;
 	}
 
 
 
-	public void setId(long id) {
+	public void setId(int id) {
 		this.id = id;
 	}
 

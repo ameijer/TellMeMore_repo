@@ -14,7 +14,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 
-
+//slider views compliments of https://github.com/pif/glass-progress-bar
 public class SliderView extends FrameLayout {
 	private static final long HIDE_SLIDER_TIMEOUT_MILLIS = 1000L;
 	private static final int MIN_SLIDER_WIDTH_PX = 40;
@@ -28,6 +28,7 @@ public class SliderView extends FrameLayout {
 			SliderView.this.hideSlider(true);
 		}
 	};
+	private final ImageView indeterminateSlider;
 	private float index = 0.0F;
 
 	private float slideableScale = 1.0F;
@@ -47,7 +48,7 @@ public class SliderView extends FrameLayout {
 		super(paramContext, paramAttributeSet, paramInt);
 		LayoutInflater.from(getContext()).inflate(R.layout.slider, this);
 		this.slider = findViewById(R.id.slider_control);
-	
+		this.indeterminateSlider = ((ImageView) findViewById(R.id.indeterminate_slider));
 		hideSlider(false);
 		//hideIndeterminateSlider(false);
 	}
@@ -70,6 +71,16 @@ public class SliderView extends FrameLayout {
 						40);
 	}
 
+	private void hideIndeterminateSlider(boolean paramBoolean) {
+		int i = getResources().getDimensionPixelSize(R.dimen.slider_bar_height);
+		if (paramBoolean) {
+			this.indeterminateSlider.animate().translationY(i)
+			.setDuration(300L);
+			return;
+		}
+		this.indeterminateSlider.setTranslationY(i);
+	}
+
 	private void hideSlider(boolean paramBoolean) {
 		if (!this.sliderShowing)
 			return;
@@ -85,6 +96,14 @@ public class SliderView extends FrameLayout {
 		postDelayed(this.hideSliderRunnable, 1000L);
 	}
 
+	private void showIndeterminateSlider(boolean paramBoolean) {
+		if (paramBoolean) {
+			this.indeterminateSlider.animate().translationY(0.0F)
+			.setDuration(300L);
+			return;
+		}
+		this.indeterminateSlider.setTranslationY(0.0F);
+	}
 
 	private void showSlider(boolean paramBoolean) {
 		removeCallbacks(this.hideSliderRunnable);
@@ -114,7 +133,7 @@ public class SliderView extends FrameLayout {
 		hideSlider(true);
 	}
 
-	public float getAnimatedCount() {
+	float getAnimatedCount() {
 		return this.animatedCount;
 	}
 
@@ -124,6 +143,7 @@ public class SliderView extends FrameLayout {
 	}
 
 	public void setCount(int paramInt) {
+		hideIndeterminateSlider(true);
 		hideSlider(true);
 		this.count = paramInt;
 		this.index = Math.max(Math.min(this.index, paramInt - 1), 0.0F);
@@ -135,6 +155,7 @@ public class SliderView extends FrameLayout {
 	}
 
 	public void setManualProgress(float paramFloat, boolean paramBoolean) {
+		hideIndeterminateSlider(true);
 		showSlider(false);
 		int i = getResources().getDisplayMetrics().widthPixels;
 		FrameLayout.LayoutParams localLayoutParams = (FrameLayout.LayoutParams) this.slider
@@ -164,7 +185,7 @@ public class SliderView extends FrameLayout {
 				* (getResources().getDisplayMetrics().widthPixels / this.count);
 		if (paramInt != 0)
 			this.slider.animate().translationX(f2).setDuration(paramInt)
-					.setInterpolator(new AccelerateDecelerateInterpolator());
+			.setInterpolator(new AccelerateDecelerateInterpolator());
 		showSlider(true);
 		hideSliderAfterTimeout();
 		this.slider.setTranslationX(f2);
@@ -182,12 +203,25 @@ public class SliderView extends FrameLayout {
 	// paramBaseHorizontalScrollView.addPositionListener(this.positionListener);
 	// }
 
+	public void startIndeterminate() {
+		int i = getResources().getDisplayMetrics().widthPixels;
+		FrameLayout.LayoutParams localLayoutParams = (FrameLayout.LayoutParams) this.slider
+				.getLayoutParams();
+		localLayoutParams.width = i;
+		localLayoutParams.setMargins(0, 0, 0, 0);
+		this.slider.setLayoutParams(localLayoutParams);
+		hideSlider(true);
+		showIndeterminateSlider(true);
+		((AnimationDrawable) this.indeterminateSlider.getBackground()).start();
+	}
+
 	public void startProgress(long paramLong) {
 		startProgress(paramLong, new AccelerateDecelerateInterpolator());
 	}
 
 	public void startProgress(long paramLong,
 			TimeInterpolator paramTimeInterpolator) {
+		hideIndeterminateSlider(true);
 		showSlider(false);
 		int i = getResources().getDisplayMetrics().widthPixels;
 		FrameLayout.LayoutParams localLayoutParams = (FrameLayout.LayoutParams) this.slider
@@ -196,14 +230,12 @@ public class SliderView extends FrameLayout {
 		localLayoutParams.setMargins(-i, 0, 0, 0);
 		this.slider.setLayoutParams(localLayoutParams);
 		this.slider.animate().translationX(i).setDuration(paramLong)
-				.setInterpolator(paramTimeInterpolator);
+		.setInterpolator(paramTimeInterpolator);
 	}
-	
-	
-}
 
-/*
- * Location:
- * D:\work\RandD\Glass-Proto\glasshome-modded\libs\glasshome-modded-dex2jar.jar
- * Qualified Name: com.google.glass.widget.SliderView JD-Core Version: 0.6.2
- */
+	public void stopIndeterminate() {
+		showSlider(true);
+		((AnimationDrawable) this.indeterminateSlider.getBackground()).stop();
+		hideIndeterminateSlider(true);
+	}
+}

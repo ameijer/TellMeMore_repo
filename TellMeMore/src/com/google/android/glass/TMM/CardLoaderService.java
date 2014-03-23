@@ -74,6 +74,11 @@ public class CardLoaderService extends Service{
 	private class loadDBWithSamplesTask extends AsyncTask<Context, Integer, Long> {
 		protected Long doInBackground(Context... contexts) {
 
+			try {
+				Thread.sleep(7000);
+			} catch (InterruptedException e3) {
+				e3.printStackTrace();
+			}
 			Server source1 = new Server(EXAMPLE_CARD_SERVER, "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
 			//Server source2 = new Server("CardloaderService's sample card generator second 'server'", "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
 			File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm");
@@ -156,7 +161,7 @@ public class CardLoaderService extends Service{
 
 			}    
 
-			AudioCard audioCard1 = new AudioCard(0, 97, "Hear A Narration by the Student", file.getAbsolutePath(), source1);
+			AudioCard audioCard1 = new AudioCard(0, 97, "Hear A Student Narration", file.getAbsolutePath(), source1);
 			try{
 				Log.d(TAG, "audio card 1 added, returned: " + app.db.addCard(audioCard1));
 			} catch (IOException e1) {
