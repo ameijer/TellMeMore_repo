@@ -11,7 +11,7 @@ public class VideoCard extends TMMCard implements Serializable{
 
 	public static final String TAG = "TMM" +", " + VideoCard.class.getSimpleName();
 
-	private byte[] screenshot;
+	private String screenshot_path;
 
 	private int playCount;
 	private String YTtag; 
@@ -29,41 +29,41 @@ public class VideoCard extends TMMCard implements Serializable{
 
 	}
 
-	public VideoCard(int handle, int id, int priority, String cardTitle, byte[] screenshot, Server source) {
+	public VideoCard(int handle, int id, int priority, String cardTitle, String ss_path, Server source) {
 		super(handle, priority, cardTitle, source);
-		this.setScreenshot(screenshot);
+		screenshot_path = ss_path;
 
 	}
 
-	public VideoCard(int handle, int id, int priority, String cardTitle, byte[] screenshot, int playcount, Server source) {
+	public VideoCard(int handle, int id, int priority, String cardTitle, String ss_path, int playcount, Server source) {
 		super(handle, priority, cardTitle, source);
-		this.setScreenshot(screenshot);
+		this.screenshot_path = ss_path;
 		this.playCount = playcount;
 
 	}
 	
 	
-	public VideoCard(int handle, int id, int priority, String cardTitle, byte[] screenshot, String youTubeTag, Server source) {
+	public VideoCard(int handle, int id, int priority, String cardTitle, String ss_path, String youTubeTag, Server source) {
 		super(handle, priority, cardTitle, source);
-		this.setScreenshot(screenshot);
+		this.screenshot_path = ss_path;
 		this.setYTtag(youTubeTag);
 
 	}
 
-	public VideoCard(int handle, int id, int priority, String cardTitle, byte[] screenshot, int playcount, String youTubeTag, Server source) {
+	public VideoCard(int handle, int id, int priority, String cardTitle, String ss_path, int playcount, String youTubeTag, Server source) {
 		super(handle, priority, cardTitle, source);
-		this.setScreenshot(screenshot);
+		screenshot_path = ss_path;
 		this.playCount = playcount;
 		this.setYTtag(youTubeTag);
 
 	}
 
-	public byte[] getScreenshot() {
-		return screenshot;
+	public String getScreenshotPath() {
+		return screenshot_path;
 	}
 
-	public void setScreenshot(byte[] screenshot) {
-		this.screenshot = screenshot;
+	public void setScreenshot(String screenshotPath) {
+		this.screenshot_path = screenshotPath;
 	}
 
 	public int getPlayCount() {

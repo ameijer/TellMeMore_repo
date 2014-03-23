@@ -46,7 +46,9 @@ public class AudioPlayer extends Activity{
 	private FrameLayout layout;
 	private AudioManager mAudioManager;
 	private boolean paused;
+	private AudioCard thisCard;
 	public static Activity player; 
+	private TellMeMoreApplication app;
 	MediaPlayer mediaPlayer;
 	Thread progUpdater;
 	int lastPos;
@@ -67,14 +69,23 @@ public class AudioPlayer extends Activity{
 		layout = (FrameLayout) findViewById(R.id.audioPlayerFrame);
 		Log.i(TAG, "cardid passed: " + cardId);
 		player = this;
-		//TODO - replace with DB calls
-		//AudioCard thisCard = (AudioCard) SelectCardActivity.getTestCards(10)[cardPos];
-		AudioCard thisCard = null;//TODO fix
-		if(thisCard.getBackground() == null){
+
+ 
+		//obtain a reference to the application singleton
+		app = ((TellMeMoreApplication)this.getApplication());
+
+		try{
+			thisCard = (AudioCard) app.db.findCardById(cardId);
+		} catch (ClassCastException e){
+			Log.e(TAG, "Tried to cast card from DB", e);
+			finish();
+		}
+
+		if(thisCard.getBackgroundPath() == null || thisCard.getBackgroundPath().equalsIgnoreCase("")){
 			//set a black background
 			layout.setBackgroundColor(getResources().getColor(R.color.black));
 		} else {
-			bkgrnd.setImageBitmap(BitmapFactory.decodeByteArray(thisCard.getBackground(), 0, thisCard.getBackground().length));
+			bkgrnd.setImageBitmap(BitmapFactory.decodeFile(thisCard.getBackgroundPath()));
 		}
 		stat_icon.setImageResource(R.drawable.ic_pause);
 		help_txt.setText("tap to pause");
@@ -292,8 +303,8 @@ public class AudioPlayer extends Activity{
 		gestureDetector.setScrollListener(new GestureDetector.ScrollListener() {
 			@Override
 			public boolean onScroll(float displacement, float delta, float velocity) {
-				
-			mAudioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
+
+				mAudioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
 				try{
 					//seeking 
 					//	if(velocity > 0){
@@ -302,9 +313,9 @@ public class AudioPlayer extends Activity{
 						mediaPlayer.seekTo((int) (mediaPlayer.getCurrentPosition() +  TIME_TO_SEEK * velocity ));
 					}
 				} catch (IllegalStateException e){
-					
+
 				}
-				
+
 				return true;
 			}
 		});

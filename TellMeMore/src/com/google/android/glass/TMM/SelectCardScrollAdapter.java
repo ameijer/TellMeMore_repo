@@ -65,7 +65,7 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 			}
 
 			final ImageView img = (ImageView) convertView.findViewById(R.id.background_audio);
-			if(((AudioCard)cardArr[position]).getBackground() == null){
+			if(((AudioCard)cardArr[position]).getBackgroundPath() == null ||((AudioCard)cardArr[position]).getBackgroundPath().equalsIgnoreCase("") ){
 				img.setBackgroundResource(R.drawable.redbmp);
 			}
 			final TextView view = (TextView) convertView.findViewById(R.id.audio_title);
@@ -80,7 +80,7 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 			}
 
 			final ImageView img = (ImageView) convertView.findViewById(R.id.background_video);
-			if(((VideoCard)cardArr[position]).getScreenshot() == null){
+			if(((VideoCard)cardArr[position]).getScreenshotPath() == null || ((VideoCard)cardArr[position]).getScreenshotPath().equalsIgnoreCase("")){
 				img.setBackgroundResource(R.drawable.blue);
 			}
 

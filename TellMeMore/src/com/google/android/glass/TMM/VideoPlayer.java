@@ -35,13 +35,26 @@ public class VideoPlayer extends YouTubeBaseActivity implements YouTubePlayer.On
 	private myListener mlistener;
 	private int cardPos, cardId;
 	private Context act_context; 
+	private TellMeMoreApplication app;
+	private VideoCard thisCard;
 	private AudioManager mAudioManager;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		app = (TellMeMoreApplication)getApplication();
+		
+		
+		
 		cardPos =  getIntent().getIntExtra(EXTRA_SELECTED_POS, DEFAULT_POS);
 		cardId =  getIntent().getIntExtra(EXTRA_SELECTED_ID, DEFAULT_ID);
 		Log.i(TAG, "this card is at position: " + cardPos);
+		Log.d(TAG, "Cardid received by videoplayer: " + cardId);
+		try{
+			thisCard = (VideoCard) app.db.findCardById(cardId);
+		} catch (ClassCastException e){
+			Log.e(TAG, "Tried to cast card from DB", e);
+			finish();
+		}
 		setContentView(R.layout.video_player_layout);
 		//Declare YouTubePlayerView
 		YouTubePlayerView ytpv = (YouTubePlayerView)findViewById(R.id.youtubeplayer);
@@ -74,7 +87,7 @@ public class VideoPlayer extends YouTubeBaseActivity implements YouTubePlayer.On
 		// so we use the substring to chop those two off.
 		List<String> cue = new ArrayList<String>();
 
-		cue.add("v1uyQZNg2vE");
+		cue.add(thisCard.getYTtag());
 
 		//Play YouTube videos in the cue.
 		arg1.loadVideos(cue);

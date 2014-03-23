@@ -1,6 +1,5 @@
 package com.google.android.glass.TMM;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
