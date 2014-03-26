@@ -13,16 +13,14 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.widget.Toast;
 
 import com.google.android.glass.media.Sounds;
 import com.google.android.glass.touchpad.Gesture;
 import com.google.android.glass.touchpad.GestureDetector;
 import com.google.android.glass.widget.CardScrollView;
-import com.google.android.glass.TMM.VideoPlayer;
 import com.google.glass.widget.SliderView;
 
-
+      
 public class SelectCardActivity extends Activity implements GestureDetector.BaseListener{
 	public static final String NUM_CARDS = "num_cards";
 	public static final String EXTRA_INITIAL_VALUE = "initial_value";
@@ -212,7 +210,8 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		finish();
+		this.cardsRetreived = false;
+		//finish();
 
 	}
 }
