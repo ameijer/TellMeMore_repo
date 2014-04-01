@@ -23,12 +23,12 @@ public class TextCard extends TMMCard implements Serializable{
 		this.icon_path = "";
 	}
 	
-	public TextCard(int handle, int id, int priority, String cardTitle, Server source) {
+	public TextCard(int handle, String id, int priority, String cardTitle, Server source) {
 		super(handle, id, priority, cardTitle, source);
 		this.icon_path = null;
 		
 	}
-	public TextCard(int handle, int id, int priority, String cardTitle, String line1, String line2, String line3, Server source) {
+	public TextCard(int handle, String id, int priority, String cardTitle, String line1, String line2, String line3, Server source) {
 		super(handle, id, priority, cardTitle, source);
 		this.icon_path = null;
 		this.line1 = line1;
@@ -37,7 +37,7 @@ public class TextCard extends TMMCard implements Serializable{
 		
 	}
 	
-	public TextCard(int handle, int id, int priority, String cardTitle, String line1, String line2, String line3, String ic_path, Server source) {
+	public TextCard(int handle, String id, int priority, String cardTitle, String line1, String line2, String line3, String ic_path, Server source) {
 		super(handle, id, priority, cardTitle, source);
 		this.line1 = line1;
 		this.line2 = line2;
@@ -46,7 +46,7 @@ public class TextCard extends TMMCard implements Serializable{
 		
 	}
 	
-	public TextCard(int handle, int id, int priority, String cardTitle, String line1, String line2, String line3, ArrayList<TextElement> content, Server source) {
+	public TextCard(int handle,String id, int priority, String cardTitle, String line1, String line2, String line3, ArrayList<TextElement> content, Server source) {
 		super(handle, id, priority, cardTitle, source);
 		this.icon_path = null;
 		this.line1 = line1;
@@ -76,7 +76,7 @@ public class TextCard extends TMMCard implements Serializable{
 		
 	}
 	
-	public TextCard(int handle, int id, int priority, String cardTitle, String line1, String line2, String line3, String ic_path, ArrayList<TextElement> content, Server source) {
+	public TextCard(int handle, String id, int priority, String cardTitle, String line1, String line2, String line3, String ic_path, ArrayList<TextElement> content, Server source) {
 		super(handle, id, priority, cardTitle, source);
 		this.line1 = line1;
 		this.line2 = line2;

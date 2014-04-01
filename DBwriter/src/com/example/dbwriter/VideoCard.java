@@ -29,29 +29,29 @@ public class VideoCard extends TMMCard implements Serializable{
 
 	}
 
-	public VideoCard(int handle, int id, int priority, String cardTitle, String ss_path, Server source) {
-		super(handle, priority, cardTitle, source);
+	public VideoCard(int handle, String id, int priority, String cardTitle, String ss_path, Server source) {
+		super(handle, id, priority, cardTitle, source);
 		screenshot_path = ss_path;
 
 	}
 
-	public VideoCard(int handle, int id, int priority, String cardTitle, String ss_path, int playcount, Server source) {
-		super(handle, priority, cardTitle, source);
+	public VideoCard(int handle, String id, int priority, String cardTitle, String ss_path, int playcount, Server source) {
+		super(handle, id, priority, cardTitle, source);
 		this.screenshot_path = ss_path;
 		this.playCount = playcount;
 
 	}
 	
 	
-	public VideoCard(int handle, int id, int priority, String cardTitle, String ss_path, String youTubeTag, Server source) {
-		super(handle, priority, cardTitle, source);
+	public VideoCard(int handle, String id, int priority, String cardTitle, String ss_path, String youTubeTag, Server source) {
+		super(handle, id, priority, cardTitle, source);
 		this.screenshot_path = ss_path;
 		this.setYTtag(youTubeTag);
 
 	}
 
-	public VideoCard(int handle, int id, int priority, String cardTitle, String ss_path, int playcount, String youTubeTag, Server source) {
-		super(handle, priority, cardTitle, source);
+	public VideoCard(int handle, String id, int priority, String cardTitle, String ss_path, int playcount, String youTubeTag, Server source) {
+		super(handle, id, priority, cardTitle, source);
 		screenshot_path = ss_path;
 		this.playCount = playcount;
 		this.setYTtag(youTubeTag);

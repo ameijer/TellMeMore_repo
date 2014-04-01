@@ -33,27 +33,27 @@ public class AudioCard extends TMMCard implements Serializable{
 		this.audioClipPath = path;
 	}
 	
-	public AudioCard(int handle, int id, int priority, String cardTitle, int length, String backgroundPath, Server source) {
+	public AudioCard(int handle, String id, int priority, String cardTitle, int length, String backgroundPath, Server source) {
 		super(handle, id, priority, cardTitle, source);
 		this.lengthMillis = length;
 		this.background_path = backgroundPath;
 		this.audioClipPath = null;
 	}
 	
-	public AudioCard(int handle, int id, int priority, String cardTitle, String backgroundPath, Server source) {
+	public AudioCard(int handle, String id, int priority, String cardTitle, String backgroundPath, Server source) {
 		super(handle, id, priority, cardTitle, source);
 		this.background_path = backgroundPath;
 		this.audioClipPath = null;
 	}
 	
-	public AudioCard(int handle, int id, int priority, String cardTitle, int length, String backgroundPath, String contentPath, Server source) {
+	public AudioCard(int handle, String id, int priority, String cardTitle, int length, String backgroundPath, String contentPath, Server source) {
 		super(handle, id, priority, cardTitle, source);
 		this.lengthMillis = length;
 		this.background_path = backgroundPath;
 		this.audioClipPath = contentPath;
 	}
 	
-	public AudioCard(int handle, int id, int priority, String cardTitle, String backgroundPath, String contentPath, Server source) {
+	public AudioCard(int handle, String id, int priority, String cardTitle, String backgroundPath, String contentPath, Server source) {
 		super(handle, id, priority, cardTitle, source);
 		this.background_path = backgroundPath;
 		this.audioClipPath = contentPath;

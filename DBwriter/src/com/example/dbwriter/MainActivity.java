@@ -16,6 +16,9 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,20 +36,20 @@ public class MainActivity extends Activity {
 
 	public static final String TAG = "DBwriter mainactivity";
 	public static final String EXAMPLE_CARD_SERVER = "example_card_generator";
-	
+	public static final String UUID_GETTER_PATH = "_uuids";
 	ArrayList<TMMCard> cardz = new ArrayList<TMMCard>();
 	ArrayList<Server> servz = new ArrayList<Server>();
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		loadCards();
-		
-		//step 1: create DB with server name
-	    new Thread(new Runnable() {
-	        public void run() {
-	        	try {
+
+		//phase 1: create DB with server name
+		new Thread(new Runnable() {
+			public void run() {
+				try {
 					createNewDB("http://192.168.1.2", 5984, servz.get(0).getName());
 				} catch (IllegalStateException e) {
 					// TODO Auto-generated catch block
@@ -55,34 +58,131 @@ public class MainActivity extends Activity {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-	        }
-	    }).start();
+			}
+		}).start();
 
-		
-		
-		
+
+		//phase 2: store some cards on it, no attachments
+		try {
+			addCardToDB(cardz.get(0), servz.get(0).getName());
+		} catch (JsonGenerationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+
+
+
+
 	}
 
+	public boolean addCardToDB(TMMCard toAdd, String serverURLsansPort, int port, String dbName) throws JsonGenerationException, JsonMappingException, IOException{
+
+		//get a UUID to use from couch
+		String uuid = getUUID(serverURLsansPort, port);
+
+		ObjectMapper mapper = new ObjectMapper();
+		Log.d(TAG, "JSON'd value: " + mapper.writeValueAsString(toAdd));
+
+
+		return true; //placeholder
+	}
+
+	private String getUUID(String serverURLsansPort, int port){
+		
+		// Create a new HttpClient and get Header
+				HttpClient httpclient = new DefaultHttpClient();
+				HttpGet uuidGetter = new HttpGet(serverURLsansPort + ":" + port + "/" + UUID_GETTER_PATH);
+
+				//execute the put and record the response
+				HttpResponse response = null;
+				try {
+					response = httpclient.execute(uuidGetter);
+				} catch (ClientProtocolException e) {
+
+					Log.e(TAG, "error creating DB", e);
+				} catch (IOException e) {
+					Log.e(TAG, "IO error creating DB", e);
+				}
+
+				Log.i(TAG, "server response to uuid get: " + response);
+
+				//parse the reponse 
+				BufferedReader reader = null;
+				try {
+					reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+				} catch (UnsupportedEncodingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalStateException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				String json = null;
+				try {
+					json = reader.readLine();
+					Log.d(TAG, "Raw json string: " + json);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				JSONObject jsonObject = null;
+				try {
+					jsonObject = new JSONObject(json);
+				} catch (JSONException e1) {
+					Log.e(TAG, "error making json object", e1);
+				}
+				JSONArray uuids = new JSONArray();
+				try {
+					 uuids = jsonObject.getJSONArray("uuids");
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+				
+				String uuidToRet="";
+				try {
+					uuidToRet = uuids.getString(0);
+				} catch (JSONException e) {
+					
+					e.printStackTrace();
+				}
+				
+				Log.i(TAG, "Returning UUID: " + uuidToRet);
+				return uuidToRet;
+				
+	}
+
+
 	public boolean createNewDB(String serverURLsansPort, int port, String dbname) throws IllegalStateException, IOException{
-		 // Create a new HttpClient and put Header
-		 HttpClient httpclient = new DefaultHttpClient();
-		 HttpPut dbMaker = new HttpPut(serverURLsansPort + ":" + port + "/" + dbname);
-		 
-		 //execute the put and record the response
-		 HttpResponse response = null;
-		 try {
+		// Create a new HttpClient and put Header
+		HttpClient httpclient = new DefaultHttpClient();
+		HttpPut dbMaker = new HttpPut(serverURLsansPort + ":" + port + "/" + dbname);
+
+		//execute the put and record the response
+		HttpResponse response = null;
+		try {
 			response = httpclient.execute(dbMaker);
 		} catch (ClientProtocolException e) {
-			
+
 			Log.e(TAG, "error creating DB", e);
 		} catch (IOException e) {
 			Log.e(TAG, "IO error creating DB", e);
 		}
-		 
-		 Log.i(TAG, "server response to put: " + response);
-		 
-		 //parse the reponse 
-		 BufferedReader reader = null;
+
+		Log.i(TAG, "server response to put: " + response);
+
+		//parse the reponse 
+		BufferedReader reader = null;
 		try {
 			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
@@ -95,7 +195,7 @@ public class MainActivity extends Activity {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		 String json = null;
+		String json = null;
 		try {
 			json = reader.readLine();
 			Log.d(TAG, "Raw json string: " + json);
@@ -103,14 +203,14 @@ public class MainActivity extends Activity {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		JSONObject jsonObject = null;
 		try {
 			jsonObject = new JSONObject(json);
 		} catch (JSONException e1) {
 			Log.e(TAG, "error making json object", e1);
 		}
-		
+
 		String okResult = "";
 		try {
 			okResult = jsonObject.getString("ok");
@@ -119,7 +219,7 @@ public class MainActivity extends Activity {
 			//e.printStackTrace();
 			Log.i(TAG, "DB reports creation did not go well...");
 		}
-		
+
 		String errorResult = null;
 		String reason = null;
 		try {
@@ -129,17 +229,18 @@ public class MainActivity extends Activity {
 			Log.i(TAG, "no error code dtected in response");
 			errorResult = null;
 		}
-		
-		 Log.d(TAG, "ok result is: " + okResult);
-		 Log.d(TAG, "error result is: " + errorResult);
-		 
-		 if(okResult.equalsIgnoreCase("true")){
-		 return true;
-		 }else {
-			 Log.w(TAG, "CREATION FAILURE -" + reason);
-			 return false; 
-		 }
+
+		Log.d(TAG, "ok result is: " + okResult);
+		Log.d(TAG, "error result is: " + errorResult);
+
+		if(okResult.equalsIgnoreCase("true")){
+			return true;
+		}else {
+			Log.w(TAG, "CREATION FAILURE -" + reason);
+			return false; 
+		}
 	}
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -147,8 +248,8 @@ public class MainActivity extends Activity {
 		return true;
 	}
 
-	
-	
+
+
 	private void loadCards() {
 		try {
 			Thread.sleep(7000);
@@ -482,8 +583,8 @@ public class MainActivity extends Activity {
 
 		return retVals;
 	}
-	
-	
-	
-	
+
+
+
+
 }
