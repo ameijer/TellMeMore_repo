@@ -43,10 +43,12 @@ public class ScanActivity extends Activity
 	public static char uniqueId;
 	public static final String TARGET_SERVER_KEY = "target_server";
 	public static final String EXAMPLE_CARD_SERVER = "example card generator";
+	public static final String CARDS_READY_KEY = "cards_ready";
 	private GestureDetector mGestureDetector;
 	private TimelineManager mTimelineManager;
 	private static final int KEY_SWIPE_DOWN = 4;
 	protected static final String url = "URL";
+	private TellMeMoreApplication app;
 
 	private Camera mCamera;
 	private CameraPreview mPreview;
@@ -64,6 +66,7 @@ public class ScanActivity extends Activity
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		app = (TellMeMoreApplication) this.getApplication();
 		mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 		setContentView(R.layout.scan_activity_layout);
 		Log.i(TAG, "onCreateCalled");
@@ -111,14 +114,25 @@ public class ScanActivity extends Activity
 	{
 		if (keyCode == KEY_SWIPE_DOWN)
 		{
-			startCardDownload(EXAMPLE_CARD_SERVER);
+			//reset DB for testing purposes
+			app.db.deleteDB(getApplicationContext());
+			app.db = new DBManager(this.getApplicationContext());
+			app.db.open();
+			//
+			
+			//when we start the select card activity from here, we are going to want to download/update the new cards, so 
+			//tell the selectcardactivity that the cards arent ready yet
+			
+			
+			
 			// there was a swipe down event
 			Log.i(TAG, "hacky swipe_down method called");
 			mAudioManager.playSoundEffect(Sounds.DISMISSED);
 			
 			//start the next activity
+			startCardDownload(EXAMPLE_CARD_SERVER);
 			Intent intent = new Intent(this, SelectCardActivity.class);
-
+			intent.putExtra(CARDS_READY_KEY, false);
 			//Intent intent= new Intent(context, OpenYouTubePlayerActivity.class);
 			//Uri myUri = Uri.parse("ytv://eneEmDtSvzI");
 			//intent.setData(myUri);
@@ -240,6 +254,7 @@ public class ScanActivity extends Activity
 		//TODO -perform sanity check on the scanned text
 		Intent intent = new Intent(this, CardLoaderService.class);
 		intent.putExtra(TARGET_SERVER_KEY, url);
+		
         startService(intent);
 		//Toast t = Toast.makeText(getApplicationContext(), url, Toast.LENGTH_SHORT);
 		//t.show();

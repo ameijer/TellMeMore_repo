@@ -46,13 +46,10 @@ public class CardLoaderService extends Service{
 		if(targetServer.equalsIgnoreCase(EXAMPLE_CARD_SERVER)){
 			Log.d(TAG, "Cardloader service is using DB: " + app.db);
 
-			//reset DB for testing purposes
-			app.db.deleteDB(getApplicationContext());
-			app.db = new DBManager(this.getApplicationContext());
-			app.db.open();
-			//
+			if(!checkDBforcards(EXAMPLE_CARD_SERVER)){
 
-			new loadDBWithSamplesTask().execute(this);
+				new loadDBWithSamplesTask().execute(this);
+			}
 
 		} else { //we have an actual target
 			//TODO
@@ -68,6 +65,13 @@ public class CardLoaderService extends Service{
 
 
 		return Service.START_STICKY;
+	}
+
+	private boolean checkDBforcards(String serverName){
+		//we can correspond with the server here to check if the cards have been updated on the server
+		//but for now we will just check that we have cards in the DB with the same name
+
+		return app.db.findCardsbyServer(serverName).size() > 0;
 	}
 
 	private class loadDBWithSamplesTask extends AsyncTask<Context, Integer, Long> {

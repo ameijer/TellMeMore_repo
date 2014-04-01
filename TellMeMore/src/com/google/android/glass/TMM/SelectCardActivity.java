@@ -26,11 +26,13 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 	public static final String EXTRA_INITIAL_VALUE = "initial_value";
 	public static final String EXTRA_SELECTED_ID = "selected_id";
 	public static final String EXTRA_SELECTED_POS = "selected_pos";
+	public static final String CARDS_READY_KEY = "cards_ready";
 	private static final int DEFAULT_POS = 0;
 	private static final int KEY_SWIPE_DOWN = 4;
 	public static final String TAG = "TMM" +", " + SelectCardActivity.class.getSimpleName();
 	private int lastCard;
-	private static boolean cardsRetreived = false;
+	private boolean hasCards;
+
 	private static TMMCard[] cardArr;
 	private AudioManager mAudioManager;
 
@@ -42,14 +44,16 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		Log.d(TAG, "oncreate called");
 		super.onCreate(savedInstanceState);
 		app = ((TellMeMoreApplication)this.getApplication());
 		mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 		lastCard = getIntent().getIntExtra(EXTRA_SELECTED_POS, DEFAULT_POS);
-
+		hasCards = getIntent().getBooleanExtra(CARDS_READY_KEY, true);
+		Log.d(TAG, "Cards are ready: " + hasCards);
 		// Register mMessageReceiver to receive messages.
 		LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("cards_loaded"));
-		if(cardsRetreived){
+		if(hasCards){
 			enableCardScroll();
 		} else { 
 			//we are waiting for cards to be obtained
@@ -81,9 +85,9 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 			for(int i = 0; i < cardz.size(); i++){
 				cardArr[i] = cardz.get(i);
 			}
-
+			hasCards = true;
 			enableCardScroll();
-			cardsRetreived = true;
+	
 			//mView.setSelection(lastCard);
 			//registerListener();
 		}
@@ -139,7 +143,7 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 	@Override
 	public void onResume() {
 		super.onResume();
-		if(cardsRetreived){
+		if(hasCards){
 			mView.activate();
 			//mView.setSelection(getIntent().getIntExtra(EXTRA_INITIAL_VALUE, 0));
 		}
@@ -147,7 +151,7 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 
 	@Override
 	public void onPause() {
-		if(cardsRetreived){
+		if(hasCards){
 			super.onPause();
 			mView.deactivate();
 		}
@@ -210,7 +214,7 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		this.cardsRetreived = false;
+		hasCards = false;
 		//finish();
 
 	}

@@ -16,6 +16,7 @@ public class TellMeMoreApplication extends Application{
 	public void onCreate() {
 		super.onCreate();
 		db = new DBManager(this.getApplicationContext());
+		//setCardsRetreived(false);
 		//open DB
 		if(!db.open()){
 			Log.e(TAG, "DB open failed");
