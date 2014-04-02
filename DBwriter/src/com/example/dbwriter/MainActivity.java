@@ -3,6 +3,7 @@ package com.example.dbwriter;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,6 +27,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+
+import com.example.dbwriter.TextElement.Type;
 
 
 import android.os.AsyncTask;
@@ -52,90 +55,94 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		loadCards();
 
-//		//phase 1: create DB with server name
-//		Thread t1 = new Thread(new Runnable() {
-//			public void run() {
-//				try {
-//					createNewDB("http://192.168.1.2", 5984, servz.get(0).getName());
-//				} catch (IllegalStateException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				} catch (IOException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//			}
-//		});
-//
-//		t1.start();
-//		try {
-//			t1.join();
-//		} catch (InterruptedException e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		}
-//
-//
-//
-//		//phase 2.1:  get data from DB with HTTP GET: UUIDs
-//
-//		Thread t2 = new Thread(new Runnable() {
-//			public void run() {
-//				try {
-//					getUUID("http://192.168.1.2", 5984);
-//				} catch (IllegalStateException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//			}
-//		});
-//
-//		t2.start();
-//		try {
-//			t2.join();
-//		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//
-//		//phase 2.2: get a card from the DB that has a UUID	
-//		Thread t3 = new Thread(new Runnable() {
-//			public void run() {
-//				try {
-//					TMMCard temp = cardz.get(0);
-//					temp.setuuId(getUUID("http://192.168.1.2", 5984));
-//
-//					//try to add an object that doesn't yet exist, but has a valid UUID
-//					Log.i(TAG, "Thread t3, call to get JSON rep returns: " + getJSONRepresentation(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
-//				} catch (IllegalStateException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//			}
-//		});
-//
-//		t3.start();
-//		try {
-//			t3.join();
-//		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		//phase 1: create DB with server name
+		Thread t1 = new Thread(new Runnable() {
+			public void run() {
+				try {
+					createNewDB("http://192.168.1.2", 5984, servz.get(0).getName());
+				} catch (IllegalStateException e) { 
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+
+		t1.start();
+		try {
+			t1.join();
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		//
+		//
+		//
+		//		//phase 2.1:  get data from DB with HTTP GET: UUIDs
+		//
+		//		Thread t2 = new Thread(new Runnable() {
+		//			public void run() {
+		//				try {
+		//					getUUID("http://192.168.1.2", 5984);
+		//				} catch (IllegalStateException e) {
+		//					// TODO Auto-generated catch block
+		//					e.printStackTrace();
+		//				}
+		//			}
+		//		});
+		//
+		//		t2.start();
+		//		try {
+		//			t2.join();
+		//		} catch (InterruptedException e) {
+		//			// TODO Auto-generated catch block
+		//			e.printStackTrace();
+		//		}
+		//
+		//		//phase 2.2: get a card from the DB that has a UUID	
+		//		Thread t3 = new Thread(new Runnable() {
+		//			public void run() {
+		//				try {
+		//					TMMCard temp = cardz.get(0);
+		//					temp.setuuId(getUUID("http://192.168.1.2", 5984));
+		// 
+		//					//try to add an object that doesn't yet exist, but has a valid UUID
+		//					Log.i(TAG, "Thread t3, call to get JSON rep returns: " + getJSONRepresentation(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
+		//				} catch (IllegalStateException e) {
+		//					// TODO Auto-generated catch block
+		//					e.printStackTrace();
+		//				}
+		//			}
+		//		});
+		//
+		//		t3.start();
+		//		try {
+		//			t3.join();
+		//		} catch (InterruptedException e) {
+		//			// TODO Auto-generated catch block
+		//			e.printStackTrace();
+		//		}
 
 		//phase 3: add a card from the DB
 		Thread t4 = new Thread(new Runnable() {
 			public void run() {
 				try {
-					TMMCard temp = cardz.get(0);
-					temp.setuuId(getUUID("http://192.168.1.2", 5984));
+					
 
 					//try to add an object that doesn't yet exist, but has a valid UUID
-					Log.i(TAG, "Thread t4, call addcardtoDB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
+					for(int i = 0; i < cardz.size(); i++){
+						TMMCard temp = cardz.get(i);
+						temp.setuuId(getUUID("http://192.168.1.2", 5984));
+						Log.i(TAG, "Thread t4, call addcardtoDB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
+					}
+					
 
 					//should throw an exception here
-					Log.i(TAG, "Thread t4, second addCardto DB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
+					//Log.i(TAG, "Thread t4, second addCardto DB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
 				} catch (IllegalStateException e) {
-					// TODO Auto-generated catch block
+					// TODO Auto-generated catch block 
 					e.printStackTrace();
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
@@ -192,13 +199,10 @@ public class MainActivity extends Activity {
 		try {
 			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		String json = null;
@@ -206,7 +210,6 @@ public class MainActivity extends Activity {
 			json = reader.readLine();
 			Log.d(TAG, "Raw json string: " + json);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -279,13 +282,10 @@ public class MainActivity extends Activity {
 		try {
 			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		String json = null;
@@ -407,14 +407,37 @@ public class MainActivity extends Activity {
 	}
 
 
-	private boolean uploadCardAttachments(TMMCard toAdd, JSONObject jsonObject, String serverURLsansPort, int port, String dbName){
+	private boolean uploadCardAttachments(TMMCard toAdd, JSONObject jsonObject, String serverURLsansPort, int port, String dbName) throws IOException{
 		//will need case statement for each subclass of TMMCard
 		if(toAdd instanceof VideoCard){
-			
-
-
+			if(((VideoCard) toAdd).hasScreenshot()){
+				Bitmap bmp = BitmapFactory.decodeFile(((VideoCard)toAdd).getScreenshotPath());
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				bmp.compress(Bitmap.CompressFormat.JPEG, 90, out);
+				Log.d(TAG, "video card background image being uploaded: " + ((VideoCard) toAdd).getScrenshotname());
+				uploadSingleAttachment(out.toByteArray(), jsonObject, serverURLsansPort, port, ((VideoCard) toAdd).getScrenshotname(), dbName, "image/jpg");
+			}
 			return true;
 		} else if(toAdd instanceof AudioCard) {
+			if(((AudioCard) toAdd).hasBackground()){
+				Bitmap bmp = BitmapFactory.decodeFile(((AudioCard)toAdd).getBackgroundPath());
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				bmp.compress(Bitmap.CompressFormat.JPEG, 90, out);
+				Log.d(TAG, "filename audio background image being uploaded: " + ((AudioCard) toAdd).getBackground_name());
+				uploadSingleAttachment(out.toByteArray(), jsonObject, serverURLsansPort, port, ((AudioCard) toAdd).getBackground_name(), dbName, "image/jpg");
+				//update the parameter
+				jsonObject = getJSONRepresentation(toAdd, serverURLsansPort, port, dbName);
+			}
+
+			if(((AudioCard) toAdd).hasAudio()){
+				File audio = new File(((AudioCard) toAdd).getAudioClipPath());
+				FileInputStream fileInputStream = new FileInputStream(audio);
+				byte[] b = new byte[(int) audio.length()];
+				fileInputStream.read(b);
+				uploadSingleAttachment(b, jsonObject, serverURLsansPort, port, ((AudioCard) toAdd).getAudioClipName(), dbName, "audio/mpeg");
+			}
+
+
 			return true;
 		} else if(toAdd instanceof TextCard) {
 			//for a text card, first we store the icon if it exists
@@ -424,8 +447,30 @@ public class MainActivity extends Activity {
 				bmp.compress(Bitmap.CompressFormat.JPEG, 90, out);
 				Log.d(TAG, "filename of icon image being uploaded: " + ((TextCard) toAdd).getIcFileName());
 				uploadSingleAttachment(out.toByteArray(), jsonObject, serverURLsansPort, port, ((TextCard) toAdd).getIcFileName(), dbName, "image/jpg");
+
 			}
-			
+
+			//now, we need to upload any images in this file
+			//start by getting the JSON representation
+
+			JSONObject respObj = getJSONRepresentation(toAdd, serverURLsansPort, port, dbName);
+
+			for(int i = 0; i < ((TextCard) toAdd).getContents().size(); i++){
+				TextElement temp = ((TextCard) toAdd).getContents().get(i);
+				//we only care about uploading images
+				if(temp.getType() == Type.IMAGE){
+					Bitmap bmp = BitmapFactory.decodeFile(temp.getImg());
+					ByteArrayOutputStream out = new ByteArrayOutputStream();
+					bmp.compress(Bitmap.CompressFormat.JPEG, 90, out);
+					Log.d(TAG, "filename of textelement image being uploaded: " + temp.getImgFilename());
+					uploadSingleAttachment(out.toByteArray(), respObj, serverURLsansPort, port, temp.getImgFilename(), dbName, "image/jpg");
+					//confirm revision occured, and update our rev number
+					respObj = getJSONRepresentation(toAdd, serverURLsansPort, port, dbName); 
+				}
+
+			}
+
+
 			return true;
 		} else return false;
 
@@ -441,20 +486,32 @@ public class MainActivity extends Activity {
 			return false;
 		}
 		//parse the JSONObject to get the info that we need
-		
+
+		Log.i(TAG, "ul single attach, raw json object passed in: " + jsonObject);
 		String uuid;
 		try {
-			uuid = jsonObject.getString("id");
+			uuid = jsonObject.getString("_id");
 		} catch (JSONException e3) {
-			e3.printStackTrace();
-			return false;
+			try {
+				uuid = jsonObject.getString("id");
+			} catch (JSONException e) {
+
+				e.printStackTrace();
+				return false;
+			}
+
 		}
 		String revNo;
 		try {
-			revNo = jsonObject.getString("rev");
+			revNo = jsonObject.getString("_rev");
 		} catch (JSONException e2) {
-			e2.printStackTrace();
-			return false;
+			try {
+				revNo = jsonObject.getString("rev");
+			} catch (JSONException e) {
+				e.printStackTrace();
+				return false;
+			}
+
 		}
 
 		if(revNo.length() != exRev.length()){
@@ -474,7 +531,7 @@ public class MainActivity extends Activity {
 		if(contentType != null && !contentType.equalsIgnoreCase("")){
 			attachmentAdder.addHeader("Content-Type", contentType);
 		}
-		
+
 		ByteArrayEntity attachEnt = new ByteArrayEntity(data);
 		attachmentAdder.setEntity(attachEnt);
 
@@ -496,13 +553,10 @@ public class MainActivity extends Activity {
 		try {
 			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		String json = null;
@@ -510,7 +564,6 @@ public class MainActivity extends Activity {
 			json = reader.readLine();
 			Log.d(TAG, "Raw json string: " + json);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -526,8 +579,7 @@ public class MainActivity extends Activity {
 		try {
 			okResult = jsonObjectresp.getString("ok");
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			//e.printStackTrace();
+			e.printStackTrace();
 			Log.i(TAG, "DB reports creation did not go well...");
 		}
 
@@ -575,13 +627,10 @@ public class MainActivity extends Activity {
 		try {
 			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		String json = null;
@@ -589,7 +638,6 @@ public class MainActivity extends Activity {
 			json = reader.readLine();
 			Log.d(TAG, "Raw json string: " + json);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -604,8 +652,8 @@ public class MainActivity extends Activity {
 		try {
 			okResult = jsonObject.getString("ok");
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			//e.printStackTrace();
+
+			e.printStackTrace();
 			Log.i(TAG, "DB reports creation did not go well...");
 		}
 
