@@ -1,6 +1,7 @@
 package com.example.dbwriter;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -15,6 +16,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.codehaus.jackson.JsonGenerationException;
@@ -25,11 +27,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.view.Menu;
 
@@ -47,75 +52,75 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		loadCards();
 
-		//phase 1: create DB with server name
-		Thread t1 = new Thread(new Runnable() {
-			public void run() {
-				try {
-					createNewDB("http://192.168.1.2", 5984, servz.get(0).getName());
-				} catch (IllegalStateException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		});
-
-		t1.start();
-		try {
-			t1.join();
-		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-
-
-
-		//phase 2.1:  get data from DB with HTTP GET: UUIDs
-
-		Thread t2 = new Thread(new Runnable() {
-			public void run() {
-				try {
-					getUUID("http://192.168.1.2", 5984);
-				} catch (IllegalStateException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		});
-
-		t2.start();
-		try {
-			t2.join();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		//phase 2.2: get a card from the DB that has a UUID	
-		Thread t3 = new Thread(new Runnable() {
-			public void run() {
-				try {
-					TMMCard temp = cardz.get(0);
-					temp.setuuId(getUUID("http://192.168.1.2", 5984));
-
-					//try to add an object that doesn't yet exist, but has a valid UUID
-					Log.i(TAG, "Thread t3, call to get JSON rep returns: " + getJSONRepresentation(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
-				} catch (IllegalStateException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		});
-
-		t3.start();
-		try {
-			t3.join();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		//phase 1: create DB with server name
+//		Thread t1 = new Thread(new Runnable() {
+//			public void run() {
+//				try {
+//					createNewDB("http://192.168.1.2", 5984, servz.get(0).getName());
+//				} catch (IllegalStateException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				} catch (IOException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//			}
+//		});
+//
+//		t1.start();
+//		try {
+//			t1.join();
+//		} catch (InterruptedException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+//
+//
+//
+//		//phase 2.1:  get data from DB with HTTP GET: UUIDs
+//
+//		Thread t2 = new Thread(new Runnable() {
+//			public void run() {
+//				try {
+//					getUUID("http://192.168.1.2", 5984);
+//				} catch (IllegalStateException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//			}
+//		});
+//
+//		t2.start();
+//		try {
+//			t2.join();
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//
+//		//phase 2.2: get a card from the DB that has a UUID	
+//		Thread t3 = new Thread(new Runnable() {
+//			public void run() {
+//				try {
+//					TMMCard temp = cardz.get(0);
+//					temp.setuuId(getUUID("http://192.168.1.2", 5984));
+//
+//					//try to add an object that doesn't yet exist, but has a valid UUID
+//					Log.i(TAG, "Thread t3, call to get JSON rep returns: " + getJSONRepresentation(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
+//				} catch (IllegalStateException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//			}
+//		});
+//
+//		t3.start();
+//		try {
+//			t3.join();
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 
 		//phase 3: add a card from the DB
 		Thread t4 = new Thread(new Runnable() {
@@ -126,7 +131,7 @@ public class MainActivity extends Activity {
 
 					//try to add an object that doesn't yet exist, but has a valid UUID
 					Log.i(TAG, "Thread t4, call addcardtoDB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
-					
+
 					//should throw an exception here
 					Log.i(TAG, "Thread t4, second addCardto DB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
 				} catch (IllegalStateException e) {
@@ -148,7 +153,7 @@ public class MainActivity extends Activity {
 		}
 
 
-		
+
 
 	}
 
@@ -299,6 +304,9 @@ public class MainActivity extends Activity {
 			Log.e(TAG, "error making json object", e1);
 		}
 
+		//upload attachments
+		uploadCardAttachments(toAdd, jsonObject, serverURLsansPort, port, dbName);
+
 		String okResult = "";
 		try {
 			okResult = jsonObject.getString("ok");
@@ -398,6 +406,151 @@ public class MainActivity extends Activity {
 
 	}
 
+
+	private boolean uploadCardAttachments(TMMCard toAdd, JSONObject jsonObject, String serverURLsansPort, int port, String dbName){
+		//will need case statement for each subclass of TMMCard
+		if(toAdd instanceof VideoCard){
+			
+
+
+			return true;
+		} else if(toAdd instanceof AudioCard) {
+			return true;
+		} else if(toAdd instanceof TextCard) {
+			//for a text card, first we store the icon if it exists
+			if(((TextCard) toAdd).hasIcon()){
+				Bitmap bmp = BitmapFactory.decodeFile(((TextCard)toAdd).getIconPath());
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				bmp.compress(Bitmap.CompressFormat.JPEG, 90, out);
+				Log.d(TAG, "filename of icon image being uploaded: " + ((TextCard) toAdd).getIcFileName());
+				uploadSingleAttachment(out.toByteArray(), jsonObject, serverURLsansPort, port, ((TextCard) toAdd).getIcFileName(), dbName, "image/jpg");
+			}
+			
+			return true;
+		} else return false;
+
+	}
+
+	private boolean uploadSingleAttachment(byte[] data, JSONObject jsonObject, String serverURLsansPort, int port, String fileName, String dbName, String contentType){
+
+		final String exRev = "1-4ce605cd9fac335e98662dd4645cd332";
+		final String exUUID = "c629e32ea1c54b9b0840f0161000706e";
+
+		if(jsonObject == null) {
+			Log.w(TAG, "null jsonobject passed to uploadsingleattachmnet");
+			return false;
+		}
+		//parse the JSONObject to get the info that we need
+		
+		String uuid;
+		try {
+			uuid = jsonObject.getString("id");
+		} catch (JSONException e3) {
+			e3.printStackTrace();
+			return false;
+		}
+		String revNo;
+		try {
+			revNo = jsonObject.getString("rev");
+		} catch (JSONException e2) {
+			e2.printStackTrace();
+			return false;
+		}
+
+		if(revNo.length() != exRev.length()){
+			Log.w(TAG, "No revision found in uploadsingleattachment");
+			return false;
+		}
+
+		if(uuid.length() != exUUID.length()){
+			Log.w(TAG, "No UUID found in uploadsingleattachment");
+			return false;
+		}
+
+		// Create a new HttpClient and put Header
+		HttpClient httpclient = new DefaultHttpClient();
+		HttpPut attachmentAdder = new HttpPut(serverURLsansPort + ":" + port + "/" + dbName + "/" + uuid + "/" + fileName + "?rev=" + revNo);
+
+		if(contentType != null && !contentType.equalsIgnoreCase("")){
+			attachmentAdder.addHeader("Content-Type", contentType);
+		}
+		
+		ByteArrayEntity attachEnt = new ByteArrayEntity(data);
+		attachmentAdder.setEntity(attachEnt);
+
+		//execute the put and record the response
+		HttpResponse response = null;
+		try {
+			response = httpclient.execute(attachmentAdder);
+		} catch (ClientProtocolException e) {
+
+			Log.e(TAG, "error attachment adding", e);
+		} catch (IOException e) {
+			Log.e(TAG, "IO error attachment adding", e);
+		}
+
+		Log.i(TAG, "server response to put: " + response);
+
+		//parse the reponse 
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String json = null;
+		try {
+			json = reader.readLine();
+			Log.d(TAG, "Raw json string: " + json);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		JSONObject jsonObjectresp = null;
+		try {
+			jsonObjectresp = new JSONObject(json);
+		} catch (JSONException e1) {
+			Log.e(TAG, "error making json object", e1);
+		}
+
+
+		String okResult = "";
+		try {
+			okResult = jsonObjectresp.getString("ok");
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			//e.printStackTrace();
+			Log.i(TAG, "DB reports creation did not go well...");
+		}
+
+		String errorResult = null;
+		String reason = null;
+		try {
+			errorResult = jsonObject.getString("error");
+			reason = jsonObject.getString("reason");
+		} catch (JSONException e) {
+			Log.i(TAG, "no error code dtected in response");
+			errorResult = null;
+		}
+
+		Log.d(TAG, "ok result is: " + okResult);
+		Log.d(TAG, "error result is: " + errorResult);
+
+		if(okResult.equalsIgnoreCase("true")){
+			return true;
+		}else {
+			Log.w(TAG, "CREATION FAILURE -" + reason);
+			return false; 
+		}
+	}
 
 	public boolean createNewDB(String serverURLsansPort, int port, String dbname) throws IllegalStateException, IOException{
 		// Create a new HttpClient and put Header
