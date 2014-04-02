@@ -15,6 +15,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -47,7 +48,7 @@ public class MainActivity extends Activity {
 		loadCards();
 
 		//phase 1: create DB with server name
-		new Thread(new Runnable() {
+		Thread t1 = new Thread(new Runnable() {
 			public void run() {
 				try {
 					createNewDB("http://192.168.1.2", 5984, servz.get(0).getName());
@@ -59,107 +60,342 @@ public class MainActivity extends Activity {
 					e.printStackTrace();
 				}
 			}
-		}).start();
+		});
 
-
-		//phase 2: store some cards on it, no attachments
+		t1.start();
 		try {
-			addCardToDB(cardz.get(0), servz.get(0).getName());
-		} catch (JsonGenerationException e) {
+			t1.join();
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+
+
+		//phase 2.1:  get data from DB with HTTP GET: UUIDs
+
+		Thread t2 = new Thread(new Runnable() {
+			public void run() {
+				try {
+					getUUID("http://192.168.1.2", 5984);
+				} catch (IllegalStateException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+
+		t2.start();
+		try {
+			t2.join();
+		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (JsonMappingException e) {
+		}
+
+		//phase 2.2: get a card from the DB that has a UUID	
+		Thread t3 = new Thread(new Runnable() {
+			public void run() {
+				try {
+					TMMCard temp = cardz.get(0);
+					temp.setuuId(getUUID("http://192.168.1.2", 5984));
+
+					//try to add an object that doesn't yet exist, but has a valid UUID
+					Log.i(TAG, "Thread t3, call to get JSON rep returns: " + getJSONRepresentation(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
+				} catch (IllegalStateException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+
+		t3.start();
+		try {
+			t3.join();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		//phase 3: add a card from the DB
+		Thread t4 = new Thread(new Runnable() {
+			public void run() {
+				try {
+					TMMCard temp = cardz.get(0);
+					temp.setuuId(getUUID("http://192.168.1.2", 5984));
+
+					//try to add an object that doesn't yet exist, but has a valid UUID
+					Log.i(TAG, "Thread t4, call addcardtoDB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
+					
+					//should throw an exception here
+					Log.i(TAG, "Thread t4, second addCardto DB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
+				} catch (IllegalStateException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+
+		t4.start();
+		try {
+			t4.join();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+
+		
+
+	}
+
+	public JSONObject getJSONRepresentation(TMMCard toCheck, String serverURLsansPort, int port, String dbName){
+
+		if(toCheck.getuuId() == null){
+			return null;
+		}
+
+		final String exampleUUID = "f2abdb8f1fb14601b9e149cd67035d8a"; 
+
+		if(toCheck.getuuId().length() != exampleUUID.length()){
+			return null;
+		}
+
+		//then we must have a good UUID
+		// Create a new HttpClient and get Header
+		HttpClient httpclient = new DefaultHttpClient();
+		HttpGet cardGetter = new HttpGet(serverURLsansPort + ":" + port + "/" + dbName + "/" + toCheck.getuuId());
+
+		//execute the put and record the response
+		HttpResponse response = null;
+		try {
+			response = httpclient.execute(cardGetter);
+		} catch (ClientProtocolException e) {
+
+			Log.e(TAG, "error getting JSON card", e);
+		} catch (IOException e) {
+			Log.e(TAG, "IO error getting JSON card", e);
+		}
+
+		Log.i(TAG, "server response to card get: " + response);
+
+		//parse the reponse 
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		String json = null;
+		try {
+			json = reader.readLine();
+			Log.d(TAG, "Raw json string: " + json);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		JSONObject jsonObject = null;
+		try {
+			jsonObject = new JSONObject(json);
+		} catch (JSONException e1) {
+			Log.e(TAG, "error making json object", e1);
+		}
 
 
 
+		String errorResult = null;
+		String reason = null;
+		try {
+			errorResult = jsonObject.getString("error");
+			reason = jsonObject.getString("reason");
+			Log.d(TAG, "json representation error result is: " + errorResult);
+			Log.w(TAG, "card JSON represetnation CREATION FAILURE -" + reason);
+			return null;
+		} catch (JSONException e) {
+			Log.i(TAG, "no error code detected in response");
+			errorResult = null;
+			return jsonObject;
 
-
+		}
 	}
 
-	public boolean addCardToDB(TMMCard toAdd, String serverURLsansPort, int port, String dbName) throws JsonGenerationException, JsonMappingException, IOException{
+	public boolean addCardToDB(TMMCard toAdd, String serverURLsansPort, int port, String dbName) throws Exception{
 
+		//check to make sure card doesn't already exist in DB
+		if(this.getJSONRepresentation(toAdd, serverURLsansPort, port, dbName) != null){
+			//maybe we could update the card or something
+			//I'm going to punt on this, leave it as a TODO
+			throw new Exception("The card already exists in the DB, please use the update method instead");
+
+		}
+
+		//if we made it here, safe to assume that the card doesn't exist in the DB
 		//get a UUID to use from couch
 		String uuid = getUUID(serverURLsansPort, port);
+		toAdd.setuuId(uuid);
 
 		ObjectMapper mapper = new ObjectMapper();
 		Log.d(TAG, "JSON'd value: " + mapper.writeValueAsString(toAdd));
 
 
-		return true; //placeholder
+		// Create a new HttpClient and put Header
+		HttpClient httpclient = new DefaultHttpClient();
+		HttpPut cardMaker = new HttpPut(serverURLsansPort + ":" + port + "/" + dbName + "/" + uuid);
+		cardMaker.addHeader("Content-Type", "application/json");
+		cardMaker.addHeader("Accept", "application/json");
+		cardMaker.setEntity(new StringEntity(mapper.writeValueAsString(toAdd)));
+
+		//execute the put and record the response
+		HttpResponse response = null;
+		try {
+			response = httpclient.execute(cardMaker);
+		} catch (ClientProtocolException e) {
+
+			Log.e(TAG, "error card adding", e);
+		} catch (IOException e) {
+			Log.e(TAG, "IO error card adding", e);
+		}
+
+		Log.i(TAG, "server response to put: " + response);
+
+		//parse the reponse 
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String json = null;
+		try {
+			json = reader.readLine();
+			Log.d(TAG, "Raw json string: " + json);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		JSONObject jsonObject = null;
+		try {
+			jsonObject = new JSONObject(json);
+		} catch (JSONException e1) {
+			Log.e(TAG, "error making json object", e1);
+		}
+
+		String okResult = "";
+		try {
+			okResult = jsonObject.getString("ok");
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			//e.printStackTrace();
+			Log.i(TAG, "DB reports creation did not go well...");
+		}
+
+		String errorResult = null;
+		String reason = null;
+		try {
+			errorResult = jsonObject.getString("error");
+			reason = jsonObject.getString("reason");
+		} catch (JSONException e) {
+			Log.i(TAG, "no error code dtected in response");
+			errorResult = null;
+		}
+
+		Log.d(TAG, "ok result is: " + okResult);
+		Log.d(TAG, "error result is: " + errorResult);
+
+		if(okResult.equalsIgnoreCase("true")){
+			return true;
+		}else {
+			Log.w(TAG, "CREATION FAILURE -" + reason);
+			return false; 
+		}
+
 	}
 
 	private String getUUID(String serverURLsansPort, int port){
-		
+
 		// Create a new HttpClient and get Header
-				HttpClient httpclient = new DefaultHttpClient();
-				HttpGet uuidGetter = new HttpGet(serverURLsansPort + ":" + port + "/" + UUID_GETTER_PATH);
+		HttpClient httpclient = new DefaultHttpClient();
+		HttpGet uuidGetter = new HttpGet(serverURLsansPort + ":" + port + "/" + UUID_GETTER_PATH);
 
-				//execute the put and record the response
-				HttpResponse response = null;
-				try {
-					response = httpclient.execute(uuidGetter);
-				} catch (ClientProtocolException e) {
+		//execute the put and record the response
+		HttpResponse response = null;
+		try {
+			response = httpclient.execute(uuidGetter);
+		} catch (ClientProtocolException e) {
 
-					Log.e(TAG, "error creating DB", e);
-				} catch (IOException e) {
-					Log.e(TAG, "IO error creating DB", e);
-				}
+			Log.e(TAG, "error creating DB", e);
+		} catch (IOException e) {
+			Log.e(TAG, "IO error creating DB", e);
+		}
 
-				Log.i(TAG, "server response to uuid get: " + response);
+		Log.i(TAG, "server response to uuid get: " + response);
 
-				//parse the reponse 
-				BufferedReader reader = null;
-				try {
-					reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
-				} catch (UnsupportedEncodingException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IllegalStateException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				String json = null;
-				try {
-					json = reader.readLine();
-					Log.d(TAG, "Raw json string: " + json);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+		//parse the reponse 
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String json = null;
+		try {
+			json = reader.readLine();
+			Log.d(TAG, "Raw json string: " + json);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
-				JSONObject jsonObject = null;
-				try {
-					jsonObject = new JSONObject(json);
-				} catch (JSONException e1) {
-					Log.e(TAG, "error making json object", e1);
-				}
-				JSONArray uuids = new JSONArray();
-				try {
-					 uuids = jsonObject.getJSONArray("uuids");
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
-				
-				String uuidToRet="";
-				try {
-					uuidToRet = uuids.getString(0);
-				} catch (JSONException e) {
-					
-					e.printStackTrace();
-				}
-				
-				Log.i(TAG, "Returning UUID: " + uuidToRet);
-				return uuidToRet;
-				
+		JSONObject jsonObject = null;
+		try {
+			jsonObject = new JSONObject(json);
+		} catch (JSONException e1) {
+			Log.e(TAG, "error making json object", e1);
+		}
+		JSONArray uuids = new JSONArray();
+		try {
+			uuids = jsonObject.getJSONArray("uuids");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+
+		String uuidToRet="";
+		try {
+			uuidToRet = uuids.getString(0);
+		} catch (JSONException e) {
+
+			e.printStackTrace();
+		}
+
+		Log.i(TAG, "Returning UUID: " + uuidToRet);
+		return uuidToRet;
+
 	}
 
 
