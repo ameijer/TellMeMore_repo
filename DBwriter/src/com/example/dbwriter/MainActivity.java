@@ -15,13 +15,13 @@ import java.util.ArrayList;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -61,10 +61,8 @@ public class MainActivity extends Activity {
 				try {
 					createNewDB("http://192.168.1.2", 5984, servz.get(0).getName());
 				} catch (IllegalStateException e) { 
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -74,7 +72,6 @@ public class MainActivity extends Activity {
 		try {
 			t1.join();
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		//
@@ -129,15 +126,17 @@ public class MainActivity extends Activity {
 		Thread t4 = new Thread(new Runnable() {
 			public void run() {
 				try {
-					
 
+					TMMCard temp = null;
 					//try to add an object that doesn't yet exist, but has a valid UUID
 					for(int i = 0; i < cardz.size(); i++){
-						TMMCard temp = cardz.get(i);
+						temp = cardz.get(i);
 						temp.setuuId(getUUID("http://192.168.1.2", 5984));
 						Log.i(TAG, "Thread t4, call addcardtoDB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
 					}
-					
+
+					//	Log.d(TAG, "Deleted card: " + temp.toString());
+					//Log.d(TAG, "delete card from DB returs: " + deleteCardfromDB(temp,"http://192.168.1.2", 5984, servz.get(0).getName()));
 
 					//should throw an exception here
 					//Log.i(TAG, "Thread t4, second addCardto DB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
@@ -158,9 +157,55 @@ public class MainActivity extends Activity {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
 
 
+	public boolean deleteDB(String serverURLsansPort, int port, String dbName, boolean areYouSure){
+		if(!areYouSure){
+			Log.d(TAG, "User wasn't sure");
+			return false;
+		}
 
+		HttpClient httpclient = new DefaultHttpClient();
+		HttpDelete dbdeleter = new HttpDelete(serverURLsansPort + ":" + port + "/" + dbName);
+
+		//execute the delete and record the response
+		HttpResponse response = null;
+		try {
+			response = httpclient.execute(dbdeleter);
+		} catch (ClientProtocolException e) {
+			Log.e(TAG, "error deleting document", e);
+			return false;
+		} catch (IOException e) {
+			Log.e(TAG, "IO error delting document", e);
+			return false;
+		}
+
+		//parse the reponse 
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String json = null;
+		try {
+			json = reader.readLine();
+			Log.d(TAG, "delete DB, Raw json string: " + json);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Log.i(TAG, "deletedb method, server response is: " + json);
+
+		return true;
 
 	}
 
@@ -293,7 +338,6 @@ public class MainActivity extends Activity {
 			json = reader.readLine();
 			Log.d(TAG, "Raw json string: " + json);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -338,6 +382,99 @@ public class MainActivity extends Activity {
 
 	}
 
+	public boolean deleteCardfromDB(TMMCard todel, String serverURLsansPort, int port, String dbName){
+
+		//perform sanity checks on the UUID
+		final String exUUID = "c629e32ea1c54b9b0840f0161000706e";
+
+		if(todel.getuuId() == null) {
+			Log.w(TAG, "bad UUID passed to deletecardfromdb");
+			return false;
+		}
+
+
+		if(todel.getuuId().length() != exUUID.length()){
+			Log.w(TAG, "bad UUID passed to deletecardfromdb");
+			return false;
+		}
+
+		//use the UUID to get the current REV
+		JSONObject jsonObject =  getJSONRepresentation(todel, serverURLsansPort, port, dbName);
+
+		if(jsonObject == null){
+			Log.e(TAG, "no JSON retreived for the card with UUID " + todel.getuuId() + " in deletecardfromDB");
+		}
+
+		//parse the JSONObject to get the info that we need
+
+		Log.i(TAG, "delete card from DB, card to delete info: " + jsonObject);
+		String uuid;
+		try {
+			uuid = jsonObject.getString("_id");
+		} catch (JSONException e3) {
+			try {
+				uuid = jsonObject.getString("id");
+			} catch (JSONException e) {
+
+				e.printStackTrace();
+				return false;
+			}
+
+		}
+		String revNo;
+		try {
+			revNo = jsonObject.getString("_rev");
+		} catch (JSONException e2) {
+			try {
+				revNo = jsonObject.getString("rev");
+			} catch (JSONException e) {
+				e.printStackTrace();
+				return false;
+			}
+
+		}
+		HttpClient httpclient = new DefaultHttpClient();
+		HttpDelete uuidGetter = new HttpDelete(serverURLsansPort + ":" + port + "/" + dbName + "/" + uuid + "?rev=" + revNo);
+
+		//execute the delete and record the response
+		HttpResponse response = null;
+		try {
+			response = httpclient.execute(uuidGetter);
+		} catch (ClientProtocolException e) {
+			Log.e(TAG, "error deleting document", e);
+		} catch (IOException e) {
+			Log.e(TAG, "IO error delting document", e);
+		}
+
+		//parse the reponse 
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String json = null;
+		try {
+			json = reader.readLine();
+			Log.d(TAG, "Raw json string: " + json);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Log.i(TAG, "deletecardfromdb method, server response is: " + json);
+
+		return true;
+
+
+	}
+
 	private String getUUID(String serverURLsansPort, int port){
 
 		// Create a new HttpClient and get Header
@@ -362,13 +499,10 @@ public class MainActivity extends Activity {
 		try {
 			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		String json = null;
@@ -434,6 +568,7 @@ public class MainActivity extends Activity {
 				FileInputStream fileInputStream = new FileInputStream(audio);
 				byte[] b = new byte[(int) audio.length()];
 				fileInputStream.read(b);
+				fileInputStream.close();
 				uploadSingleAttachment(b, jsonObject, serverURLsansPort, port, ((AudioCard) toAdd).getAudioClipName(), dbName, "audio/mpeg");
 			}
 
@@ -688,11 +823,7 @@ public class MainActivity extends Activity {
 
 
 	private void loadCards() {
-		try {
-			Thread.sleep(7000);
-		} catch (InterruptedException e3) {
-			e3.printStackTrace();
-		}
+	
 		Server source1 = new Server(EXAMPLE_CARD_SERVER, "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
 		//Server source2 = new Server("CardloaderService's sample card generator second 'server'", "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
 		File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm");
