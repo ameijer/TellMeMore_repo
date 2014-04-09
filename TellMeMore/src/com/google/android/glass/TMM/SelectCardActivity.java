@@ -197,7 +197,7 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 				resultIntent= new Intent(this, TextViewer.class);
 			}
 
-			int id =  cardArr[mView.getSelectedItemPosition()].getId();
+			String id =  cardArr[mView.getSelectedItemPosition()].getuuId();
 			resultIntent.putExtra(EXTRA_SELECTED_ID,id);
 			resultIntent.putExtra(EXTRA_SELECTED_POS, mView.getSelectedItemPosition());
 			setResult(RESULT_OK, resultIntent);

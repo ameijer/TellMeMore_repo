@@ -114,15 +114,9 @@ public class ScanActivity extends Activity
 	{
 		if (keyCode == KEY_SWIPE_DOWN)
 		{
-			//reset DB for testing purposes
-			app.db.deleteDB(getApplicationContext());
-			app.db = new DBManager(this.getApplicationContext());
-			app.db.open();
-			//
-			
+		
 			//when we start the select card activity from here, we are going to want to download/update the new cards, so 
 			//tell the selectcardactivity that the cards arent ready yet
-			
 			
 			
 			// there was a swipe down event

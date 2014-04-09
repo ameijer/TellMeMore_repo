@@ -14,8 +14,9 @@ import android.widget.Toast;
 
 public class TellMeMoreApplication extends Application{
 	//our global DB, abstracted through a manager
-	private Database database;
-	private Manager manager;
+	
+	public DBManager db;
+	
 	public static final String TAG = "TMM" +", " + TellMeMoreApplication.class.getSimpleName();
 
 	@Override
@@ -26,7 +27,7 @@ public class TellMeMoreApplication extends Application{
 		//open DB
 		Log.d(TAG, "Application-level oncreate called");
 		try {
-			manager = new Manager(new AndroidContext(this).getFilesDir(), Manager.DEFAULT_OPTIONS);
+			db = new DBManager(this);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -67,21 +68,9 @@ public class TellMeMoreApplication extends Application{
 		//we should think about initializing our TMMservice here
 	}
 
-	public Database getDatabase() {
-		return database;
-	}
 
-	public void setDatabase(Database database) {
-		this.database = database;
-	}
 
-	public Manager getManager() {
-		return manager;
-	}
 
-	public void setManager(Manager manager) {
-		this.manager = manager;
-	}
 	
 	
 }

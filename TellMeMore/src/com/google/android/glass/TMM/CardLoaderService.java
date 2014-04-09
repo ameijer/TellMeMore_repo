@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
+import com.couchbase.lite.CouchbaseLiteException;
+
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -46,9 +48,14 @@ public class CardLoaderService extends Service{
 		if(targetServer.equalsIgnoreCase(EXAMPLE_CARD_SERVER)){
 			Log.d(TAG, "Cardloader service is using DB: " + app.db);
 
-			if(!checkDBforcards(EXAMPLE_CARD_SERVER)){
-
-				new loadDBWithSamplesTask().execute(this);
+			try {
+				app.db.open(EXAMPLE_CARD_SERVER);
+				Log.i(TAG, "CONTENTS OF ENTIRE DB IN CARDLOADERSERVICE FOLLOWS: " + app.db.getEntireDbAsJSON());
+			} catch (IOException e) {
+				
+				e.printStackTrace();
+			} catch (CouchbaseLiteException e) {
+				e.printStackTrace();
 			}
 
 		} else { //we have an actual target
@@ -56,6 +63,16 @@ public class CardLoaderService extends Service{
 			//check DB for already existing cards
 			//if there aren't any already in the DB, then download it
 			//etc etc
+			try {
+				app.db.open(targetServer);
+			} catch (IOException e) {
+				
+				e.printStackTrace();
+			} catch (CouchbaseLiteException e) {
+				e.printStackTrace();
+			}
+			
+			
 
 
 			//once cards are stored in the DB, alert the selectcardactivity
@@ -65,13 +82,6 @@ public class CardLoaderService extends Service{
 
 
 		return Service.START_STICKY;
-	}
-
-	private boolean checkDBforcards(String serverName){
-		//we can correspond with the server here to check if the cards have been updated on the server
-		//but for now we will just check that we have cards in the DB with the same name
-
-		return app.db.findCardsbyServer(serverName).size() > 0;
 	}
 
 	private class loadDBWithSamplesTask extends AsyncTask<Context, Integer, Long> {
@@ -129,6 +139,9 @@ public class CardLoaderService extends Service{
 			} catch (IOException e1) {
 
 				Log.e(TAG, "IOexception adding sample text cards", e1);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 
 			String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm/powerpointdemo.mp3";
@@ -170,18 +183,29 @@ public class CardLoaderService extends Service{
 			} catch (IOException e1) {
 
 				Log.e(TAG, "IOexception adding sample audio card", e1);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 
 			VideoCard videoCard1 = new VideoCard(0, 90, "Watch the Experiment", "wtnI3kyCnmA", source1);
 			VideoCard videoCard2 = new VideoCard(0, 89, "View the presentation", "cn5mMJiPYmw", source1);
 			try{
 				Log.d(TAG, "video card 1 added, returned: " + app.db.addCard(videoCard1));
-				Log.d(TAG, "video card 2 added, returned: " + app.db.addCard(videoCard2));
+				try {
+					Log.d(TAG, "video card 2 added, returned: " + app.db.addCard(videoCard2));
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 
-				Log.d(TAG, "server source 1 added, returned: " + app.db.addServer(source1));
+			
 			} catch (IOException e1) {
 
 				Log.e(TAG, "IOexception adding sample video cards", e1);
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
 
 			//app.db.addServer(source2);
