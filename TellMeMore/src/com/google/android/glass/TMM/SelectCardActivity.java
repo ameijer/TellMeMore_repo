@@ -75,7 +75,7 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 			// Extract data included in the Intent
 			String serverName = intent.getStringExtra("server_used");
 			Log.d(TAG, "Got message: " + serverName);
-
+			Log.i(TAG, "json representation of DB: " + app.db.getEntireDbAsJSON());
 			//retreive cards from the target server, since they have ostensibly been loaded
 			ArrayList<TMMCard> cardz = app.db.findCardsbyServer(serverName);
 
@@ -151,8 +151,9 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 
 	@Override
 	public void onPause() {
+		super.onPause();
 		if(hasCards){
-			super.onPause();
+			
 			mView.deactivate();
 		}
 	}

@@ -42,7 +42,7 @@ public class ScanActivity extends Activity
 	public static final String TAG = "TMM" +", " + ScanActivity.class.getSimpleName();
 	public static char uniqueId;
 	public static final String TARGET_SERVER_KEY = "target_server";
-	public static final String EXAMPLE_CARD_SERVER = "example card generator";
+	public static final String EXAMPLE_CARD_SERVER = "example_card_generator";
 	public static final String CARDS_READY_KEY = "cards_ready";
 	private GestureDetector mGestureDetector;
 	private TimelineManager mTimelineManager;
