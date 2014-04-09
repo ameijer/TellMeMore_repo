@@ -1,6 +1,11 @@
 package com.google.android.glass.TMM;
 
 import java.io.File;
+import java.io.IOException;
+
+import com.couchbase.lite.CouchbaseLiteException;
+import com.couchbase.lite.Database;
+import com.couchbase.lite.Manager;
 
 import android.app.Application;
 import android.os.Environment;
@@ -9,21 +14,23 @@ import android.widget.Toast;
 
 public class TellMeMoreApplication extends Application{
 	//our global DB, abstracted through a manager
-	public DBManager db;
+	private Database database;
+	private Manager manager;
 	public static final String TAG = "TMM" +", " + TellMeMoreApplication.class.getSimpleName();
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		db = new DBManager(this.getApplicationContext());
+		//db = new DBManager(this.getApplicationContext());
 		//setCardsRetreived(false);
 		//open DB
-		if(!db.open()){
-			Log.e(TAG, "DB open failed");
-			System.exit(1);
-		}
 		Log.d(TAG, "Application-level oncreate called");
-
+		try {
+			manager = new Manager(new AndroidContext(this).getFilesDir(), Manager.DEFAULT_OPTIONS);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		//check state of external storage, as detailed in http://stackoverflow.com/questions/3551821/android-write-to-sd-card-folder
 		boolean iswriteable = true;
 		String state = Environment.getExternalStorageState();
@@ -57,7 +64,24 @@ public class TellMeMoreApplication extends Application{
 		}
 
 
-
 		//we should think about initializing our TMMservice here
 	}
+
+	public Database getDatabase() {
+		return database;
+	}
+
+	public void setDatabase(Database database) {
+		this.database = database;
+	}
+
+	public Manager getManager() {
+		return manager;
+	}
+
+	public void setManager(Manager manager) {
+		this.manager = manager;
+	}
+	
+	
 }

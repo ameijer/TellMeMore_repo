@@ -17,7 +17,7 @@ public class TextElement implements Serializable{
 	}
 
 	private Type type;
-	private String text;
+	private String text, imgFilename;
 	private String img_path;
 	private int imgSize;
 
@@ -31,6 +31,8 @@ public class TextElement implements Serializable{
 		this.setType(type);
 		this.setText(caption);
 		img_path = img;
+		int charToWipe = img_path.lastIndexOf('/');
+		setImgFilename(img_path.substring(charToWipe + 1));
 
 	}
 
@@ -40,6 +42,8 @@ public class TextElement implements Serializable{
 
 	public void setImg(String img) {
 		this.img_path = img;
+		int charToWipe = img_path.lastIndexOf('/');
+		setImgFilename(img_path.substring(charToWipe + 1));
 	}
 
 	public String getText() {
@@ -65,6 +69,14 @@ public class TextElement implements Serializable{
 
 	public void setType(Type type) {
 		this.type = type;
+	}
+
+	public String getImgFilename() {
+		return imgFilename;
+	}
+
+	private void setImgFilename(String imgFilename) {
+		this.imgFilename = imgFilename;
 	}
 
 }
