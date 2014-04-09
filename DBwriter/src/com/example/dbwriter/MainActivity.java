@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 
 import org.apache.http.HttpResponse;
@@ -30,6 +32,7 @@ import org.json.JSONTokener;
 
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.listener.LiteListener;
+import com.couchbase.lite.replicator.Replication;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Manager;
 import com.example.dbwriter.TextElement.Type;
@@ -45,47 +48,67 @@ import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.view.Menu;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements Replication.ChangeListener{
 
-	public static final String TAG = "DBwriter mainactivity";
+	public static final String TAG = "DBwriter mainactivity"; 
 	public static final String EXAMPLE_CARD_SERVER = "example_card_generator";
 	public static final String UUID_GETTER_PATH = "_uuids";
 	private static final String DATABASE_NAME = "dbwriter_test";
+	public static final String SYNC_URL = "http://192.168.1.2:5984"; 
 	ArrayList<TMMCard> cardz = new ArrayList<TMMCard>();
 	ArrayList<Server> servz = new ArrayList<Server>();
 	private Database database;
 	private Manager manager;
-	
-	
-	 private int startCBLListener(int suggestedListenPort) throws IOException, CouchbaseLiteException {
+	JSONObject jo = null;
 
-	       manager = startCBLite();
-	        
-	        startDatabase(manager, DATABASE_NAME);
 
-	        LiteListener listener = new LiteListener(manager, suggestedListenPort);
-	        int port = listener.getListenPort();
-	        Thread thread = new Thread(listener);
-	        thread.start();
+	private int startCBLListener(int suggestedListenPort) throws IOException, CouchbaseLiteException {
 
-	        return port;
+		manager = startCBLite();
 
-	    }
+		startDatabase(manager, DATABASE_NAME);
 
-	    protected Manager startCBLite() throws IOException {
-	      
-	        Manager manager = new Manager(new AndroidContext(this).getFilesDir(), Manager.DEFAULT_OPTIONS);
-	        return manager;
-	    }
+		LiteListener listener = new LiteListener(manager, suggestedListenPort);
+		int port = listener.getListenPort();
+		Thread thread = new Thread(listener);
+		thread.start();
 
-	    protected void startDatabase(Manager manager, String databaseName) throws CouchbaseLiteException {
-	        database = manager.getDatabase(databaseName);
-	        database.open();
-	    }
-	 
-	 
-	 
-	 
+		return port;
+
+	}
+
+	protected Manager startCBLite() throws IOException {
+
+		Manager manager = new Manager(new AndroidContext(this).getFilesDir(), Manager.DEFAULT_OPTIONS);
+		return manager;
+	} 
+
+	protected void startDatabase(Manager manager, String databaseName) throws CouchbaseLiteException {
+		database = manager.getDatabase(databaseName);
+		database.open();
+	}
+
+	@Override
+	public void changed(Replication.ChangeEvent event) {
+
+		Replication replication = event.getSource();
+		Log.d(TAG, "Replication : " + replication + " changed.");
+		if (!replication.isRunning()) {
+			String msg = String.format("Replicator %s not running", replication);
+			Log.d(TAG, msg);
+		}
+		else {
+			int processed = replication.getCompletedChangesCount();
+			int total = replication.getChangesCount();
+			String msg = String.format("Replicator processed %d / %d", processed, total);
+			Log.d(TAG, msg);
+		}
+
+	}
+
+
+
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -99,6 +122,7 @@ public class MainActivity extends Activity {
 			e2.printStackTrace();
 		}
 
+		
 		//phase 1: create DB with server name
 		Thread t1 = new Thread(new Runnable() {
 			public void run() {
@@ -118,30 +142,59 @@ public class MainActivity extends Activity {
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 		}
+
+
 		
-		
-		
-		
-				//phase 2.1:  get data from DB with HTTP GET: UUIDs
-		
-				Thread t2 = new Thread(new Runnable() {
-					public void run() {
-						try {
-							getUUID("http://127.0.0.1", 5984);
-						} catch (IllegalStateException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-				});
-		
-				t2.start();
+		//phase 2.1:  get data from DB with HTTP GET: UUIDs
+
+		Thread t2 = new Thread(new Runnable() {
+			public void run() {
 				try {
-					t2.join();
-				} catch (InterruptedException e) {
+					getUUID("http://127.0.0.1", 5984);
+				} catch (IllegalStateException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+			}
+		});
+
+		t2.start(); 
+		try {
+			t2.join();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Log.i(TAG, "Beginning Sync...");
+		startSync();
+
+		
+		//local replication test: get raw JSON for everything in the DB
+		//mostly a check to assure that the content is there
+		
+			Thread t3 = new Thread(new Runnable() {
+				public void run() {
+					try {
+						 jo = getEntireDbAsJSON("http://127.0.0.1", 5984, DATABASE_NAME);
+					} catch (IllegalStateException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} 
+				}
+			});
+
+			t3.start();
+			try {
+				t3.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			
+		
+		
 		//
 		//		//phase 2.2: get a card from the DB that has a UUID	
 		//		Thread t3 = new Thread(new Runnable() {
@@ -167,42 +220,116 @@ public class MainActivity extends Activity {
 		//			e.printStackTrace();
 		//		}
 
-//		//phase 3: add a card from the DB
-//		Thread t4 = new Thread(new Runnable() {
-//			public void run() {
-//				try {
-//
-//					TMMCard temp = null;
-//					//try to add an object that doesn't yet exist, but has a valid UUID
-//					for(int i = 0; i < cardz.size(); i++){
-//						temp = cardz.get(i);
-//						temp.setuuId(getUUID("http://192.168.1.2", 5984));
-//						Log.i(TAG, "Thread t4, call addcardtoDB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
-//					}
-//
-//					//	Log.d(TAG, "Deleted card: " + temp.toString());
-//					//Log.d(TAG, "delete card from DB returs: " + deleteCardfromDB(temp,"http://192.168.1.2", 5984, servz.get(0).getName()));
-//
-//					//should throw an exception here
-//					//Log.i(TAG, "Thread t4, second addCardto DB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
-//				} catch (IllegalStateException e) {
-//					// TODO Auto-generated catch block 
-//					e.printStackTrace();
-//				} catch (Exception e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//			}
-//		});
-//
-//		t4.start();
-//		try {
-//			t4.join();
-//		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		//		//phase 3: add a card from the DB
+		//		Thread t4 = new Thread(new Runnable() {
+		//			public void run() {
+		//				try {
+		//
+		//					TMMCard temp = null;
+		//					//try to add an object that doesn't yet exist, but has a valid UUID
+		//					for(int i = 0; i < cardz.size(); i++){
+		//						temp = cardz.get(i);
+		//						temp.setuuId(getUUID("http://192.168.1.2", 5984));
+		//						Log.i(TAG, "Thread t4, call addcardtoDB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
+		//					}
+		//
+		//					//	Log.d(TAG, "Deleted card: " + temp.toString());
+		//					//Log.d(TAG, "delete card from DB returs: " + deleteCardfromDB(temp,"http://192.168.1.2", 5984, servz.get(0).getName()));
+		//
+		//					//should throw an exception here
+		//					//Log.i(TAG, "Thread t4, second addCardto DB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
+		//				} catch (IllegalStateException e) {
+		//					// TODO Auto-generated catch block 
+		//					e.printStackTrace();
+		//				} catch (Exception e) {
+		//					// TODO Auto-generated catch block
+		//					e.printStackTrace();
+		//				}
+		//			}
+		//		});
+		//
+		//		t4.start();
+		//		try {
+		//			t4.join();
+		//		} catch (InterruptedException e) {
+		//			// TODO Auto-generated catch block
+		//			e.printStackTrace();
+		//		}
 	}
+
+	public JSONObject getEntireDbAsJSON(String serverURLsansPort, int port, String dbName){
+		//then we must have a good UUID
+				// Create a new HttpClient and get Header
+				HttpClient httpclient = new DefaultHttpClient();
+				//
+				HttpGet everythingGetter = new HttpGet(serverURLsansPort + ":" + port + "/" + dbName + "/_all_docs?include_docs=true");
+
+				//execute the put and record the response
+				HttpResponse response = null;
+				try {
+					response = httpclient.execute(everythingGetter);
+				} catch (ClientProtocolException e) {
+
+					Log.e(TAG, "error getting the DB as JSON", e);
+				} catch (IOException e) {
+					Log.e(TAG, "IO error getting the DB as JSON", e);
+				}
+
+				Log.i(TAG, "server response to all database get: " + response);
+
+				//parse the reponse 
+				BufferedReader reader = null;
+				try {
+					reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+				} catch (UnsupportedEncodingException e) {
+					e.printStackTrace();
+				} catch (IllegalStateException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				String json = null;
+				try {
+					json = reader.readLine();
+					Log.d(TAG, "Raw json string: " + json);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+				JSONObject jsonObject = null;
+				try {
+					jsonObject = new JSONObject(json);
+				} catch (JSONException e1) {
+					Log.e(TAG, "error making json object", e1);
+				}
+				return jsonObject;
+				
+	}
+	private void startSync() {
+
+		URL syncUrl;
+		try {
+			syncUrl = new URL(SYNC_URL + "/"+ servz.get(0).getName());
+		
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
+
+		Replication pullReplication = database.createPullReplication(syncUrl);
+		pullReplication.setCreateTarget(true);
+		pullReplication.setContinuous(false);
+
+		Replication pushReplication = database.createPushReplication(syncUrl);
+		pushReplication.setContinuous(false);
+
+		pullReplication.start();
+		pushReplication.start();
+
+		pullReplication.addChangeListener(this);
+		pushReplication.addChangeListener(this);
+
+	}
+
 
 
 	public boolean deleteDB(String serverURLsansPort, int port, String dbName, boolean areYouSure){
@@ -868,7 +995,7 @@ public class MainActivity extends Activity {
 
 
 	private void loadCards() {
-	
+
 		Server source1 = new Server(EXAMPLE_CARD_SERVER, "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
 		//Server source2 = new Server("CardloaderService's sample card generator second 'server'", "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
 		File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm");
