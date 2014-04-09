@@ -13,6 +13,8 @@ package com.google.android.glass.TMM;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
@@ -31,9 +33,11 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -41,15 +45,20 @@ import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Manager;
 import com.couchbase.lite.listener.LiteListener;
 import com.couchbase.lite.replicator.Replication;
+import com.google.android.glass.TMM.TextElement.Type;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 
+@SuppressLint("DefaultLocale")
 public class DBManager implements Replication.ChangeListener{
 
 	private TellMeMoreApplication app; 
@@ -57,6 +66,7 @@ public class DBManager implements Replication.ChangeListener{
 	public static final String TAG = "TMM: DBMANAGER";
 	public static final String MASTER_SERVER_URL = "http://134.82.132.99";
 	public static final String LOCAL_DB_URL = "http://127.0.0.1";
+	public static final String UUID_GETTER_PATH = "_uuids";
 	public static final int port = 5984;
 
 	public DBManager(Context context){
@@ -128,6 +138,7 @@ public class DBManager implements Replication.ChangeListener{
 	}
 
 
+	@SuppressLint("DefaultLocale")
 	@Override
 	public void changed(Replication.ChangeEvent event) {
 
@@ -191,6 +202,7 @@ public class DBManager implements Replication.ChangeListener{
 		}
 		Log.i(TAG, "deletedb method, server response is: " + json);
 
+		startSync();
 		return true;
 	}
 
@@ -375,7 +387,7 @@ public class DBManager implements Replication.ChangeListener{
 
 
 	//returns the message as it exists in the DB
-	public synchronized boolean addCard(TMMCard toAdd) throws IOException{
+	public synchronized boolean addCard(TMMCard toAdd) throws Exception{
 
 		//check to make sure card doesn't already exist in DB
 				if(this.getJSONRepresentation(toAdd) != null){
@@ -387,7 +399,7 @@ public class DBManager implements Replication.ChangeListener{
 
 				//if we made it here, safe to assume that the card doesn't exist in the DB
 				//get a UUID to use from couch
-				String uuid = getUUID(LOCAL_DB_URL, port);
+				String uuid = getUUID();
 				toAdd.setuuId(uuid);
 
 				ObjectMapper mapper = new ObjectMapper();
@@ -447,7 +459,6 @@ public class DBManager implements Replication.ChangeListener{
 				try {
 					okResult = jsonObject.getString("ok");
 				} catch (JSONException e) {
-					// TODO Auto-generated catch block
 					//e.printStackTrace();
 					Log.i(TAG, "DB reports creation did not go well...");
 				}
@@ -466,6 +477,7 @@ public class DBManager implements Replication.ChangeListener{
 				Log.d(TAG, "error result is: " + errorResult);
 
 				if(okResult.equalsIgnoreCase("true")){
+					startSync();
 					return true;
 				}else {
 					Log.w(TAG, "CREATION FAILURE -" + reason);
@@ -473,104 +485,446 @@ public class DBManager implements Replication.ChangeListener{
 				}
 
 	}
+	
+	private String getUUID(){
 
-	public synchronized Server addServer(Server toAdd) throws IOException{
+		// Create a new HttpClient and get Header
+		HttpClient httpclient = new DefaultHttpClient();
+		HttpGet uuidGetter = new HttpGet(LOCAL_DB_URL + ":" + port + "/" + UUID_GETTER_PATH);
 
-		//check if server ID is already in DB and wipe it if it is
-		if(toAdd.getId() > 0){
-			Cursor checkCursor = database.query(DBHelper.SERVER_TABLE_NAME, null, DBHelper.SERVER_ID + " = " + toAdd.getId(), null, null, null, null);
+		//execute the put and record the response
+		HttpResponse response = null;
+		try {
+			response = httpclient.execute(uuidGetter);
+		} catch (ClientProtocolException e) {
 
-			if(checkCursor != null && checkCursor.moveToFirst()){
-				//we will delete the old server and replace it with the new
-				database.delete(DBHelper.SERVER_TABLE_NAME, DBHelper.SERVER_ID + " = " + toAdd.getId(), null);
-				Log.e(TAG, "Old server found. Deleting old server." );
+			Log.e(TAG, "error creating DB", e);
+		} catch (IOException e) {
+			Log.e(TAG, "IO error creating DB", e);
+		}
 
-			} else {
-				//there is nothing in the table with this ID
-				Log.d(TAG, "no server with this ID found. adding to DB");
+		Log.i(TAG, "server response to uuid get: " + response);
+
+		//parse the reponse 
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		String json = null;
+		try {
+			json = reader.readLine();
+			Log.d(TAG, "Raw json string: " + json);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		JSONObject jsonObject = null;
+		try {
+			jsonObject = new JSONObject(json);
+		} catch (JSONException e1) {
+			Log.e(TAG, "error making json object", e1);
+		}
+		JSONArray uuids = new JSONArray();
+		try {
+			uuids = jsonObject.getJSONArray("uuids");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+
+		String uuidToRet="";
+		try {
+			uuidToRet = uuids.getString(0);
+		} catch (JSONException e) {
+
+			e.printStackTrace();
+		}
+
+		Log.i(TAG, "Returning UUID: " + uuidToRet);
+		return uuidToRet;
+
+	}
+	
+	private boolean uploadCardAttachments(TMMCard toAdd, JSONObject jsonObject) throws IOException{
+		//will need case statement for each subclass of TMMCard
+		if(toAdd instanceof VideoCard){
+			if(((VideoCard) toAdd).hasScreenshot()){
+				Bitmap bmp = BitmapFactory.decodeFile(((VideoCard)toAdd).getScreenshotPath());
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				bmp.compress(Bitmap.CompressFormat.JPEG, 90, out);
+				Log.d(TAG, "video card background image being uploaded: " + ((VideoCard) toAdd).getScrenshotname());
+				uploadSingleAttachment(out.toByteArray(), jsonObject, ((VideoCard) toAdd).getScrenshotname(), "image/jpg");
 			}
-		}
+			return true;
+		} else if(toAdd instanceof AudioCard) {
+			if(((AudioCard) toAdd).hasBackground()){
+				Bitmap bmp = BitmapFactory.decodeFile(((AudioCard)toAdd).getBackgroundPath());
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				bmp.compress(Bitmap.CompressFormat.JPEG, 90, out);
+				Log.d(TAG, "filename audio background image being uploaded: " + ((AudioCard) toAdd).getBackground_name());
+				uploadSingleAttachment(out.toByteArray(), jsonObject, ((AudioCard) toAdd).getBackground_name(), "image/jpg");
+				//update the parameter
+				jsonObject = getJSONRepresentation(toAdd);
+			}
 
-		//check if server with same name exists. we will delete the existing server to enforce the uniqueness of server names 
-
-		Server existing = findServerByName(toAdd.getName());
-		if(existing != null) {
-			deleteServer(existing);
-		}
-
-
-		ContentValues values = new ContentValues();
-
-		//load the values with server data
-		//server name
-		values.put(DBHelper.COLUMN_SERVER_NAME, toAdd.getName());
-
-		//server data 
-		ByteArrayOutputStream sout = new ByteArrayOutputStream();
-		ObjectOutputStream sobjOut = new ObjectOutputStream(sout);
-		sobjOut.writeObject(toAdd);
-		sobjOut.close();
-		values.put(DBHelper.COLUMN_SERVER_DATA, sout.toByteArray());
-		sout.close();
-
-		//insert the new server into the DB
-		long insert_id = database.insert(DBHelper.SERVER_TABLE_NAME, null, values);
-
-		//query the server in the table and return it to make sure its there correctly
-		Cursor cursor = database.query(DBHelper.SERVER_TABLE_NAME,
-				null, DBHelper.SERVER_ID + " = " + insert_id, null,
-				null, null, null);
-		cursor.moveToFirst();
-		Server result = cursorToServer(cursor);
-		cursor.close();
-
-		return result;
+			if(((AudioCard) toAdd).hasAudio()){
+				File audio = new File(((AudioCard) toAdd).getAudioClipPath());
+				FileInputStream fileInputStream = new FileInputStream(audio);
+				byte[] b = new byte[(int) audio.length()];
+				fileInputStream.read(b);
+				fileInputStream.close();
+				uploadSingleAttachment(b, jsonObject, ((AudioCard) toAdd).getAudioClipName(), "audio/mpeg");
+			}
 
 
+			return true;
+		} else if(toAdd instanceof TextCard) {
+			//for a text card, first we store the icon if it exists
+			if(((TextCard) toAdd).hasIcon()){
+				Bitmap bmp = BitmapFactory.decodeFile(((TextCard)toAdd).getIconPath());
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				bmp.compress(Bitmap.CompressFormat.JPEG, 90, out);
+				Log.d(TAG, "filename of icon image being uploaded: " + ((TextCard) toAdd).getIcFileName());
+				uploadSingleAttachment(out.toByteArray(), jsonObject, ((TextCard) toAdd).getIcFileName(), "image/jpg");
+
+			}
+
+			//now, we need to upload any images in this file
+			//start by getting the JSON representation
+
+			JSONObject respObj = getJSONRepresentation(toAdd);
+
+			for(int i = 0; i < ((TextCard) toAdd).getContents().size(); i++){
+				TextElement temp = ((TextCard) toAdd).getContents().get(i);
+				//we only care about uploading images
+				if(temp.getType() == Type.IMAGE){
+					Bitmap bmp = BitmapFactory.decodeFile(temp.getImg());
+					ByteArrayOutputStream out = new ByteArrayOutputStream();
+					bmp.compress(Bitmap.CompressFormat.JPEG, 90, out);
+					Log.d(TAG, "filename of textelement image being uploaded: " + temp.getImgFilename());
+					uploadSingleAttachment(out.toByteArray(), respObj, temp.getImgFilename(), "image/jpg");
+					//confirm revision occured, and update our rev number
+					respObj = getJSONRepresentation(toAdd); 
+				}
+
+			}
+
+
+			return true;
+		} else return false;
 
 	}
 
-	//should strip whitespaces before/after for accurate search
-	public Server findServerByName(String name){
-		//query user table
-		Log.d("TMM: DBMANAGER", "querying db for server name = " + name);
-		Cursor serverCursor = database.query(DBHelper.SERVER_TABLE_NAME, null, DBHelper.COLUMN_SERVER_NAME + "=?", new String[]{name}, null, null, null);
-		//should only be one user, the first one...
-		serverCursor.moveToFirst();
-		Server target = cursorToServer(serverCursor);
-		serverCursor.close();
+	private boolean uploadSingleAttachment(byte[] data, JSONObject jsonObject, String fileName, String contentType){
 
-		return target;
-	}
+		final String exRev = "1-4ce605cd9fac335e98662dd4645cd332";
+		final String exUUID = "c629e32ea1c54b9b0840f0161000706e";
 
-
-	public synchronized Server deleteServer(Server toDel){
-		//make sure we don't delete the first row by accident
-		if(toDel.getId() < 1)
-			return null;
-
-		database.delete(DBHelper.SERVER_TABLE_NAME, DBHelper.SERVER_ID + " = " + toDel.getId(), null);
-		return toDel;
-	}
-
-	public boolean deleteCardsByServer(String serverName){
-		ArrayList<TMMCard> toDel = findCardsbyServer(serverName);
-
-		for(TMMCard temp : toDel){
-			deleteCard(temp);
+		if(jsonObject == null) {
+			Log.w(TAG, "null jsonobject passed to uploadsingleattachmnet");
+			return false;
 		}
+		//parse the JSONObject to get the info that we need
+
+		Log.i(TAG, "ul single attach, raw json object passed in: " + jsonObject);
+		String uuid;
+		try {
+			uuid = jsonObject.getString("_id");
+		} catch (JSONException e3) {
+			try {
+				uuid = jsonObject.getString("id");
+			} catch (JSONException e) {
+
+				e.printStackTrace();
+				return false;
+			}
+
+		}
+		String revNo;
+		try {
+			revNo = jsonObject.getString("_rev");
+		} catch (JSONException e2) {
+			try {
+				revNo = jsonObject.getString("rev");
+			} catch (JSONException e) {
+				e.printStackTrace();
+				return false;
+			}
+
+		}
+
+		if(revNo.length() != exRev.length()){
+			Log.w(TAG, "No revision found in uploadsingleattachment");
+			return false;
+		}
+
+		if(uuid.length() != exUUID.length()){
+			Log.w(TAG, "No UUID found in uploadsingleattachment");
+			return false;
+		}
+
+		// Create a new HttpClient and put Header
+		HttpClient httpclient = new DefaultHttpClient();
+		HttpPut attachmentAdder = new HttpPut(LOCAL_DB_URL + ":" + port + "/" + dbName + "/" + uuid + "/" + fileName + "?rev=" + revNo);
+
+		if(contentType != null && !contentType.equalsIgnoreCase("")){
+			attachmentAdder.addHeader("Content-Type", contentType);
+		}
+
+		ByteArrayEntity attachEnt = new ByteArrayEntity(data);
+		attachmentAdder.setEntity(attachEnt);
+
+		//execute the put and record the response
+		HttpResponse response = null;
+		try {
+			response = httpclient.execute(attachmentAdder);
+		} catch (ClientProtocolException e) {
+
+			Log.e(TAG, "error attachment adding", e);
+		} catch (IOException e) {
+			Log.e(TAG, "IO error attachment adding", e);
+		}
+
+		Log.i(TAG, "server response to put: " + response);
+
+		//parse the reponse 
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		String json = null;
+		try {
+			json = reader.readLine();
+			Log.d(TAG, "Raw json string: " + json);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		JSONObject jsonObjectresp = null;
+		try {
+			jsonObjectresp = new JSONObject(json);
+		} catch (JSONException e1) {
+			Log.e(TAG, "error making json object", e1);
+		}
+
+
+		String okResult = "";
+		try {
+			okResult = jsonObjectresp.getString("ok");
+		} catch (JSONException e) {
+			e.printStackTrace();
+			Log.i(TAG, "DB reports creation did not go well...");
+		}
+
+		String errorResult = null;
+		String reason = null;
+		try {
+			errorResult = jsonObject.getString("error");
+			reason = jsonObject.getString("reason");
+		} catch (JSONException e) {
+			Log.i(TAG, "no error code dtected in response");
+			errorResult = null;
+		}
+
+		Log.d(TAG, "ok result is: " + okResult);
+		Log.d(TAG, "error result is: " + errorResult);
+
+		if(okResult.equalsIgnoreCase("true")){
+			return true;
+		}else {
+			Log.w(TAG, "CREATION FAILURE -" + reason);
+			return false; 
+		}
+	}
+
+//	public synchronized Server addServer(Server toAdd) throws IOException{
+//
+//		//check if server ID is already in DB and wipe it if it is
+//		if(toAdd.getId() > 0){
+//			Cursor checkCursor = database.query(DBHelper.SERVER_TABLE_NAME, null, DBHelper.SERVER_ID + " = " + toAdd.getId(), null, null, null, null);
+//
+//			if(checkCursor != null && checkCursor.moveToFirst()){
+//				//we will delete the old server and replace it with the new
+//				database.delete(DBHelper.SERVER_TABLE_NAME, DBHelper.SERVER_ID + " = " + toAdd.getId(), null);
+//				Log.e(TAG, "Old server found. Deleting old server." );
+//
+//			} else {
+//				//there is nothing in the table with this ID
+//				Log.d(TAG, "no server with this ID found. adding to DB");
+//			}
+//		}
+//
+//		//check if server with same name exists. we will delete the existing server to enforce the uniqueness of server names 
+//
+//		Server existing = findServerByName(toAdd.getName());
+//		if(existing != null) {
+//			deleteServer(existing);
+//		}
+//
+//
+//		ContentValues values = new ContentValues();
+//
+//		//load the values with server data
+//		//server name
+//		values.put(DBHelper.COLUMN_SERVER_NAME, toAdd.getName());
+//
+//		//server data 
+//		ByteArrayOutputStream sout = new ByteArrayOutputStream();
+//		ObjectOutputStream sobjOut = new ObjectOutputStream(sout);
+//		sobjOut.writeObject(toAdd);
+//		sobjOut.close();
+//		values.put(DBHelper.COLUMN_SERVER_DATA, sout.toByteArray());
+//		sout.close();
+//
+//		//insert the new server into the DB
+//		long insert_id = database.insert(DBHelper.SERVER_TABLE_NAME, null, values);
+//
+//		//query the server in the table and return it to make sure its there correctly
+//		Cursor cursor = database.query(DBHelper.SERVER_TABLE_NAME,
+//				null, DBHelper.SERVER_ID + " = " + insert_id, null,
+//				null, null, null);
+//		cursor.moveToFirst();
+//		Server result = cursorToServer(cursor);
+//		cursor.close();
+//
+//		return result;
+//
+//
+//
+//	}
+
+//	//should strip whitespaces before/after for accurate search
+//	public Server findServerByName(String name){
+//		//query user table
+//		Log.d("TMM: DBMANAGER", "querying db for server name = " + name);
+//		Cursor serverCursor = database.query(DBHelper.SERVER_TABLE_NAME, null, DBHelper.COLUMN_SERVER_NAME + "=?", new String[]{name}, null, null, null);
+//		//should only be one user, the first one...
+//		serverCursor.moveToFirst();
+//		Server target = cursorToServer(serverCursor);
+//		serverCursor.close();
+//
+//		return target;
+//	}
+
+//
+//	public synchronized Server deleteServer(Server toDel){
+//		//make sure we don't delete the first row by accident
+//		if(toDel.getId() < 1)
+//			return null;
+//
+//		database.delete(DBHelper.SERVER_TABLE_NAME, DBHelper.SERVER_ID + " = " + toDel.getId(), null);
+//		return toDel;
+//	}
+//
+//	public boolean deleteCardsByServer(String serverName){
+//		ArrayList<TMMCard> toDel = findCardsbyServer(serverName);
+//
+//		for(TMMCard temp : toDel){
+//			deleteCard(temp);
+//		}
+//		return true;
+//	}
+
+	public synchronized boolean deleteCardfromDB(TMMCard todel){
+
+		//perform sanity checks on the UUID
+		final String exUUID = "c629e32ea1c54b9b0840f0161000706e";
+
+		if(todel.getuuId() == null) {
+			Log.w(TAG, "bad UUID passed to deletecardfromdb");
+			return false;
+		}
+
+
+		if(todel.getuuId().length() != exUUID.length()){
+			Log.w(TAG, "bad UUID passed to deletecardfromdb");
+			return false;
+		}
+
+		//use the UUID to get the current REV
+		JSONObject jsonObject =  getJSONRepresentation(todel);
+
+		if(jsonObject == null){
+			Log.e(TAG, "no JSON retreived for the card with UUID " + todel.getuuId() + " in deletecardfromDB");
+		}
+
+		//parse the JSONObject to get the info that we need
+
+		Log.i(TAG, "delete card from DB, card to delete info: " + jsonObject);
+		String uuid;
+		try {
+			uuid = jsonObject.getString("_id");
+		} catch (JSONException e3) {
+			try {
+				uuid = jsonObject.getString("id");
+			} catch (JSONException e) {
+
+				e.printStackTrace();
+				return false;
+			}
+
+		}
+		String revNo;
+		try {
+			revNo = jsonObject.getString("_rev");
+		} catch (JSONException e2) {
+			try {
+				revNo = jsonObject.getString("rev");
+			} catch (JSONException e) {
+				e.printStackTrace();
+				return false;
+			}
+
+		}
+		HttpClient httpclient = new DefaultHttpClient();
+		HttpDelete uuidGetter = new HttpDelete(LOCAL_DB_URL + ":" + port + "/" + dbName + "/" + uuid + "?rev=" + revNo);
+
+		//execute the delete and record the response
+		HttpResponse response = null;
+		try {
+			response = httpclient.execute(uuidGetter);
+		} catch (ClientProtocolException e) {
+			Log.e(TAG, "error deleting document", e);
+		} catch (IOException e) {
+			Log.e(TAG, "IO error delting document", e);
+		}
+
+		//parse the reponse 
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+		
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			
+			e.printStackTrace();
+		} catch (IOException e) {
+		
+			e.printStackTrace();
+		}
+		String json = null;
+		try {
+			json = reader.readLine();
+			Log.d(TAG, "Raw json string: " + json);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		Log.i(TAG, "deletecardfromdb method, server response is: " + json);
+		startSync();
 		return true;
-	}
 
-	public synchronized TMMCard deleteCard(TMMCard toDelete){
-		TMMCard existing = findCardById(toDelete.getId());
-
-		if(existing != null){
-			if(database.delete(DBHelper.CARD_TABLE_NAME, DBHelper.CARD_ID + " = '" + existing.getId() + "'", null) < 0) {
-				return null; //error
-			}
-		}
-		return existing;
 
 	}
 
@@ -627,6 +981,84 @@ public class DBManager implements Replication.ChangeListener{
 	//		};
 	//		clean_db.start();
 	//	}
+	
+	public boolean createNewDB(String dbname) throws IllegalStateException, IOException{
+		// Create a new HttpClient and put Header
+		HttpClient httpclient = new DefaultHttpClient();
+		HttpPut dbMaker = new HttpPut(LOCAL_DB_URL + ":" + port + "/" + dbname);
+
+		//execute the put and record the response
+		HttpResponse response = null;
+		try {
+			response = httpclient.execute(dbMaker);
+		} catch (ClientProtocolException e) {
+
+			Log.e(TAG, "error creating DB", e);
+		} catch (IOException e) {
+			Log.e(TAG, "IO error creating DB", e);
+		}
+
+		Log.i(TAG, "server response to put: " + response);
+
+		//parse the reponse 
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		String json = null;
+		try {
+			json = reader.readLine();
+			Log.d(TAG, "Raw json string: " + json);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		JSONObject jsonObject = null;
+		try {
+			jsonObject = new JSONObject(json);
+		} catch (JSONException e1) {
+			Log.e(TAG, "error making json object", e1);
+		}
+
+		String okResult = "";
+		try {
+			okResult = jsonObject.getString("ok");
+		} catch (JSONException e) {
+
+			e.printStackTrace();
+			Log.i(TAG, "DB reports creation did not go well...");
+		}
+
+		String errorResult = null;
+		String reason = null;
+		try {
+			errorResult = jsonObject.getString("error");
+			reason = jsonObject.getString("reason");
+		} catch (JSONException e) {
+			Log.i(TAG, "no error code dtected in response");
+			errorResult = null;
+		}
+
+		Log.d(TAG, "ok result is: " + okResult);
+		Log.d(TAG, "error result is: " + errorResult);
+
+		if(okResult.equalsIgnoreCase("true")){
+			startSync();
+			return true;
+		}else {
+			Log.w(TAG, "CREATION FAILURE -" + reason);
+			return false; 
+		}
+	}
+	
+	
+	
 
 	//return ALL cards from all servers, sorted by priority
 	public synchronized ArrayList<TMMCard> getAllCards(){
@@ -692,29 +1124,29 @@ public class DBManager implements Replication.ChangeListener{
 		return matches;
 	}
 
-	public ArrayList<Server> getAllServers(){
-		//TODO - TEST
-		Log.d(TAG, "get all servers");
-		ArrayList<Server> serverlist = new ArrayList<Server>();
-		Cursor cursor = database.rawQuery("SELECT * FROM " + DBHelper.SERVER_TABLE_NAME, null);
-
-		if(cursor.moveToFirst()){
-			serverlist.add(cursorToServer(cursor));
-			Log.d(TAG, "added server: " + cursorToServer(cursor).getName() + " to user list from DB");
-			Log.d(TAG, "Cursor at pos: " + cursor.getPosition());
-			Log.d(TAG, "Moving Cursor Pos...");
-			while(cursor.moveToNext()){
-				serverlist.add(cursorToServer(cursor));
-				Log.d(TAG, "Cursor at pos: " + cursor.getPosition());
-				Log.d(TAG, "added server: " + cursorToServer(cursor).getName() + " to user list from DB");
-			}
-
-		}else {
-			return null;
-		}
-		cursor.close();
-
-		return serverlist;
-	}
+//	public ArrayList<Server> getAllServers(){
+//		//TODO - TEST
+//		Log.d(TAG, "get all servers");
+//		ArrayList<Server> serverlist = new ArrayList<Server>();
+//		Cursor cursor = database.rawQuery("SELECT * FROM " + DBHelper.SERVER_TABLE_NAME, null);
+//
+//		if(cursor.moveToFirst()){
+//			serverlist.add(cursorToServer(cursor));
+//			Log.d(TAG, "added server: " + cursorToServer(cursor).getName() + " to user list from DB");
+//			Log.d(TAG, "Cursor at pos: " + cursor.getPosition());
+//			Log.d(TAG, "Moving Cursor Pos...");
+//			while(cursor.moveToNext()){
+//				serverlist.add(cursorToServer(cursor));
+//				Log.d(TAG, "Cursor at pos: " + cursor.getPosition());
+//				Log.d(TAG, "added server: " + cursorToServer(cursor).getName() + " to user list from DB");
+//			}
+//
+//		}else {
+//			return null;
+//		}
+//		cursor.close();
+//
+//		return serverlist;
+//	}
 
 }
