@@ -311,7 +311,7 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 	 * @param port the port number of the server
 	 * @param dbName the name of the database (in this case project)
 	 * @param UUID the ID of the requested document
-	 * @return the requested document in the form of a JSON Object
+	 * @return the requested document in the form of a JSON Object. Returns null if creation fails.
 	 */
 	public JSONObject getDocumentAsJSON(String serverURLsansPort, int port, String dbName, String UUID) {
 		// Get the raw JSON of the requested document
@@ -332,7 +332,7 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 	/**
 	 * Retrieves an unparsed JSON string from a couchDB database
 	 * @param URL the URL of the document wanted from a database
-	 * @return the requested raw, unparsed JSON string
+	 * @return the requested raw, unparsed JSON string. Returns "ERROR" if retrieval fails.
 	 */
 	public String getRawJSON (String URL) {
 		// Create a new HttpClient and get Header
@@ -373,8 +373,8 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 	public final String UUID = "uuId";
 	public final String PRIORITY = "priority";
 	public final String TITLE = "title";
-	public final String BG_PATH = "backgroundPath";
 	public final String SOURCE = "source";
+	public final String AUDIO_BG_PATH = "backgroundPath";
 	public final String AUDIO_LENGTH = "lengthMillis";
 	public final String AUDIO_CLIP_PATH = "audioClipPath";
 	public final String TEXT_LINE1 = "line1";
@@ -388,7 +388,7 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 	/**
 	 * Creates a TMMCard object from the JSONObject
 	 * @param obj the JSONObject to create the TMMCard
-	 * @return the TMMCard created from parsing the JSONObject
+	 * @return the TMMCard created from parsing the JSONObject. Returns null if creation fails.
 	 */
 	public TMMCard convertJSONToCard (JSONObject obj) {
 		TMMCard result = null;
@@ -399,7 +399,7 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 	/**
 	 * Creates a VideoCard object from the JSONObject
 	 * @param obj the JSONObject to create the VideoCard
-	 * @return the VideoCard created from parsing the JSONObject
+	 * @return the VideoCard created from parsing the JSONObject. Returns null if creation fails.
 	 */
 	public VideoCard convertJSONToVideoCard (JSONObject obj) {
 		//public VideoCard(int handle, String id, int priority, String cardTitle, String ss_path, int playcount, String youTubeTag, Server source)
@@ -417,25 +417,27 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 	/**
 	 * Creates an AudioCard object from the JSONObject
 	 * @param obj the JSONObject to create the AudioCard
-	 * @return the AudioCard created from parsing the JSONObject
+	 * @return the AudioCard created from parsing the JSONObject. Returns null if creation fails.
 	 */
 	public AudioCard convertJSONToAudioCard (JSONObject obj) {
 		//public AudioCard(int handle, String id, int priority, String cardTitle, int length, String backgroundPath, String contentPath, Server source)
+		// TODO - get the mp3 attachment and store it into internal storage
 		AudioCard result;
 		try {
 			result = new AudioCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
-					obj.getInt(AUDIO_LENGTH), obj.getString(BG_PATH), obj.getString(AUDIO_CLIP_PATH), (Server) obj.get(SOURCE));
+					obj.getInt(AUDIO_LENGTH), obj.getString(AUDIO_BG_PATH), obj.getString(AUDIO_CLIP_PATH), (Server) obj.get(SOURCE));
 		} catch (JSONException e) {
 			e.printStackTrace();
 			result = null;
 		}
+		
 		return result;
 	}
 	
 	/**
 	 * Creates a TextCard object from the JSONObject
 	 * @param obj the JSONObject to create the TextCard
-	 * @return the TextCard created from parsing the JSONObject
+	 * @return the TextCard created from parsing the JSONObject. Returns null if creation fails.
 	 */
 	public TextCard convertJSONToTextCard (JSONObject obj) {
 		//public TextElement(Type type, String caption, String img)
