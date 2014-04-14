@@ -47,6 +47,8 @@ import com.example.dbwriter.TextElement.Type;
 
 
 
+
+
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -191,54 +193,82 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		//			e.printStackTrace();
 		//		}
 		//phase 3: add a card from the DB
-		Thread t4 = new Thread(new Runnable() {
+
+//			Thread t4 = new Thread(new Runnable() {
+//			public void run() {
+//				try {
+//
+//					TMMCard temp = null;
+//					//try to add an object that doesn't yet exist, but has a valid UUID
+//					for(int i = 0; i < cardz.size(); i++){
+//						temp = cardz.get(i);
+//						temp.setuuId(getUUID("http://134.82.132.99", 5984));
+//						Log.i(TAG, "Thread t4, call addcardtoDB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
+//					}
+//
+//					//	Log.d(TAG, "Deleted card: " + temp.toString());
+//					//Log.d(TAG, "delete card from DB returs: " + deleteCardfromDB(temp,"http://192.168.1.2", 5984, servz.get(0).getName()));
+//
+//					//should throw an exception here
+//					//Log.i(TAG, "Thread t4, second addCardto DB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
+//				} catch (IllegalStateException e) { 
+//					e.printStackTrace();
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//				}
+//			}
+//		});
+//
+//		t4.start();
+//		try {
+//			t4.join();
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
+
+
+		// Test TextCard parsing from JSON object
+		Thread t6 = new Thread(new Runnable() {
 			public void run() {
+				Log.i(TAG,"Starting TextCard Parsing");
+				JSONObject document;
+				TMMCard result;
 				try {
-
-					TMMCard temp = null;
-					//try to add an object that doesn't yet exist, but has a valid UUID
-					for(int i = 0; i < cardz.size(); i++){
-						temp = cardz.get(i);
-						temp.setuuId(getUUID("http://134.82.132.99", 5984));
-						Log.i(TAG, "Thread t4, call addcardtoDB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
-					}
-
-					//	Log.d(TAG, "Deleted card: " + temp.toString());
-					//Log.d(TAG, "delete card from DB returs: " + deleteCardfromDB(temp,"http://192.168.1.2", 5984, servz.get(0).getName()));
-
-					//should throw an exception here
-					//Log.i(TAG, "Thread t4, second addCardto DB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
-				} catch (IllegalStateException e) { 
-					e.printStackTrace();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-
-		t4.start();
-		try {
-			t4.join();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-
-		Thread t5 = new Thread(new Runnable() {
-			public void run() {
-				try {
-					getEntireDbAsJSON("http://134.82.132.99", 5984, "example_card_generator");
+					document = getDocumentAsJSON("http://134.82.132.99", 5984, "example_card_generator", "c629e32ea1c54b9b0840f01610070b68");
+					result = convertJSONToCard(document);
+					if (result != null)
+						Log.i(TAG, "TextCard Created:\nTitle: " + result.getTitle() + 
+								"\nID: " + result.getuuId() + "\n");
 				} catch (IllegalStateException e) {
 					e.printStackTrace();
 				} 
 			}
 		});
 
-		t5.start();
+		t6.start();
 		try {
-			t5.join();
+			t6.join();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
-		}
+		}		
+		
+//		// Test getting entire database functionality
+//		Thread t5 = new Thread(new Runnable() {
+//			public void run() {
+//				try {
+//					getEntireDbAsJSON("http://134.82.132.99", 5984, "example_card_generator");
+//				} catch (IllegalStateException e) {
+//					e.printStackTrace();
+//				} 
+//			}
+//		});
+//
+//		t5.start();
+//		try {
+//			t5.join();
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
 
 
 
@@ -369,21 +399,29 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		return json;
 	}
 
-	public final String HANDLE = "handle";
-	public final String UUID = "uuId";
-	public final String PRIORITY = "priority";
-	public final String TITLE = "title";
-	public final String SOURCE = "source";
-	public final String AUDIO_BG_PATH = "backgroundPath";
-	public final String AUDIO_LENGTH = "lengthMillis";
-	public final String AUDIO_CLIP_PATH = "audioClipPath";
-	public final String TEXT_LINE1 = "line1";
-	public final String TEXT_LINE2 = "line2";
-	public final String TEXT_LINE3 = "line3";
-	public final String TEXT_CONTENTS = "contents";
-	public final String VIDEO_SS_PATH = "screenshotPath";
-	public final String VIDEO_PLAY_COUNT = "playCount";
-	public final String VIDEO_YOUTUBE_TAG = "yttag";
+	public static final String TYPE = "jsontype";
+	public static final String HANDLE = "handle";
+	public static final String UUID = "uuId";
+	public static final String PRIORITY = "priority";
+	public static final String TITLE = "title";
+	public static final String SOURCE = "source";
+	public static final String SERVER_NAME = "name";
+	public static final String SERVER_API_INFO = "api_info";
+	public static final String SERVER_FIRST_USED = "first_used";
+	public static final String SERVER_LAST_USED = "last_used";
+	public static final String AUDIO_BG_PATH = "backgroundPath";
+	public static final String AUDIO_LENGTH = "lengthMillis";
+	public static final String AUDIO_CLIP_PATH = "audioClipPath";
+	public static final String TEXT_LINE1 = "line1";
+	public static final String TEXT_LINE2 = "line2";
+	public static final String TEXT_LINE3 = "line3";
+	public static final String TEXT_CONTENTS = "contents";
+	public static final String TEXT_CONTENT_TYPE = "type";
+	public static final String TEXT_CONTENT_TEXT = "text";
+	public static final String TEXT_CONTENT_IMG = "img";
+	public static final String VIDEO_SS_PATH = "screenshotPath";
+	public static final String VIDEO_PLAY_COUNT = "playCount";
+	public static final String VIDEO_YOUTUBE_TAG = "yttag";
 
 	/**
 	 * Creates a TMMCard object from the JSONObject
@@ -392,9 +430,28 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 	 */
 	public TMMCard convertJSONToCard (JSONObject obj) {
 		TMMCard result = null;
-		// TODO - Get value of type of card and then create specific obj from that
+
+		// Obtain type of card to be created
+		String type;
+		try {
+			type = obj.getString(TYPE);
+		} catch (JSONException e) {
+			e.printStackTrace();
+			Log.e(TAG,"Cast failed");
+			return null;
+		}
 		
+		// Create correct type of card
+		if (type.equalsIgnoreCase("AUDIO"))
+			result = convertJSONToAudioCard(obj);
+		if (type.equalsIgnoreCase("VIDEO"))
+			result = convertJSONToVideoCard(obj);
+		if (type.equalsIgnoreCase("TEXT"))
+			result = convertJSONToTextCard(obj);
+		
+		// Correctly put attachments in internal storage
 		getAllAttachments(obj, result);
+		
 		return result;
 	}
 
@@ -404,11 +461,15 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 	 * @return the VideoCard created from parsing the JSONObject. Returns null if creation fails.
 	 */
 	public VideoCard convertJSONToVideoCard (JSONObject obj) {
-		//public VideoCard(int handle, String id, int priority, String cardTitle, String ss_path, int playcount, String youTubeTag, Server source)
 		VideoCard result;
 		try {
+			// Get the Server Object by JSON parsing because Java doesn't like casting
+			JSONObject JSONServer = obj.getJSONObject(SOURCE);
+			Server sourceServer = new Server(JSONServer.getString(SERVER_NAME), JSONServer.getString(SERVER_API_INFO),
+					Long.parseLong(JSONServer.getString(SERVER_FIRST_USED)), Long.parseLong(JSONServer.getString(SERVER_LAST_USED)));
+			
 			result = new VideoCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
-					obj.getString(VIDEO_SS_PATH), obj.getInt(VIDEO_PLAY_COUNT), obj.getString(VIDEO_YOUTUBE_TAG), (Server) obj.get(SOURCE));
+					obj.getString(VIDEO_SS_PATH), obj.getInt(VIDEO_PLAY_COUNT), obj.getString(VIDEO_YOUTUBE_TAG), sourceServer);
 		} catch (JSONException e) {
 			e.printStackTrace();
 			result = null;
@@ -426,13 +487,17 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 	 * @return the AudioCard created from parsing the JSONObject. Returns null if creation fails.
 	 */
 	public AudioCard convertJSONToAudioCard (JSONObject obj) {
-		//public AudioCard(int handle, String id, int priority, String cardTitle, int length, String backgroundPath, String contentPath, Server source)
-		// TODO - get the mp3 attachment and store it into internal storage
 		AudioCard result;
 		try {
+			// Get the Server Object by JSON parsing because Java doesn't like casting
+			JSONObject JSONServer = obj.getJSONObject(SOURCE);
+			Server sourceServer = new Server(JSONServer.getString(SERVER_NAME), JSONServer.getString(SERVER_API_INFO),
+					Long.parseLong(JSONServer.getString(SERVER_FIRST_USED)), Long.parseLong(JSONServer.getString(SERVER_LAST_USED)));
+			
 			result = new AudioCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
-					obj.getInt(AUDIO_LENGTH), obj.getString(AUDIO_BG_PATH), obj.getString(AUDIO_CLIP_PATH), (Server) obj.get(SOURCE));
+					obj.getInt(AUDIO_LENGTH), obj.getString(AUDIO_BG_PATH), obj.getString(AUDIO_CLIP_PATH), sourceServer);
 		} catch (JSONException e) {
+			Log.e(TAG, "AudioCard creation crashed and burned");
 			e.printStackTrace();
 			result = null;
 		}
@@ -446,22 +511,44 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 	 * @return the TextCard created from parsing the JSONObject. Returns null if creation fails.
 	 */
 	public TextCard convertJSONToTextCard (JSONObject obj) {
-		//public TextElement(Type type, String caption, String img)
-		//public TextCard(int handle,String id, int priority, String cardTitle, String line1, String line2, String line3, ArrayList<TextElement> content, Server source)
-		// TODO - Create an ArrayList of content for instantiate of card
-		ArrayList<TextElement> temp = new ArrayList<TextElement>();
-
 		TextCard result;
 		try {
+			ArrayList<TextElement> cardContent = new ArrayList<TextElement>();
+
+			// Get array of contents for the TextCard
+			JSONArray contents = null;		
+			contents = obj.getJSONArray(TEXT_CONTENTS);
+			
+			// Create all cardContents for the text card from JSON
+			for (int i = 0; i < contents.length(); i++) {
+				// Get the contentType by string parsing because Java doesn't like casting an object from obj.get to an enum
+				JSONObject temp = contents.getJSONObject(i);
+				Type contentType;
+				if (temp.getString(TEXT_CONTENT_TYPE).equals("IMAGE"))
+					contentType = Type.IMAGE;
+				else
+					contentType = Type.TEXT_;
+				
+				cardContent.add(new TextElement(contentType, 
+						temp.getString(TEXT_CONTENT_TEXT), temp.getString(TEXT_CONTENT_IMG)));
+			}
+			
+			// Get the Server Object by JSON parsing because Java doesn't like casting
+			JSONObject JSONServer = obj.getJSONObject(SOURCE);
+			Server sourceServer = new Server(JSONServer.getString(SERVER_NAME), JSONServer.getString(SERVER_API_INFO),
+					Long.parseLong(JSONServer.getString(SERVER_FIRST_USED)), Long.parseLong(JSONServer.getString(SERVER_LAST_USED)));
+			
+			// Create actual TextCard
 			result = new TextCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
-					obj.getString(TEXT_LINE1), obj.getString(TEXT_LINE2), obj.getString(TEXT_LINE3), temp, (Server) obj.get(SOURCE));
+					obj.getString(TEXT_LINE1), obj.getString(TEXT_LINE2), obj.getString(TEXT_LINE3), cardContent, sourceServer);
 		} catch (JSONException e) {
+			Log.i(TAG,"TextCard creation crashed and burned");
 			e.printStackTrace();
 			result = null;
 		}
 		return result;
 	}
-
+	
 	//	public JSONObject getEntireDbAsJSON(String serverURLsansPort, int port, String dbName){
 	//		//then we must have a good UUID
 	//		// Create a new HttpClient and get Header
