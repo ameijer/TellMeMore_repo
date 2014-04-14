@@ -393,6 +393,8 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 	public TMMCard convertJSONToCard (JSONObject obj) {
 		TMMCard result = null;
 		// TODO - Get value of type of card and then create specific obj from that
+		
+		getAllAttachments(obj, result);
 		return result;
 	}
 
@@ -414,6 +416,10 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		return result;
 	}
 
+	private boolean getAllAttachments(JSONObject cardToGet, TMMCard cardWithNoAttachments){
+		return true;
+	}
+	
 	/**
 	 * Creates an AudioCard object from the JSONObject
 	 * @param obj the JSONObject to create the AudioCard
