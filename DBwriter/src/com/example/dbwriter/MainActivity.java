@@ -43,6 +43,10 @@ import com.example.dbwriter.TextElement.Type;
 
 
 
+
+
+
+
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -157,7 +161,6 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 				try {
 					getUUID("http://127.0.0.1", 5984);
 				} catch (IllegalStateException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 
@@ -176,7 +179,6 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 //				try {
 //					jo = getEntireDbAsJSON("http://127.0.0.1", 5984, DATABASE_NAME);
 //				} catch (IllegalStateException e) {
-//					// TODO Auto-generated catch block
 //					e.printStackTrace();
 //				} 
 //			}
@@ -186,7 +188,6 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 //		try {
 //			t3.join();
 //		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
 
@@ -195,7 +196,6 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 				try {
 					getEntireDbAsJSON("http://134.82.132.99", 5984, "example_card_generator");
 				} catch (IllegalStateException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} 
 			}
@@ -205,7 +205,6 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		try {
 			t5.join();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -222,7 +221,6 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		//					//try to add an object that doesn't yet exist, but has a valid UUID
 		//					Log.i(TAG, "Thread t3, call to get JSON rep returns: " + getJSONRepresentation(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
 		//				} catch (IllegalStateException e) {
-		//					// TODO Auto-generated catch block
 		//					e.printStackTrace();
 		//				}
 		//			}
@@ -232,7 +230,6 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		//		try {
 		//			t3.join();
 		//		} catch (InterruptedException e) {
-		//			// TODO Auto-generated catch block
 		//			e.printStackTrace();
 		//		}
 
@@ -254,11 +251,9 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		//
 		//					//should throw an exception here
 		//					//Log.i(TAG, "Thread t4, second addCardto DB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
-		//				} catch (IllegalStateException e) {
-		//					// TODO Auto-generated catch block 
+		//				} catch (IllegalStateException e) { 
 		//					e.printStackTrace();
 		//				} catch (Exception e) {
-		//					// TODO Auto-generated catch block
 		//					e.printStackTrace();
 		//				}
 		//			}
@@ -268,7 +263,6 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		//		try {
 		//			t4.join();
 		//		} catch (InterruptedException e) {
-		//			// TODO Auto-generated catch block
 		//			e.printStackTrace();
 		//		}
 	}
@@ -284,11 +278,13 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		// Get the raw JSON of all the names and IDs of each document in a database
 		String json = getRawJSON(serverURLsansPort + ":" + port + "/" + dbName + "/_all_docs");
 		
-		// Obtain the UUIDs of each document in the database
+		// Obtain the UUIDs of each document in the database by String parsing
 		String[] data = json.split("\"id\":\"");
 		for (int i = 0; i < data.length; i++) {
+			// Remove any characters not in the UUID
 			data[i] = data[i].substring(0,data[i].indexOf("\""));
 		}
+		// Remove first index since it will not have a UUID
 		String[] dbUUID = new String[data.length-1];
 		System.arraycopy(data, 1, dbUUID, 0, data.length-1);
 		
@@ -301,7 +297,6 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 			try {
 				Log.d(TAG, "Resulting JSON Object for a document:\n" + result[i].toString(5));
 			} catch (JSONException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -342,10 +337,9 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 	public String getRawJSON (String URL) {
 		// Create a new HttpClient and get Header
 		HttpClient httpclient = new DefaultHttpClient();
-
 		HttpGet everythingGetter = new HttpGet(URL);
 
-		// Execute the put and record the response
+		// Execute the get and record the response
 		HttpResponse response = null;
 		try {
 			response = httpclient.execute(everythingGetter);
@@ -373,6 +367,91 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		//For debug: seeing the raw JSON string that was retrieved
 		//Log.d(TAG, "Raw JSON string: " + json);
 		return json;
+	}
+	
+	public final String HANDLE = "handle";
+	public final String UUID = "uuId";
+	public final String PRIORITY = "priority";
+	public final String TITLE = "title";
+	public final String BG_PATH = "backgroundPath";
+	public final String SOURCE = "source";
+	public final String AUDIO_LENGTH = "lengthMillis";
+	public final String AUDIO_CLIP_PATH = "audioClipPath";
+	public final String TEXT_LINE1 = "line1";
+	public final String TEXT_LINE2 = "line2";
+	public final String TEXT_LINE3 = "line3";
+	public final String TEXT_CONTENTS = "contents";
+	public final String VIDEO_SS_PATH = "screenshotPath";
+	public final String VIDEO_PLAY_COUNT = "playCount";
+	public final String VIDEO_YOUTUBE_TAG = "yttag";
+	
+	/**
+	 * Creates a TMMCard object from the JSONObject
+	 * @param obj the JSONObject to create the TMMCard
+	 * @return the TMMCard created from parsing the JSONObject
+	 */
+	public TMMCard convertJSONToCard (JSONObject obj) {
+		TMMCard result = null;
+		// TODO - Get value of type of card and then create specific obj from that
+		return result;
+	}
+	
+	/**
+	 * Creates a VideoCard object from the JSONObject
+	 * @param obj the JSONObject to create the VideoCard
+	 * @return the VideoCard created from parsing the JSONObject
+	 */
+	public VideoCard convertJSONToVideoCard (JSONObject obj) {
+		//public VideoCard(int handle, String id, int priority, String cardTitle, String ss_path, int playcount, String youTubeTag, Server source)
+		VideoCard result;
+		try {
+			result = new VideoCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
+					obj.getString(VIDEO_SS_PATH), obj.getInt(VIDEO_PLAY_COUNT), obj.getString(VIDEO_YOUTUBE_TAG), (Server) obj.get(SOURCE));
+		} catch (JSONException e) {
+			e.printStackTrace();
+			result = null;
+		}
+		return result;
+	}
+	
+	/**
+	 * Creates an AudioCard object from the JSONObject
+	 * @param obj the JSONObject to create the AudioCard
+	 * @return the AudioCard created from parsing the JSONObject
+	 */
+	public AudioCard convertJSONToAudioCard (JSONObject obj) {
+		//public AudioCard(int handle, String id, int priority, String cardTitle, int length, String backgroundPath, String contentPath, Server source)
+		AudioCard result;
+		try {
+			result = new AudioCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
+					obj.getInt(AUDIO_LENGTH), obj.getString(BG_PATH), obj.getString(AUDIO_CLIP_PATH), (Server) obj.get(SOURCE));
+		} catch (JSONException e) {
+			e.printStackTrace();
+			result = null;
+		}
+		return result;
+	}
+	
+	/**
+	 * Creates a TextCard object from the JSONObject
+	 * @param obj the JSONObject to create the TextCard
+	 * @return the TextCard created from parsing the JSONObject
+	 */
+	public TextCard convertJSONToTextCard (JSONObject obj) {
+		//public TextElement(Type type, String caption, String img)
+		//public TextCard(int handle,String id, int priority, String cardTitle, String line1, String line2, String line3, ArrayList<TextElement> content, Server source)
+		// TODO - Create an ArrayList of content for instantiate of card
+		ArrayList<TextElement> temp = new ArrayList<TextElement>();
+		
+		TextCard result;
+		try {
+			result = new TextCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
+					obj.getString(TEXT_LINE1), obj.getString(TEXT_LINE2), obj.getString(TEXT_LINE3), temp, (Server) obj.get(SOURCE));
+		} catch (JSONException e) {
+			e.printStackTrace();
+			result = null;
+		}
+		return result;
 	}
 
 //	public JSONObject getEntireDbAsJSON(String serverURLsansPort, int port, String dbName){
@@ -477,13 +556,10 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		try {
 			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		String json = null;
@@ -491,7 +567,6 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 			json = reader.readLine();
 			Log.d(TAG, "delete DB, Raw json string: " + json);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		Log.i(TAG, "deletedb method, server response is: " + json);
@@ -646,7 +721,6 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		try {
 			okResult = jsonObject.getString("ok");
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
 			//e.printStackTrace();
 			Log.i(TAG, "DB reports creation did not go well...");
 		}
@@ -742,13 +816,10 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		try {
 			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		String json = null;
@@ -756,7 +827,6 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 			json = reader.readLine();
 			Log.d(TAG, "Raw json string: " + json);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		Log.i(TAG, "deletecardfromdb method, server response is: " + json);
@@ -801,7 +871,6 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 			json = reader.readLine();
 			Log.d(TAG, "Raw json string: " + json);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
