@@ -50,7 +50,7 @@ public class CardLoaderService extends Service{
 			Log.d(TAG, "Cardloader service is using DB: " + app.db);
 
 			try {
-				app.db.open(EXAMPLE_CARD_SERVER);
+				app.db.open(EXAMPLE_CARD_SERVER, this);
 				
 				Log.i(TAG, "CONTENTS OF ENTIRE DB IN CARDLOADERSERVICE FOLLOWS: " + app.db.getEntireDbAsJSON());
 			} catch (IOException e) {
@@ -60,13 +60,15 @@ public class CardLoaderService extends Service{
 				e.printStackTrace();
 			}
 
+			//new loadDBWithSamplesTask().execute(this);
+			//broadcastCardsLoaded(this, targetServer);
 		} else { //we have an actual target
 			//TODO
 			//check DB for already existing cards
 			//if there aren't any already in the DB, then download it
 			//etc etc
 			try {
-				app.db.open(targetServer);
+				app.db.open(targetServer, this);
 			} catch (IOException e) {
 				
 				e.printStackTrace();
@@ -86,14 +88,15 @@ public class CardLoaderService extends Service{
 		return Service.START_STICKY;
 	}
 
-//	private class loadDBWithSamplesTask extends AsyncTask<Context, Integer, Long> {
-//		protected Long doInBackground(Context... contexts) {
-//
-//			try {
-//				Thread.sleep(7000);
-//			} catch (InterruptedException e3) {
-//				e3.printStackTrace();
-//			}
+	private class loadDBWithSamplesTask extends AsyncTask<Context, Integer, Long> {
+		protected Long doInBackground(Context... contexts) {
+
+			try {
+				Thread.sleep(3000);
+			} catch (InterruptedException e3) {
+				e3.printStackTrace();
+			}
+			broadcastCardsLoaded(contexts[0], targetServer);
 //			Server source1 = new Server(EXAMPLE_CARD_SERVER, "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
 //			//Server source2 = new Server("CardloaderService's sample card generator second 'server'", "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
 //			File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm");
@@ -215,19 +218,19 @@ public class CardLoaderService extends Service{
 //			//notify any waiting activities that we have finished loading the cards
 //			//Server source1 = new Server(EXAMPLE_CARD_SERVER, "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
 //			broadcastCardsLoaded(contexts[0], source1.getName());
-//
-//			return (long) 1;
-//
-//
-//		}
-//		protected void onProgressUpdate(Integer... progress) {
-//
-//		}
-//
-//		protected void onPostExecute(Long result) {
-//
-//		}
-//	}
+
+			return (long) 1;
+
+
+		}
+		protected void onProgressUpdate(Integer... progress) {
+
+		}
+
+		protected void onPostExecute(Long result) {
+
+		}
+	}
 //
 //
 //
@@ -476,7 +479,7 @@ public class CardLoaderService extends Service{
 	public static void broadcastCardsLoaded(Context context, String serverName) {
 		Intent intent = new Intent("cards_loaded");
 		intent.putExtra("server_used", serverName);
-		LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+	context.sendBroadcast(intent);
 		Log.d(TAG + "broadcast", "cards loaded broadcasted");
 	}
 

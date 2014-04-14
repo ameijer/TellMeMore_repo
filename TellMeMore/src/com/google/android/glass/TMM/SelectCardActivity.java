@@ -52,7 +52,7 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 		hasCards = getIntent().getBooleanExtra(CARDS_READY_KEY, true);
 		Log.d(TAG, "Cards are ready: " + hasCards);
 		// Register mMessageReceiver to receive messages.
-		LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("cards_loaded"));
+		registerReceiver(mMessageReceiver, new IntentFilter("cards_loaded"));
 		if(hasCards){
 			enableCardScroll();
 		} else { 

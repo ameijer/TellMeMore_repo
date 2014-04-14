@@ -86,10 +86,11 @@ public class DBManager implements Replication.ChangeListener{
 		return this.dbName;
 	}
 
-	public boolean open(String dbName) throws IOException, CouchbaseLiteException{
+	public boolean open(String dbName, Context context) throws IOException, CouchbaseLiteException{
 		this.dbName = dbName;
 		startCBLListener(port);
 		startDatabase(manager, dbName);
+		this.context = context;
 
 		//sync up database here
 		startSync();
@@ -148,13 +149,13 @@ public class DBManager implements Replication.ChangeListener{
 
 
 	//we will use this to broadcast to the app when the cards are loaded
-		public static void broadcastCardsLoaded(Context context, String serverName) {
-			Intent intent = new Intent("cards_loaded");
-			intent.putExtra("server_used", serverName);
-			LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-			Log.d(TAG + "broadcast", "cards loaded broadcasted");
-		}
-		
+	public static void broadcastCardsLoaded(Context context, String serverName) {
+		Intent intent = new Intent("cards_loaded");
+		intent.putExtra("server_used", serverName);
+		context.sendBroadcast(intent);
+		Log.d(TAG + "broadcast", "cards loaded broadcasted");
+	}
+
 	@SuppressLint("DefaultLocale")
 	@Override
 	public void changed(Replication.ChangeEvent event) {
@@ -164,7 +165,7 @@ public class DBManager implements Replication.ChangeListener{
 		Log.d(TAG, "Replication : " + replication + " changed.");
 		if (!replication.isRunning()) {
 			String msg = String.format("Replicator %s not running", replication);
-			
+
 			if(replication.getLastError() == null && replication.isPull()){
 				//then it didn't stop on error, so we can broadcast that the database is synced up
 				Log.i(TAG, "Replicator finished updating database, broadcasting notification");
@@ -174,10 +175,10 @@ public class DBManager implements Replication.ChangeListener{
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-				broadcastCardsLoaded(app, dbName);
+				broadcastCardsLoaded(context, dbName);
 			}
-			
-			
+
+
 			if(replication.getLastError() != null){
 				Log.e(TAG, "REPLICATION FAILED IN CHANGELISTENER");
 				replication.restart();
@@ -682,113 +683,113 @@ public class DBManager implements Replication.ChangeListener{
 		}
 	}
 
-	private class entireDBGetter extends AsyncTask<Void, Void, String> {
+//	private class entireDBGetter extends AsyncTask<Void, Void, String> {
+//
+//		@Override
+//		protected String doInBackground(Void... params) {
+//			//then we must have a good UUID
+//			// Create a new HttpClient and get Header
+//			HttpClient httpclient = new DefaultHttpClient();
+//			//
+//			//HttpGet everythingGetter = new HttpGet(LOCAL_DB_URL + ":" + port + "/" + dbName + "/_all_docs?include_docs=true");
+//			HttpGet everythingGetter = new HttpGet(LOCAL_DB_URL + ":" + port + "/" + dbName);
+//			//execute the put and record the response
+//			HttpResponse response = null;
+//			try {
+//				response = httpclient.execute(everythingGetter);
+//			} catch (ClientProtocolException e) {
+//
+//				Log.e(TAG, "error getting the DB as JSON", e);
+//			} catch (IOException e) {
+//				Log.e(TAG, "IO error getting the DB as JSON", e);
+//			}
+//
+//			Log.i(TAG, "server response to all database get: " + response);
+//
+//			//parse the reponse 
+//			BufferedReader reader = null;
+//			try {
+//				reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+//			} catch (UnsupportedEncodingException e) {
+//				e.printStackTrace();
+//			} catch (IllegalStateException e) {
+//				e.printStackTrace();
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//			String json = null;
+//			try {
+//				json = reader.readLine();
+//				Log.d(TAG, "Raw json string: " + json);
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//
+//
+//
+//			return json;
+//		}
+//
+//		@Override
+//		protected void onPostExecute(String result) {
+//			//do stuff
+//
+//		}
+//
+//
+//
+//
+//	}
 
-        @Override
-        protected String doInBackground(Void... params) {
-        	//then we must have a good UUID
-    		// Create a new HttpClient and get Header
-    		HttpClient httpclient = new DefaultHttpClient();
-    		//
-    		//HttpGet everythingGetter = new HttpGet(LOCAL_DB_URL + ":" + port + "/" + dbName + "/_all_docs?include_docs=true");
-    		HttpGet everythingGetter = new HttpGet(LOCAL_DB_URL + ":" + port + "/" + dbName);
-    		//execute the put and record the response
-    		HttpResponse response = null;
-    		try {
-    			response = httpclient.execute(everythingGetter);
-    		} catch (ClientProtocolException e) {
-
-    			Log.e(TAG, "error getting the DB as JSON", e);
-    		} catch (IOException e) {
-    			Log.e(TAG, "IO error getting the DB as JSON", e);
-    		}
-
-    		Log.i(TAG, "server response to all database get: " + response);
-
-    		//parse the reponse 
-    		BufferedReader reader = null;
-    		try {
-    			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
-    		} catch (UnsupportedEncodingException e) {
-    			e.printStackTrace();
-    		} catch (IllegalStateException e) {
-    			e.printStackTrace();
-    		} catch (IOException e) {
-    			e.printStackTrace();
-    		}
-    		String json = null;
-    		try {
-    			json = reader.readLine();
-    			Log.d(TAG, "Raw json string: " + json);
-    		} catch (IOException e) {
-    			e.printStackTrace();
-    		}
-
-
-    		
-    		return json;
-        }
-        
-        @Override
-        protected void onPostExecute(String result) {
-            //do stuff
-        	
-            }
-        
-        
-        
-        
-	}
-	
 	private class JSONGetter extends Thread {
 		private String json = "";
-		
+
 		public JSONGetter(){
 			super();
 		}
-		
+
 		@Override
 		public void run() { 
-			
+
 			//then we must have a good UUID
-    		// Create a new HttpClient and get Header
-    		HttpClient httpclient = new DefaultHttpClient();
-    		//
-    		//HttpGet everythingGetter = new HttpGet(LOCAL_DB_URL + ":" + port + "/" + dbName + "/_all_docs?include_docs=true");
-    		HttpGet everythingGetter = new HttpGet(LOCAL_DB_URL + ":" + port + "/" + dbName);
-    		//execute the put and record the response
-    		HttpResponse response = null;
-    		try {
-    			response = httpclient.execute(everythingGetter);
-    		} catch (ClientProtocolException e) {
+			// Create a new HttpClient and get Header
+			HttpClient httpclient = new DefaultHttpClient();
+			//
+			//HttpGet everythingGetter = new HttpGet(LOCAL_DB_URL + ":" + port + "/" + dbName + "/_all_docs?include_docs=true");
+			HttpGet everythingGetter = new HttpGet(LOCAL_DB_URL + ":" + port + "/" + dbName);
+			//execute the put and record the response
+			HttpResponse response = null;
+			try {
+				response = httpclient.execute(everythingGetter);
+			} catch (ClientProtocolException e) {
 
-    			Log.e(TAG, "error getting the DB as JSON", e);
-    		} catch (IOException e) {
-    			Log.e(TAG, "IO error getting the DB as JSON", e);
-    		}
+				Log.e(TAG, "error getting the DB as JSON", e);
+			} catch (IOException e) {
+				Log.e(TAG, "IO error getting the DB as JSON", e);
+			}
 
-    		Log.i(TAG, "server response to all database get: " + response);
+			Log.i(TAG, "server response to all database get: " + response);
 
-    		//parse the reponse 
-    		BufferedReader reader = null;
-    		try {
-    			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
-    		} catch (UnsupportedEncodingException e) {
-    			e.printStackTrace();
-    		} catch (IllegalStateException e) {
-    			e.printStackTrace();
-    		} catch (IOException e) {
-    			e.printStackTrace();
-    		}
-    		//String json = null;
-    		try {
-    			json = reader.readLine();
-    			Log.d(TAG, "Raw json string: " + json);
-    		} catch (IOException e) {
-    			e.printStackTrace();
-    		}
-			
-			
+			//parse the reponse 
+			BufferedReader reader = null;
+			try {
+				reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			} catch (IllegalStateException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			//String json = null;
+			try {
+				json = reader.readLine();
+				Log.d(TAG, "Raw json string: " + json);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+
 		}
 
 		public String getJson() {
@@ -796,20 +797,20 @@ public class DBManager implements Replication.ChangeListener{
 		}
 
 	}
-	
+
 	public String getEntireDbAsJSON(){
-		
+
 		JSONGetter jsonGetter = new JSONGetter();
-	
+
 		jsonGetter.start();
 		try {
 			jsonGetter.join();
 		} catch (InterruptedException e) {
-			
+
 			e.printStackTrace();
 			return null;
 		}
-		
+
 		Log.d(TAG, "String being returned from getEntireDBasJSON " +  jsonGetter.getJson());
 		return jsonGetter.getJson();
 
@@ -818,96 +819,96 @@ public class DBManager implements Replication.ChangeListener{
 
 	public synchronized boolean deleteCardfromDB(TMMCard todel){
 
-	
-
-				//perform sanity checks on the UUID
-				final String exUUID = "c629e32ea1c54b9b0840f0161000706e";
-
-				if(todel.getuuId() == null) {
-					Log.w(TAG, "bad UUID passed to deletecardfromdb");
-					return false;
-				}
 
 
-				if(todel.getuuId().length() != exUUID.length()){
-					Log.w(TAG, "bad UUID passed to deletecardfromdb");
-					return false;
-				}
+		//perform sanity checks on the UUID
+		final String exUUID = "c629e32ea1c54b9b0840f0161000706e";
 
-				//use the UUID to get the current REV
-				JSONObject jsonObject =  getJSONRepresentation(todel);
+		if(todel.getuuId() == null) {
+			Log.w(TAG, "bad UUID passed to deletecardfromdb");
+			return false;
+		}
 
-				if(jsonObject == null){
-					Log.e(TAG, "no JSON retreived for the card with UUID " + todel.getuuId() + " in deletecardfromDB");
-				}
 
-				//parse the JSONObject to get the info that we need
+		if(todel.getuuId().length() != exUUID.length()){
+			Log.w(TAG, "bad UUID passed to deletecardfromdb");
+			return false;
+		}
 
-				Log.i(TAG, "delete card from DB, card to delete info: " + jsonObject);
-				String uuid;
-				try {
-					uuid = jsonObject.getString("_id");
-				} catch (JSONException e3) {
-					try {
-						uuid = jsonObject.getString("id");
-					} catch (JSONException e) {
+		//use the UUID to get the current REV
+		JSONObject jsonObject =  getJSONRepresentation(todel);
 
-						e.printStackTrace();
-						return false;
-					}
+		if(jsonObject == null){
+			Log.e(TAG, "no JSON retreived for the card with UUID " + todel.getuuId() + " in deletecardfromDB");
+		}
 
-				}
-				String revNo;
-				try {
-					revNo = jsonObject.getString("_rev");
-				} catch (JSONException e2) {
-					try {
-						revNo = jsonObject.getString("rev");
-					} catch (JSONException e) {
-						e.printStackTrace();
-						return false;
-					}
+		//parse the JSONObject to get the info that we need
 
-				}
-				HttpClient httpclient = new DefaultHttpClient();
-				HttpDelete uuidGetter = new HttpDelete(LOCAL_DB_URL + ":" + port + "/" + dbName + "/" + uuid + "?rev=" + revNo);
+		Log.i(TAG, "delete card from DB, card to delete info: " + jsonObject);
+		String uuid;
+		try {
+			uuid = jsonObject.getString("_id");
+		} catch (JSONException e3) {
+			try {
+				uuid = jsonObject.getString("id");
+			} catch (JSONException e) {
 
-				//execute the delete and record the response
-				HttpResponse response = null;
-				try {
-					response = httpclient.execute(uuidGetter);
-				} catch (ClientProtocolException e) {
-					Log.e(TAG, "error deleting document", e);
-				} catch (IOException e) {
-					Log.e(TAG, "IO error delting document", e);
-				}
+				e.printStackTrace();
+				return false;
+			}
 
-				//parse the reponse 
-				BufferedReader reader = null;
-				try {
-					reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
-				} catch (UnsupportedEncodingException e) {
+		}
+		String revNo;
+		try {
+			revNo = jsonObject.getString("_rev");
+		} catch (JSONException e2) {
+			try {
+				revNo = jsonObject.getString("rev");
+			} catch (JSONException e) {
+				e.printStackTrace();
+				return false;
+			}
 
-					e.printStackTrace();
-				} catch (IllegalStateException e) {
+		}
+		HttpClient httpclient = new DefaultHttpClient();
+		HttpDelete uuidGetter = new HttpDelete(LOCAL_DB_URL + ":" + port + "/" + dbName + "/" + uuid + "?rev=" + revNo);
 
-					e.printStackTrace();
-				} catch (IOException e) {
+		//execute the delete and record the response
+		HttpResponse response = null;
+		try {
+			response = httpclient.execute(uuidGetter);
+		} catch (ClientProtocolException e) {
+			Log.e(TAG, "error deleting document", e);
+		} catch (IOException e) {
+			Log.e(TAG, "IO error delting document", e);
+		}
 
-					e.printStackTrace();
-				}
-				String json = null;
-				try {
-					json = reader.readLine();
-					Log.d(TAG, "Raw json string: " + json);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				Log.i(TAG, "deletecardfromdb method, server response is: " + json);
-				startSync();
+		//parse the reponse 
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
 
-			return true;
-	
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+
+			e.printStackTrace();
+		} catch (IOException e) {
+
+			e.printStackTrace();
+		}
+		String json = null;
+		try {
+			json = reader.readLine();
+			Log.d(TAG, "Raw json string: " + json);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		Log.i(TAG, "deletecardfromdb method, server response is: " + json);
+		startSync();
+
+		return true;
+
 
 
 	}
