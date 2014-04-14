@@ -136,7 +136,7 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		Thread t1 = new Thread(new Runnable() {
 			public void run() {
 				try {
-					createNewDB("http://127.0.0.1", 5984, servz.get(0).getName());
+					createNewDB("http://134.82.132.99", 5984, servz.get(0).getName());
 				} catch (IllegalStateException e) { 
 					e.printStackTrace();
 				} catch (IOException e) {
@@ -159,7 +159,7 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		Thread t2 = new Thread(new Runnable() {
 			public void run() {
 				try {
-					getUUID("http://127.0.0.1", 5984);
+					getUUID("http://134.82.132.99", 5984);
 				} catch (IllegalStateException e) {
 					e.printStackTrace();
 				}
@@ -174,22 +174,54 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		//local replication test: get raw JSON for everything in the DB
 		//mostly a check to assure that the content is there
 
-//		Thread t3 = new Thread(new Runnable() {
-//			public void run() {
-//				try {
-//					jo = getEntireDbAsJSON("http://127.0.0.1", 5984, DATABASE_NAME);
-//				} catch (IllegalStateException e) {
-//					e.printStackTrace();
-//				} 
-//			}
-//		});
-//
-//		t3.start();
-//		try {
-//			t3.join();
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
+		//		Thread t3 = new Thread(new Runnable() {
+		//			public void run() {
+		//				try {
+		//					jo = getEntireDbAsJSON("http://127.0.0.1", 5984, DATABASE_NAME);
+		//				} catch (IllegalStateException e) {
+		//					e.printStackTrace();
+		//				} 
+		//			}
+		//		});
+		//
+		//		t3.start();
+		//		try {
+		//			t3.join();
+		//		} catch (InterruptedException e) {
+		//			e.printStackTrace();
+		//		}
+		//phase 3: add a card from the DB
+		Thread t4 = new Thread(new Runnable() {
+			public void run() {
+				try {
+
+					TMMCard temp = null;
+					//try to add an object that doesn't yet exist, but has a valid UUID
+					for(int i = 0; i < cardz.size(); i++){
+						temp = cardz.get(i);
+						temp.setuuId(getUUID("http://134.82.132.99", 5984));
+						Log.i(TAG, "Thread t4, call addcardtoDB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
+					}
+
+					//	Log.d(TAG, "Deleted card: " + temp.toString());
+					//Log.d(TAG, "delete card from DB returs: " + deleteCardfromDB(temp,"http://192.168.1.2", 5984, servz.get(0).getName()));
+
+					//should throw an exception here
+					//Log.i(TAG, "Thread t4, second addCardto DB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
+				} catch (IllegalStateException e) { 
+					e.printStackTrace();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+
+		t4.start();
+		try {
+			t4.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 
 		Thread t5 = new Thread(new Runnable() {
 			public void run() {
@@ -225,7 +257,7 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		//				}
 		//			}
 		//		});
-		//
+		// 
 		//		t3.start();
 		//		try {
 		//			t3.join();
@@ -233,40 +265,8 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		//			e.printStackTrace();
 		//		}
 
-		//		//phase 3: add a card from the DB
-		//		Thread t4 = new Thread(new Runnable() {
-		//			public void run() {
-		//				try {
-		//
-		//					TMMCard temp = null;
-		//					//try to add an object that doesn't yet exist, but has a valid UUID
-		//					for(int i = 0; i < cardz.size(); i++){
-		//						temp = cardz.get(i);
-		//						temp.setuuId(getUUID("http://192.168.1.2", 5984));
-		//						Log.i(TAG, "Thread t4, call addcardtoDB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
-		//					}
-		//
-		//					//	Log.d(TAG, "Deleted card: " + temp.toString());
-		//					//Log.d(TAG, "delete card from DB returs: " + deleteCardfromDB(temp,"http://192.168.1.2", 5984, servz.get(0).getName()));
-		//
-		//					//should throw an exception here
-		//					//Log.i(TAG, "Thread t4, second addCardto DB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
-		//				} catch (IllegalStateException e) { 
-		//					e.printStackTrace();
-		//				} catch (Exception e) {
-		//					e.printStackTrace();
-		//				}
-		//			}
-		//		});
-		//
-		//		t4.start();
-		//		try {
-		//			t4.join();
-		//		} catch (InterruptedException e) {
-		//			e.printStackTrace();
-		//		}
-	}
 
+	}
 	/**
 	 * Obtains every document in a couchDB in the form of a JSON object
 	 * @param serverURLsansPort the URL of the server (without the port)
@@ -277,7 +277,7 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 	public JSONObject[] getEntireDbAsJSON(String serverURLsansPort, int port, String dbName){
 		// Get the raw JSON of all the names and IDs of each document in a database
 		String json = getRawJSON(serverURLsansPort + ":" + port + "/" + dbName + "/_all_docs");
-		
+
 		// Obtain the UUIDs of each document in the database by String parsing
 		String[] data = json.split("\"id\":\"");
 		for (int i = 0; i < data.length; i++) {
@@ -287,12 +287,12 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		// Remove first index since it will not have a UUID
 		String[] dbUUID = new String[data.length-1];
 		System.arraycopy(data, 1, dbUUID, 0, data.length-1);
-		
+
 		// Get the raw JSON of all the documents in a database
 		JSONObject[] result = new JSONObject[dbUUID.length];
 		for (int i = 0; i < dbUUID.length; i++) {
 			result[i] = getDocumentAsJSON(serverURLsansPort, port, dbName, dbUUID[i]);
-			
+
 			// For debug: Attempt to read the JSON object
 			try {
 				Log.d(TAG, "Resulting JSON Object for a document:\n" + result[i].toString(5));
@@ -300,10 +300,10 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 				e.printStackTrace();
 			}
 		}
-		
+
 		return result;
 	}
-	
+
 	/**
 	 * Obtains a single document from a couchDB with a given
 	 * database name and UUID
@@ -316,7 +316,7 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 	public JSONObject getDocumentAsJSON(String serverURLsansPort, int port, String dbName, String UUID) {
 		// Get the raw JSON of the requested document
 		String json = getRawJSON(serverURLsansPort + ":" + port + "/" + dbName + "/" + UUID);
-		
+
 		// Convert the raw JSON string into a JSON object
 		JSONObject result;
 		try {
@@ -325,10 +325,10 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 			Log.e(TAG, "error making json object");
 			result = null;
 		}
-		
+
 		return result;
 	}
-	
+
 	/**
 	 * Retrieves an unparsed JSON string from a couchDB database
 	 * @param URL the URL of the document wanted from a database
@@ -363,12 +363,12 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 			json = "ERROR";
 			Log.e(TAG, "IO Error parsing response into a string", e);
 		}
-		
+
 		//For debug: seeing the raw JSON string that was retrieved
 		//Log.d(TAG, "Raw JSON string: " + json);
 		return json;
 	}
-	
+
 	public final String HANDLE = "handle";
 	public final String UUID = "uuId";
 	public final String PRIORITY = "priority";
@@ -384,7 +384,7 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 	public final String VIDEO_SS_PATH = "screenshotPath";
 	public final String VIDEO_PLAY_COUNT = "playCount";
 	public final String VIDEO_YOUTUBE_TAG = "yttag";
-	
+
 	/**
 	 * Creates a TMMCard object from the JSONObject
 	 * @param obj the JSONObject to create the TMMCard
@@ -395,7 +395,7 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		// TODO - Get value of type of card and then create specific obj from that
 		return result;
 	}
-	
+
 	/**
 	 * Creates a VideoCard object from the JSONObject
 	 * @param obj the JSONObject to create the VideoCard
@@ -413,7 +413,7 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		}
 		return result;
 	}
-	
+
 	/**
 	 * Creates an AudioCard object from the JSONObject
 	 * @param obj the JSONObject to create the AudioCard
@@ -430,10 +430,10 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 			e.printStackTrace();
 			result = null;
 		}
-		
+
 		return result;
 	}
-	
+
 	/**
 	 * Creates a TextCard object from the JSONObject
 	 * @param obj the JSONObject to create the TextCard
@@ -444,7 +444,7 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		//public TextCard(int handle,String id, int priority, String cardTitle, String line1, String line2, String line3, ArrayList<TextElement> content, Server source)
 		// TODO - Create an ArrayList of content for instantiate of card
 		ArrayList<TextElement> temp = new ArrayList<TextElement>();
-		
+
 		TextCard result;
 		try {
 			result = new TextCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
@@ -456,55 +456,55 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		return result;
 	}
 
-//	public JSONObject getEntireDbAsJSON(String serverURLsansPort, int port, String dbName){
-//		//then we must have a good UUID
-//		// Create a new HttpClient and get Header
-//		HttpClient httpclient = new DefaultHttpClient();
-//		//
-//		HttpGet everythingGetter = new HttpGet(serverURLsansPort + ":" + port + "/" + dbName + "/_all_docs?include_docs=true");
-//
-//		//execute the put and record the response
-//		HttpResponse response = null;
-//		try {
-//			response = httpclient.execute(everythingGetter);
-//		} catch (ClientProtocolException e) {
-//
-//			Log.e(TAG, "error getting the DB as JSON", e);
-//		} catch (IOException e) {
-//			Log.e(TAG, "IO error getting the DB as JSON", e);
-//		}
-//
-//		Log.i(TAG, "server response to all database get: " + response);
-//
-//		//parse the reponse 
-//		BufferedReader reader = null;
-//		try {
-//			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
-//		} catch (UnsupportedEncodingException e) {
-//			e.printStackTrace();
-//		} catch (IllegalStateException e) {
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//		String json = null;
-//		try {
-//			json = reader.readLine();
-//			Log.d(TAG, "Raw json string: " + json);
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//
-//		JSONObject jsonObject = null;
-//		try {
-//			jsonObject = new JSONObject(json);
-//		} catch (JSONException e1) {
-//			Log.e(TAG, "error making json object", e1);
-//		}
-//		return jsonObject;
-//
-//	}
-	
+	//	public JSONObject getEntireDbAsJSON(String serverURLsansPort, int port, String dbName){
+	//		//then we must have a good UUID
+	//		// Create a new HttpClient and get Header
+	//		HttpClient httpclient = new DefaultHttpClient();
+	//		//
+	//		HttpGet everythingGetter = new HttpGet(serverURLsansPort + ":" + port + "/" + dbName + "/_all_docs?include_docs=true");
+	//
+	//		//execute the put and record the response
+	//		HttpResponse response = null;
+	//		try {
+	//			response = httpclient.execute(everythingGetter);
+	//		} catch (ClientProtocolException e) {
+	//
+	//			Log.e(TAG, "error getting the DB as JSON", e);
+	//		} catch (IOException e) {
+	//			Log.e(TAG, "IO error getting the DB as JSON", e);
+	//		}
+	//
+	//		Log.i(TAG, "server response to all database get: " + response);
+	//
+	//		//parse the reponse 
+	//		BufferedReader reader = null;
+	//		try {
+	//			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+	//		} catch (UnsupportedEncodingException e) {
+	//			e.printStackTrace();
+	//		} catch (IllegalStateException e) {
+	//			e.printStackTrace();
+	//		} catch (IOException e) {
+	//			e.printStackTrace();
+	//		}
+	//		String json = null;
+	//		try {
+	//			json = reader.readLine();
+	//			Log.d(TAG, "Raw json string: " + json);
+	//		} catch (IOException e) {
+	//			e.printStackTrace();
+	//		}
+	//
+	//		JSONObject jsonObject = null;
+	//		try {
+	//			jsonObject = new JSONObject(json);
+	//		} catch (JSONException e1) {
+	//			Log.e(TAG, "error making json object", e1);
+	//		}
+	//		return jsonObject;
+	//
+	//	}
+
 	private void startSync() {
 
 		URL syncUrl;

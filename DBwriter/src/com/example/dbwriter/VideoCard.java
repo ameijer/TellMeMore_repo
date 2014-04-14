@@ -19,18 +19,18 @@ public class VideoCard extends TMMCard implements Serializable{
 
 
 	public VideoCard(int handle, int priority, String cardTitle, Server source) {
-		super(handle, priority, cardTitle, source);
+		super(handle, priority, cardTitle, source, TMMCard.VIDEO);
 
 	}
 
 	public VideoCard(int handle, int priority, String cardTitle, String ytId, Server source) {
-		super(handle, priority, cardTitle, source);
+		super(handle, priority, cardTitle, source, TMMCard.VIDEO);
 		YTtag = ytId;
 
 	}
 
 	public VideoCard(int handle, String id, int priority, String cardTitle, String ss_path, Server source) {
-		super(handle, id, priority, cardTitle, source);
+		super(handle, id, priority, cardTitle, source, TMMCard.VIDEO);
 		screenshot_path = ss_path;
 		int charToWipe = screenshot_path.lastIndexOf('/');
 		setScrenshotname(screenshot_path.substring(charToWipe + 1));
@@ -38,7 +38,7 @@ public class VideoCard extends TMMCard implements Serializable{
 	}
 
 	public VideoCard(int handle, String id, int priority, String cardTitle, String ss_path, int playcount, Server source) {
-		super(handle, id, priority, cardTitle, source);
+		super(handle, id, priority, cardTitle, source, TMMCard.VIDEO);
 		this.screenshot_path = ss_path;
 		this.playCount = playcount;
 		int charToWipe = screenshot_path.lastIndexOf('/');
@@ -48,7 +48,7 @@ public class VideoCard extends TMMCard implements Serializable{
 	
 	
 	public VideoCard(int handle, String id, int priority, String cardTitle, String ss_path, String youTubeTag, Server source) {
-		super(handle, id, priority, cardTitle, source);
+		super(handle, id, priority, cardTitle, source, TMMCard.VIDEO);
 		this.screenshot_path = ss_path;
 		this.setYTtag(youTubeTag);
 		int charToWipe = screenshot_path.lastIndexOf('/');
@@ -57,7 +57,7 @@ public class VideoCard extends TMMCard implements Serializable{
 	}
 
 	public VideoCard(int handle, String id, int priority, String cardTitle, String ss_path, int playcount, String youTubeTag, Server source) {
-		super(handle, id, priority, cardTitle, source);
+		super(handle, id, priority, cardTitle, source, TMMCard.VIDEO);
 		screenshot_path = ss_path;
 		this.playCount = playcount;
 		this.setYTtag(youTubeTag);

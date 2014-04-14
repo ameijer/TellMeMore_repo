@@ -7,13 +7,18 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 	 * 
 	 */
 	private static final long serialVersionUID = 2159979972374818761L;
+	public static final String TEXT = "TEXT";
+	public static final String AUDIO = "AUDIO";
+	public static final String VIDEO = "VIDEO";
+	
+	final private String jsontype;
 
 	public static final String TAG = "TMM" +", " + TMMCard.class.getSimpleName();
 
 	//lets us sort the cards in the scroll view by priority
 	private int priority;
 
-	private String title;
+	private String title; 
 
 	//stores position in the array
 	private int handle;
@@ -27,9 +32,10 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 
 
 	//only for use when creating card from DB
-	public TMMCard(int handle, String uuid, int priority, String cardTitle, Server source){
+	public TMMCard(int handle, String uuid, int priority, String cardTitle, Server source, String type){
 		this.handle= handle;
 		this.uuid=uuid;
+		this.jsontype = type;
 		this.priority = priority;
 		this.title = cardTitle;
 		
@@ -39,10 +45,11 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 	}
 
 	//only for use when creating card from DB
-	public TMMCard(int handle,  int priority, String cardTitle, Server source){
+	public TMMCard(int handle,  int priority, String cardTitle, Server source, String type){
 		this.handle= handle;
 		this.uuid= "";
 		this.priority = priority;
+		this.jsontype=type;
 		this.title = cardTitle;
 		
 		if(source != null){
@@ -118,6 +125,10 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 
 	public void setSource(Server source) {
 		this.source = source;
+	}
+
+	public String getJsontype() {
+		return jsontype;
 	}
 
 

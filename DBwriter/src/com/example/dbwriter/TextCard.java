@@ -3,6 +3,7 @@ package com.example.dbwriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+
 public class TextCard extends TMMCard implements Serializable{
 	/**
 	 * 
@@ -14,24 +15,24 @@ public class TextCard extends TMMCard implements Serializable{
 	private ArrayList<TextElement> contents;
 
 	public TextCard(int handle, int priority, String cardTitle, String ic_path, Server source) {
-		super(handle, priority, cardTitle, source);
+		super(handle, priority, cardTitle, source, TMMCard.TEXT);
 		this.icon_path = ic_path;
 		int charToWipe = ic_path.lastIndexOf('/');
 		ic_filename = ic_path.substring(charToWipe + 1);
 	}
 	
 	public TextCard(int handle, int priority, String cardTitle, Server source) {
-		super(handle, priority, cardTitle, source);
+		super(handle, priority, cardTitle, source, TMMCard.TEXT);
 		this.icon_path = null;
 	}
 	
 	public TextCard(int handle, String id, int priority, String cardTitle, Server source) {
-		super(handle, id, priority, cardTitle, source);
+		super(handle, id, priority, cardTitle, source, TMMCard.TEXT);
 		this.icon_path = null;
 		
 	}
 	public TextCard(int handle, String id, int priority, String cardTitle, String line1, String line2, String line3, Server source) {
-		super(handle, id, priority, cardTitle, source);
+		super(handle, id, priority, cardTitle, source, TMMCard.TEXT);
 		this.icon_path = null;
 		this.line1 = line1;
 		this.line2 = line2;
@@ -40,7 +41,7 @@ public class TextCard extends TMMCard implements Serializable{
 	}
 	
 	public TextCard(int handle, String id, int priority, String cardTitle, String line1, String line2, String line3, String ic_path, Server source) {
-		super(handle, id, priority, cardTitle, source);
+		super(handle, id, priority, cardTitle, source, TMMCard.TEXT);
 		this.line1 = line1;
 		this.line2 = line2;
 		this.line3 = line3;
@@ -51,7 +52,7 @@ public class TextCard extends TMMCard implements Serializable{
 	}
 	
 	public TextCard(int handle,String id, int priority, String cardTitle, String line1, String line2, String line3, ArrayList<TextElement> content, Server source) {
-		super(handle, id, priority, cardTitle, source);
+		super(handle, id, priority, cardTitle, source, TMMCard.TEXT);
 		this.icon_path = null;
 		this.line1 = line1;
 		this.line2 = line2;
@@ -61,7 +62,7 @@ public class TextCard extends TMMCard implements Serializable{
 	}
 	
 	public TextCard(int handle, int priority, String cardTitle, String line1, String line2, String line3, ArrayList<TextElement> content, Server source) {
-		super(handle, priority, cardTitle, source);
+		super(handle, priority, cardTitle, source, TMMCard.TEXT);
 		this.icon_path = null;
 		this.line1 = line1;
 		this.line2 = line2;
@@ -71,7 +72,7 @@ public class TextCard extends TMMCard implements Serializable{
 	}
 	
 	public TextCard(int handle, int priority, String cardTitle, String line1, String line2, String line3, String ic_path, ArrayList<TextElement> content, Server source) {
-		super(handle, priority, cardTitle, source);
+		super(handle, priority, cardTitle, source, TMMCard.TEXT);
 		this.line1 = line1;
 		this.line2 = line2;
 		this.line3 = line3;
@@ -83,7 +84,7 @@ public class TextCard extends TMMCard implements Serializable{
 	}
 	
 	public TextCard(int handle, String id, int priority, String cardTitle, String line1, String line2, String line3, String ic_path, ArrayList<TextElement> content, Server source) {
-		super(handle, id, priority, cardTitle, source);
+		super(handle, id, priority, cardTitle, source, TMMCard.TEXT);
 		this.line1 = line1;
 		this.line2 = line2;
 		this.line3 = line3;
