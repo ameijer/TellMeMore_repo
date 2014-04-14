@@ -227,48 +227,75 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 //		}
 
 
-		// Test TextCard parsing from JSON object
-		Thread t6 = new Thread(new Runnable() {
-			public void run() {
-				Log.i(TAG,"Starting TextCard Parsing");
-				JSONObject document;
-				TMMCard result;
-				try {
-					document = getDocumentAsJSON("http://134.82.132.99", 5984, "example_card_generator", "c629e32ea1c54b9b0840f01610070b68");
-					result = convertJSONToCard(document);
-					if (result != null)
-						Log.i(TAG, "TextCard Created:\nTitle: " + result.getTitle() + 
-								"\nID: " + result.getuuId() + "\n");
-				} catch (IllegalStateException e) {
-					e.printStackTrace();
-				} 
-			}
-		});
-
-		t6.start();
-		try {
-			t6.join();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}		
-		
-//		// Test getting entire database functionality
-//		Thread t5 = new Thread(new Runnable() {
+//		// Test Card parsing from JSON object
+//		Thread t6 = new Thread(new Runnable() {
 //			public void run() {
+//				Log.i(TAG,"Starting JSON retrieval and Card Parsing");
+//				JSONObject document;
+//				TMMCard result;
 //				try {
-//					getEntireDbAsJSON("http://134.82.132.99", 5984, "example_card_generator");
+//					// TextCard retrieval
+//					document = getDocumentAsJSON("http://134.82.132.99", 5984, "example_card_generator", "c629e32ea1c54b9b0840f01610070b68");
+//					result = convertJSONToCard(document);
+//					if (result != null)
+//						Log.i(TAG, "Card Created:\nTitle: " + result.getTitle() + 
+//								"\nID: " + result.getuuId() + "\n");
+//					
+//					// AudioCard retrieval
+//					document = getDocumentAsJSON("http://134.82.132.99", 5984, "example_card_generator", "c629e32ea1c54b9b0840f0161007151f");
+//					result = convertJSONToCard(document);
+//					if (result != null)
+//						Log.i(TAG, "Card Created:\nTitle: " + result.getTitle() + 
+//								"\nID: " + result.getuuId() + "\n");
+//					
+//					// VideoCard retrieval
+//					document = getDocumentAsJSON("http://134.82.132.99", 5984, "example_card_generator", "c629e32ea1c54b9b0840f01610072710");
+//					result = convertJSONToCard(document);
+//					if (result != null)
+//						Log.i(TAG, "Card Created:\nTitle: " + result.getTitle() + 
+//								"\nID: " + result.getuuId() + "\n");
+//					
 //				} catch (IllegalStateException e) {
 //					e.printStackTrace();
 //				} 
 //			}
 //		});
 //
-//		t5.start();
+//		t6.start();
 //		try {
-//			t5.join();
+//			t6.join();
 //		} catch (InterruptedException e) {
 //			e.printStackTrace();
-//		}
+//		}		
+		
+		// Test getting entire database functionality and turn the JSON objects into cards
+		Thread t5 = new Thread(new Runnable() {
+			public void run() {
+				try {
+					JSONObject[] documents = getEntireDbAsJSON("http://134.82.132.99", 5984, "example_card_generator");
+					for (int i = 0; i < documents.length; i++) {
+						TMMCard result = convertJSONToCard(documents[i]);
+						if (result != null) {
+							String temp = "TMM";
+							if (result instanceof AudioCard) temp = "Audio";
+							if (result instanceof VideoCard) temp = "Video";
+							if (result instanceof TextCard) temp = "Text";
+							Log.i(TAG, temp + "Card Created:\nTitle: " + result.getTitle() + 
+									"\nID: " + result.getuuId() + "\n");
+						}
+					}
+				} catch (IllegalStateException e) {
+					e.printStackTrace();
+				} 
+			}
+		});
+
+		t5.start();
+		try {
+			t5.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 
 
 
@@ -297,108 +324,9 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 
 
 	}
-	/**
-	 * Obtains every document in a couchDB in the form of a JSON object
-	 * @param serverURLsansPort the URL of the server (without the port)
-	 * @param port the port number of the server
-	 * @param dbName the name of the database (in this case project)
-	 * @return all documents associated with a given database
-	 */
-	public JSONObject[] getEntireDbAsJSON(String serverURLsansPort, int port, String dbName){
-		// Get the raw JSON of all the names and IDs of each document in a database
-		String json = getRawJSON(serverURLsansPort + ":" + port + "/" + dbName + "/_all_docs");
-
-		// Obtain the UUIDs of each document in the database by String parsing
-		String[] data = json.split("\"id\":\"");
-		for (int i = 0; i < data.length; i++) {
-			// Remove any characters not in the UUID
-			data[i] = data[i].substring(0,data[i].indexOf("\""));
-		}
-		// Remove first index since it will not have a UUID
-		String[] dbUUID = new String[data.length-1];
-		System.arraycopy(data, 1, dbUUID, 0, data.length-1);
-
-		// Get the raw JSON of all the documents in a database
-		JSONObject[] result = new JSONObject[dbUUID.length];
-		for (int i = 0; i < dbUUID.length; i++) {
-			result[i] = getDocumentAsJSON(serverURLsansPort, port, dbName, dbUUID[i]);
-
-			// For debug: Attempt to read the JSON object
-			try {
-				Log.d(TAG, "Resulting JSON Object for a document:\n" + result[i].toString(5));
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-		}
-
-		return result;
-	}
-
-	/**
-	 * Obtains a single document from a couchDB with a given
-	 * database name and UUID
-	 * @param serverURLsansPort the URL of the server (without the port)
-	 * @param port the port number of the server
-	 * @param dbName the name of the database (in this case project)
-	 * @param UUID the ID of the requested document
-	 * @return the requested document in the form of a JSON Object. Returns null if creation fails.
-	 */
-	public JSONObject getDocumentAsJSON(String serverURLsansPort, int port, String dbName, String UUID) {
-		// Get the raw JSON of the requested document
-		String json = getRawJSON(serverURLsansPort + ":" + port + "/" + dbName + "/" + UUID);
-
-		// Convert the raw JSON string into a JSON object
-		JSONObject result;
-		try {
-			result = new JSONObject(json);
-		} catch (JSONException e) {
-			Log.e(TAG, "error making json object");
-			result = null;
-		}
-
-		return result;
-	}
-
-	/**
-	 * Retrieves an unparsed JSON string from a couchDB database
-	 * @param URL the URL of the document wanted from a database
-	 * @return the requested raw, unparsed JSON string. Returns "ERROR" if retrieval fails.
-	 */
-	public String getRawJSON (String URL) {
-		// Create a new HttpClient and get Header
-		HttpClient httpclient = new DefaultHttpClient();
-		HttpGet everythingGetter = new HttpGet(URL);
-
-		// Execute the get and record the response
-		HttpResponse response = null;
-		try {
-			response = httpclient.execute(everythingGetter);
-		} catch (ClientProtocolException e) {
-			Log.e(TAG, "error getting the DB as JSON", e);
-		} catch (IOException e) {
-			Log.e(TAG, "IO error getting the DB as JSON", e);
-		}
-
-		Log.i(TAG, "server response to all database get: " + response);
-
-		// Parse the response into a String 
-		HttpEntity resEntityGet = response.getEntity();
-		String json;
-		try {
-			json = new String(EntityUtils.toString(resEntityGet));
-		} catch (ParseException e) {
-			json = "ERROR";
-			Log.e(TAG, "Error parsing response into a string", e);
-		} catch (IOException e) {
-			json = "ERROR";
-			Log.e(TAG, "IO Error parsing response into a string", e);
-		}
-
-		//For debug: seeing the raw JSON string that was retrieved
-		//Log.d(TAG, "Raw JSON string: " + json);
-		return json;
-	}
-
+	
+	public static final String DB_ARRAY = "rows";
+	public static final String DOC_ID = "id";
 	public static final String TYPE = "jsontype";
 	public static final String HANDLE = "handle";
 	public static final String UUID = "uuId";
@@ -422,6 +350,103 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 	public static final String VIDEO_SS_PATH = "screenshotPath";
 	public static final String VIDEO_PLAY_COUNT = "playCount";
 	public static final String VIDEO_YOUTUBE_TAG = "yttag";
+	
+	/**
+	 * Obtains every document in a couchDB in the form of a JSON object
+	 * @param serverURLsansPort the URL of the server (without the port)
+	 * @param port the port number of the server
+	 * @param dbName the name of the database (in this case project)
+	 * @return all documents associated with a given database
+	 */
+	public JSONObject[] getEntireDbAsJSON(String serverURLsansPort, int port, String dbName){
+		try {
+			// Get the raw JSON of all the names and IDs of each document in a database
+			String json = getRawJSON(serverURLsansPort + ":" + port + "/" + dbName + "/_all_docs");
+
+			// Obtain the UUIDs of each document in the database by JSON parsing
+			JSONObject tempJSON = new JSONObject(json);
+			JSONArray contents = tempJSON.getJSONArray(DB_ARRAY);
+			String[] dbUUID = new String[contents.length()];
+			for (int i = 0; i < contents.length(); i++) {
+				dbUUID[i] = contents.getJSONObject(i).getString(DOC_ID);
+			}		
+
+			// Get the raw JSON of all the documents in a database
+			JSONObject[] result = new JSONObject[dbUUID.length];
+			for (int i = 0; i < dbUUID.length; i++) {
+				result[i] = getDocumentAsJSON(serverURLsansPort, port, dbName, dbUUID[i]);
+			}
+			return result;
+		} catch (JSONException e) {
+			Log.e(TAG, "getEntireDbAsJSON crashed and burned");
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	/**
+	 * Obtains a single document from a couchDB with a given
+	 * database name and UUID
+	 * @param serverURLsansPort the URL of the server (without the port)
+	 * @param port the port number of the server
+	 * @param dbName the name of the database (in this case project)
+	 * @param UUID the ID of the requested document
+	 * @return the requested document in the form of a JSON Object. Returns null if creation fails.
+	 */
+	public JSONObject getDocumentAsJSON(String serverURLsansPort, int port, String dbName, String UUID) {
+		try {
+			// Get the raw JSON of the requested document
+			String json = getRawJSON(serverURLsansPort + ":" + port + "/" + dbName + "/" + UUID);
+
+			// Convert the raw JSON string into a JSON object
+			JSONObject result;
+			result = new JSONObject(json);
+			return result;
+		} catch (JSONException e) {
+			Log.e(TAG, "getDocumentAsJSON crashed and burned");
+			return null;
+		}
+	}
+
+	/**
+	 * Retrieves an unparsed JSON string from a couchDB database
+	 * @param URL the URL of the document wanted from a database
+	 * @return the requested raw, unparsed JSON string. Returns null if retrieval fails.
+	 */
+	public String getRawJSON (String URL) {
+		// Create a new HttpClient and get Header
+		HttpClient httpclient = new DefaultHttpClient();
+		HttpGet everythingGetter = new HttpGet(URL);
+
+		// Execute the get and record the response
+		HttpResponse response = null;
+		try {
+			response = httpclient.execute(everythingGetter);
+		} catch (ClientProtocolException e) {
+			Log.e(TAG, "error getting the DB as JSON", e);
+			return null;
+		} catch (IOException e) {
+			Log.e(TAG, "IO error getting the DB as JSON", e);
+			return null;
+		}
+
+		Log.i(TAG, "server response to all database get: " + response);
+
+		// Parse the response into a String 
+		HttpEntity resEntityGet = response.getEntity();
+		String json;
+		try {
+			json = new String(EntityUtils.toString(resEntityGet));
+		} catch (ParseException e) {
+			Log.e(TAG, "Error parsing response into a string", e);
+			return null;
+		} catch (IOException e) {
+			Log.e(TAG, "IO Error parsing response into a string", e);
+			return null;
+		}
+
+		return json;
+	}
 
 	/**
 	 * Creates a TMMCard object from the JSONObject
@@ -461,24 +486,20 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 	 * @return the VideoCard created from parsing the JSONObject. Returns null if creation fails.
 	 */
 	public VideoCard convertJSONToVideoCard (JSONObject obj) {
-		VideoCard result;
 		try {
 			// Get the Server Object by JSON parsing because Java doesn't like casting
 			JSONObject JSONServer = obj.getJSONObject(SOURCE);
 			Server sourceServer = new Server(JSONServer.getString(SERVER_NAME), JSONServer.getString(SERVER_API_INFO),
 					Long.parseLong(JSONServer.getString(SERVER_FIRST_USED)), Long.parseLong(JSONServer.getString(SERVER_LAST_USED)));
 			
-			result = new VideoCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
+			VideoCard result = new VideoCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
 					obj.getString(VIDEO_SS_PATH), obj.getInt(VIDEO_PLAY_COUNT), obj.getString(VIDEO_YOUTUBE_TAG), sourceServer);
+			
+			return result;
 		} catch (JSONException e) {
 			e.printStackTrace();
-			result = null;
+			return null;
 		}
-		return result;
-	}
-
-	private boolean getAllAttachments(JSONObject cardToGet, TMMCard cardWithNoAttachments){
-		return true;
 	}
 	
 	/**
@@ -487,22 +508,21 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 	 * @return the AudioCard created from parsing the JSONObject. Returns null if creation fails.
 	 */
 	public AudioCard convertJSONToAudioCard (JSONObject obj) {
-		AudioCard result;
 		try {
 			// Get the Server Object by JSON parsing because Java doesn't like casting
 			JSONObject JSONServer = obj.getJSONObject(SOURCE);
 			Server sourceServer = new Server(JSONServer.getString(SERVER_NAME), JSONServer.getString(SERVER_API_INFO),
 					Long.parseLong(JSONServer.getString(SERVER_FIRST_USED)), Long.parseLong(JSONServer.getString(SERVER_LAST_USED)));
-			
-			result = new AudioCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
+
+			AudioCard result = new AudioCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
 					obj.getInt(AUDIO_LENGTH), obj.getString(AUDIO_BG_PATH), obj.getString(AUDIO_CLIP_PATH), sourceServer);
+
+			return result;
 		} catch (JSONException e) {
 			Log.e(TAG, "AudioCard creation crashed and burned");
 			e.printStackTrace();
-			result = null;
+			return null;
 		}
-
-		return result;
 	}
 
 	/**
@@ -511,14 +531,11 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 	 * @return the TextCard created from parsing the JSONObject. Returns null if creation fails.
 	 */
 	public TextCard convertJSONToTextCard (JSONObject obj) {
-		TextCard result;
 		try {
+			// Get array of contents for the TextCard
+			JSONArray contents = obj.getJSONArray(TEXT_CONTENTS);
 			ArrayList<TextElement> cardContent = new ArrayList<TextElement>();
 
-			// Get array of contents for the TextCard
-			JSONArray contents = null;		
-			contents = obj.getJSONArray(TEXT_CONTENTS);
-			
 			// Create all cardContents for the text card from JSON
 			for (int i = 0; i < contents.length(); i++) {
 				// Get the contentType by string parsing because Java doesn't like casting an object from obj.get to an enum
@@ -539,16 +556,20 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 					Long.parseLong(JSONServer.getString(SERVER_FIRST_USED)), Long.parseLong(JSONServer.getString(SERVER_LAST_USED)));
 			
 			// Create actual TextCard
-			result = new TextCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
+			TextCard result = new TextCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
 					obj.getString(TEXT_LINE1), obj.getString(TEXT_LINE2), obj.getString(TEXT_LINE3), cardContent, sourceServer);
+			return result;
 		} catch (JSONException e) {
 			Log.i(TAG,"TextCard creation crashed and burned");
 			e.printStackTrace();
-			result = null;
+			return null;
 		}
-		return result;
 	}
-	
+
+	private boolean getAllAttachments(JSONObject cardToGet, TMMCard cardWithNoAttachments){
+		return true;
+	}
+
 	//	public JSONObject getEntireDbAsJSON(String serverURLsansPort, int port, String dbName){
 	//		//then we must have a good UUID
 	//		// Create a new HttpClient and get Header
