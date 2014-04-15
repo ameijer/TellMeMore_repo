@@ -11,7 +11,6 @@ package com.google.android.glass.TMM;
  */
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,10 +18,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OptionalDataException;
-import java.io.StreamCorruptedException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -65,11 +60,9 @@ import android.util.Log;
 @SuppressLint("DefaultLocale")
 public class DBManager implements Replication.ChangeListener{
 
-	private TellMeMoreApplication app; 
 	private Database database;
 	private Manager manager;
 	private String dbName;
-	private Context context;
 	public static final String TAG = "TMM: DBMANAGER";
 	public static final String MASTER_SERVER_URL = "http://134.82.132.99";
 	public static final String LOCAL_DB_URL = "http://127.0.0.1";
@@ -104,6 +97,8 @@ public class DBManager implements Replication.ChangeListener{
 	public static final String VIDEO_PLAY_COUNT = "playCount";
 	public static final String VIDEO_YOUTUBE_TAG = "yttag";
 	private boolean synced;
+	private Context context;
+	private TellMeMoreApplication app;
 
 	public boolean isSynced(){
 		return synced;
@@ -388,7 +383,7 @@ public class DBManager implements Replication.ChangeListener{
 			result = convertJSONToTextCard(obj);
 
 		// Correctly put attachments in internal storage
-		getAllAttachments(obj, result);
+		getAllAttachments(result);
 
 		return result;
 	}
@@ -489,8 +484,32 @@ public class DBManager implements Replication.ChangeListener{
 		}
 	}
 
-	private boolean getAllAttachments(JSONObject cardToGet, TMMCard cardWithNoAttachments){
-		return true;
+
+	private boolean getAllAttachments(TMMCard cardWithNoAttachments){
+		if(cardWithNoAttachments instanceof VideoCard){
+			return downloadVideoCardAttachments((VideoCard) cardWithNoAttachments);
+		} else if(cardWithNoAttachments instanceof AudioCard) {
+			return downloadAudioCardAttachments((AudioCard) cardWithNoAttachments);
+		} else if(cardWithNoAttachments instanceof TextCard) {
+			return downloadTextCardAttachments((TextCard) cardWithNoAttachments);
+		} else return false; //error, the TMM card must be one of the above
+
+
+	}
+	
+	//TODO
+	private boolean downloadVideoCardAttachments(VideoCard cardToDl){
+		
+	}
+
+	//TODO
+	private boolean downloadAudioCardAttachments(AudioCard cardToDl){
+
+	}
+
+	//TODO
+	private boolean downloadTextCardAttachments(TextCard cardToDl){
+
 	}
 
 	private class AttachmentDownloader extends Thread {
@@ -502,7 +521,7 @@ public class DBManager implements Replication.ChangeListener{
 			this.uuid = uuid;
 			this.filename = fileName;
 			this.pathToStore = pathToStoreAttachment;
-			
+
 		}
 
 		@Override
@@ -522,25 +541,22 @@ public class DBManager implements Replication.ChangeListener{
 				Log.e(TAG, "IO error retrieving document attachment", e);
 				return;
 			}
-			
+
 			Header clHead = response.getFirstHeader("Content-Length");
 			Log.i(TAG, "Content-length header: " + clHead.toString());
-			
+
 			int respSize = Integer.parseInt(clHead.getValue());
 			Log.i(TAG, "buffer being created to size: " + Integer.parseInt(clHead.getValue()));
-			
-			char[] binaryAttachment = new char[respSize];
-		
+
 			//write the attachment to file
 			FileOutputStream save0 = null;
 
 			try {
 				save0 = new FileOutputStream(new File(pathToStore +"/" + filename));
 			} catch (FileNotFoundException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-			
+
 			try {
 				response.getEntity().writeTo(save0);
 			} catch (UnsupportedEncodingException e) {
