@@ -194,37 +194,37 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		//		}
 		//phase 3: add a card from the DB
 
-//			Thread t4 = new Thread(new Runnable() {
-//			public void run() {
-//				try {
-//
-//					TMMCard temp = null;
-//					//try to add an object that doesn't yet exist, but has a valid UUID
-//					for(int i = 0; i < cardz.size(); i++){
-//						temp = cardz.get(i);
-//						temp.setuuId(getUUID("http://134.82.132.99", 5984));
-//						Log.i(TAG, "Thread t4, call addcardtoDB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
-//					}
-//
-//					//	Log.d(TAG, "Deleted card: " + temp.toString());
-//					//Log.d(TAG, "delete card from DB returs: " + deleteCardfromDB(temp,"http://192.168.1.2", 5984, servz.get(0).getName()));
-//
-//					//should throw an exception here
-//					//Log.i(TAG, "Thread t4, second addCardto DB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
-//				} catch (IllegalStateException e) { 
-//					e.printStackTrace();
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		});
-//
-//		t4.start();
-//		try {
-//			t4.join();
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
+			Thread t4 = new Thread(new Runnable() {
+			public void run() {
+				try {
+
+					TMMCard temp = null;
+					//try to add an object that doesn't yet exist, but has a valid UUID
+					for(int i = 0; i < cardz.size(); i++){
+						temp = cardz.get(i);
+						temp.setuuId(getUUID("http://134.82.132.99", 5984));
+						Log.i(TAG, "Thread t4, call addcardtoDB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
+					}
+
+					//	Log.d(TAG, "Deleted card: " + temp.toString());
+					//Log.d(TAG, "delete card from DB returs: " + deleteCardfromDB(temp,"http://192.168.1.2", 5984, servz.get(0).getName()));
+
+					//should throw an exception here
+					//Log.i(TAG, "Thread t4, second addCardto DB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
+				} catch (IllegalStateException e) { 
+					e.printStackTrace();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+
+		t4.start();
+		try {
+			t4.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 
 
 //		// Test Card parsing from JSON object
@@ -619,8 +619,12 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 	//
 	//	}
 
-	private void startSync() {
+	private void startSync(boolean deleteDBbeforeUpdate) {
 
+		if(deleteDBbeforeUpdate){
+			deleteDB();
+		}
+		
 		URL syncUrl;
 		try {
 			syncUrl = new URL(SYNC_URL + "/"+ servz.get(0).getName());
@@ -633,14 +637,14 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		pullReplication.setCreateTarget(true);
 		pullReplication.setContinuous(false);
 
-		Replication pushReplication = database.createPushReplication(syncUrl);
-		pushReplication.setContinuous(false);
+		//Replication pushReplication = database.createPushReplication(syncUrl);
+		//pushReplication.setContinuous(false);
 
 		pullReplication.start();
-		pushReplication.start();
+		//pushReplication.start();
 
 		pullReplication.addChangeListener(this);
-		pushReplication.addChangeListener(this);
+		//pushReplication.addChangeListener(this);
 
 	}
 

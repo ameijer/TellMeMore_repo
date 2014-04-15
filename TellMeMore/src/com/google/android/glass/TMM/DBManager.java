@@ -27,7 +27,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
@@ -36,6 +38,7 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -75,6 +78,31 @@ public class DBManager implements Replication.ChangeListener{
 	public static final String LOCAL_DB_URL = "http://127.0.0.1";
 	public static final String UUID_GETTER_PATH = "_uuids";
 	public static final int port = 5984;
+	public static final String DB_ARRAY = "rows";
+	public static final String DOC_ID = "id";
+	public static final String TYPE = "jsontype";
+	public static final String HANDLE = "handle";
+	public static final String UUID = "uuId";
+	public static final String PRIORITY = "priority";
+	public static final String TITLE = "title";
+	public static final String SOURCE = "source";
+	public static final String SERVER_NAME = "name";
+	public static final String SERVER_API_INFO = "api_info";
+	public static final String SERVER_FIRST_USED = "first_used";
+	public static final String SERVER_LAST_USED = "last_used";
+	public static final String AUDIO_BG_PATH = "backgroundPath";
+	public static final String AUDIO_LENGTH = "lengthMillis";
+	public static final String AUDIO_CLIP_PATH = "audioClipPath";
+	public static final String TEXT_LINE1 = "line1";
+	public static final String TEXT_LINE2 = "line2";
+	public static final String TEXT_LINE3 = "line3";
+	public static final String TEXT_CONTENTS = "contents";
+	public static final String TEXT_CONTENT_TYPE = "type";
+	public static final String TEXT_CONTENT_TEXT = "text";
+	public static final String TEXT_CONTENT_IMG = "img";
+	public static final String VIDEO_SS_PATH = "screenshotPath";
+	public static final String VIDEO_PLAY_COUNT = "playCount";
+	public static final String VIDEO_YOUTUBE_TAG = "yttag";
 
 	public DBManager(Context context) throws IOException{
 		this.context = context;
@@ -93,7 +121,7 @@ public class DBManager implements Replication.ChangeListener{
 		this.context = context;
 
 		//sync up database here
-		startSync();
+		startSync(false);
 		return true;
 	}
 
@@ -121,8 +149,12 @@ public class DBManager implements Replication.ChangeListener{
 	}
 
 
-	private void startSync() {
+	private void startSync(boolean deleteDBbeforeUpdate) {
 
+		if(deleteDBbeforeUpdate){
+			this.deleteDB(true);
+		}
+		
 		URL syncUrl;
 		try {
 			syncUrl = new URL(MASTER_SERVER_URL + ":" + port +"/"+ dbName);
@@ -135,18 +167,17 @@ public class DBManager implements Replication.ChangeListener{
 		pullReplication.setCreateTarget(true);
 		pullReplication.setContinuous(false);
 
-		Replication pushReplication = database.createPushReplication(syncUrl);
-		pullReplication.setCreateTarget(true);
-		pushReplication.setContinuous(false);
+		//Replication pushReplication = database.createPushReplication(syncUrl);
+		//pullReplication.setCreateTarget(true);
+		//pushReplication.setContinuous(false);
 
 		pullReplication.start();
-		pushReplication.start();
+		//pushReplication.start();
 
 		pullReplication.addChangeListener(this);
-		pushReplication.addChangeListener(this);
+		//pushReplication.addChangeListener(this);
 
 	}
-
 
 	//we will use this to broadcast to the app when the cards are loaded
 	public static void broadcastCardsLoaded(Context context, String serverName) {
@@ -172,9 +203,12 @@ public class DBManager implements Replication.ChangeListener{
 				try {
 					Thread.sleep(5000);
 				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
+
 					e1.printStackTrace();
 				}
+				Log.i(TAG, "Raw JSON in replication listener: " + getRawJSON("https://127.0.0.1:5984/example_card_generator"));
+				Log.i(TAG, "ENTIRE DB AS OF REPLICATION COMPLETION ALERT: " + getEntireDbAsJSON());
+				findCardsbyServer();
 				broadcastCardsLoaded(context, dbName);
 			}
 
@@ -195,50 +229,308 @@ public class DBManager implements Replication.ChangeListener{
 
 	}
 
+	/**
+	 * Obtains every document in a couchDB in the form of a JSON object
+	 * @param serverURLsansPort the URL of the server (without the port)
+	 * @param port the port number of the server
+	 * @param dbName the name of the database (in this case project)
+	 * @return all documents associated with a given database
+	 */
+	public JSONObject[] getEntireDbAsJSON(String serverURLsansPort, int port, String dbName){
+		try {
+			// Get the raw JSON of all the names and IDs of each document in a database
+			String json = getRawJSON(serverURLsansPort + ":" + port + "/" + dbName + "/_all_docs");
+
+			// Obtain the UUIDs of each document in the database by JSON parsing
+			JSONObject tempJSON = new JSONObject(json);
+			JSONArray contents = tempJSON.getJSONArray(DB_ARRAY);
+			String[] dbUUID = new String[contents.length()];
+			for (int i = 0; i < contents.length(); i++) {
+				dbUUID[i] = contents.getJSONObject(i).getString(DOC_ID);
+			}		
+
+			// Get the raw JSON of all the documents in a database
+			JSONObject[] result = new JSONObject[dbUUID.length];
+			for (int i = 0; i < dbUUID.length; i++) {
+				result[i] = getDocumentAsJSON(serverURLsansPort, port, dbName, dbUUID[i]);
+			}
+			return result;
+		} catch (JSONException e) {
+			Log.e(TAG, "getEntireDbAsJSON crashed and burned");
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	/**
+	 * Obtains a single document from a couchDB with a given
+	 * database name and UUID
+	 * @param serverURLsansPort the URL of the server (without the port)
+	 * @param port the port number of the server
+	 * @param dbName the name of the database (in this case project)
+	 * @param UUID the ID of the requested document
+	 * @return the requested document in the form of a JSON Object. Returns null if creation fails.
+	 */
+	public JSONObject getDocumentAsJSON(String serverURLsansPort, int port, String dbName, String UUID) {
+		try {
+			// Get the raw JSON of the requested document
+			String json = getRawJSON(serverURLsansPort + ":" + port + "/" + dbName + "/" + UUID);
+
+			// Convert the raw JSON string into a JSON object
+			JSONObject result;
+			result = new JSONObject(json);
+			return result;
+		} catch (JSONException e) {
+			Log.e(TAG, "getDocumentAsJSON crashed and burned");
+			return null;
+		}
+	}
+
+	/**
+	 * Retrieves an unparsed JSON string from a couchDB database
+	 * @param URL the URL of the document wanted from a database
+	 * @return the requested raw, unparsed JSON string. Returns null if retrieval fails.
+	 */
+	public String getRawJSON(String URL) {
+		// Create a new HttpClient and get Header
+		HttpClient httpclient = new DefaultHttpClient();
+		HttpGet everythingGetter = new HttpGet(URL);
+
+		// Execute the get and record the response
+		HttpResponse response = null;
+		try {
+			response = httpclient.execute(everythingGetter);
+		} catch (ClientProtocolException e) {
+			Log.e(TAG, "error getting the DB as JSON", e);
+			return null;
+		} catch (IOException e) {
+			Log.e(TAG, "IO error getting the DB as JSON", e);
+			return null;
+		}
+
+		Log.i(TAG, "server response to all database get: " + response);
+
+		// Parse the response into a String 
+		HttpEntity resEntityGet = response.getEntity();
+		String json;
+		try {
+			json = new String(EntityUtils.toString(resEntityGet));
+		} catch (ParseException e) {
+			Log.e(TAG, "Error parsing response into a string", e);
+			return null;
+		} catch (IOException e) {
+			Log.e(TAG, "IO Error parsing response into a string", e);
+			return null;
+		}
+
+		return json;
+	}
+
+	/**
+	 * Creates a TMMCard object from the JSONObject
+	 * @param obj the JSONObject to create the TMMCard
+	 * @return the TMMCard created from parsing the JSONObject. Returns null if creation fails.
+	 */
+	public TMMCard convertJSONToCard (JSONObject obj) {
+		TMMCard result = null;
+
+		// Obtain type of card to be created
+		String type;
+		try {
+			type = obj.getString(TYPE);
+		} catch (JSONException e) {
+			e.printStackTrace();
+			Log.e(TAG,"Cast failed");
+			return null;
+		}
+
+		// Create correct type of card
+		if (type.equalsIgnoreCase("AUDIO"))
+			result = convertJSONToAudioCard(obj);
+		if (type.equalsIgnoreCase("VIDEO"))
+			result = convertJSONToVideoCard(obj);
+		if (type.equalsIgnoreCase("TEXT"))
+			result = convertJSONToTextCard(obj);
+
+		// Correctly put attachments in internal storage
+		getAllAttachments(obj, result);
+
+		return result;
+	}
+
+	/**
+	 * Creates a VideoCard object from the JSONObject
+	 * @param obj the JSONObject to create the VideoCard
+	 * @return the VideoCard created from parsing the JSONObject. Returns null if creation fails.
+	 */
+	public VideoCard convertJSONToVideoCard (JSONObject obj) {
+		try {
+			// Get the Server Object by JSON parsing because Java doesn't like casting
+			JSONObject JSONServer = obj.getJSONObject(SOURCE);
+			Server sourceServer = new Server(JSONServer.getString(SERVER_NAME), JSONServer.getString(SERVER_API_INFO),
+					Long.parseLong(JSONServer.getString(SERVER_FIRST_USED)), Long.parseLong(JSONServer.getString(SERVER_LAST_USED)));
+
+			VideoCard result = new VideoCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
+					obj.getString(VIDEO_SS_PATH), obj.getInt(VIDEO_PLAY_COUNT), obj.getString(VIDEO_YOUTUBE_TAG), sourceServer);
+
+			return result;
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	/**
+	 * Creates an AudioCard object from the JSONObject
+	 * @param obj the JSONObject to create the AudioCard
+	 * @return the AudioCard created from parsing the JSONObject. Returns null if creation fails.
+	 */
+	public AudioCard convertJSONToAudioCard (JSONObject obj) {
+		try {
+			// Get the Server Object by JSON parsing because Java doesn't like casting
+			JSONObject JSONServer = obj.getJSONObject(SOURCE);
+			Server sourceServer = new Server(JSONServer.getString(SERVER_NAME), JSONServer.getString(SERVER_API_INFO),
+					Long.parseLong(JSONServer.getString(SERVER_FIRST_USED)), Long.parseLong(JSONServer.getString(SERVER_LAST_USED)));
+
+			AudioCard result = new AudioCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
+					obj.getInt(AUDIO_LENGTH), obj.getString(AUDIO_BG_PATH), obj.getString(AUDIO_CLIP_PATH), sourceServer);
+
+			return result;
+		} catch (JSONException e) {
+			Log.e(TAG, "AudioCard creation crashed and burned");
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	/**
+	 * Creates a TextCard object from the JSONObject
+	 * @param obj the JSONObject to create the TextCard
+	 * @return the TextCard created from parsing the JSONObject. Returns null if creation fails.
+	 */
+	public TextCard convertJSONToTextCard (JSONObject obj) {
+		try {
+			// Get array of contents for the TextCard
+			JSONArray contents = obj.getJSONArray(TEXT_CONTENTS);
+			ArrayList<TextElement> cardContent = new ArrayList<TextElement>();
+
+			// Create all cardContents for the text card from JSON
+			for (int i = 0; i < contents.length(); i++) {
+				// Get the contentType by string parsing because Java doesn't like casting an object from obj.get to an enum
+				JSONObject temp = contents.getJSONObject(i);
+				Type contentType;
+				if (temp.getString(TEXT_CONTENT_TYPE).equals("IMAGE"))
+					contentType = Type.IMAGE;
+				else
+					contentType = Type.TEXT_;
+
+				cardContent.add(new TextElement(contentType, 
+						temp.getString(TEXT_CONTENT_TEXT), temp.getString(TEXT_CONTENT_IMG)));
+			}
+
+			// Get the Server Object by JSON parsing because Java doesn't like casting
+			JSONObject JSONServer = obj.getJSONObject(SOURCE);
+			Server sourceServer = new Server(JSONServer.getString(SERVER_NAME), JSONServer.getString(SERVER_API_INFO),
+					Long.parseLong(JSONServer.getString(SERVER_FIRST_USED)), Long.parseLong(JSONServer.getString(SERVER_LAST_USED)));
+
+			// Create actual TextCard
+			TextCard result = new TextCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
+					obj.getString(TEXT_LINE1), obj.getString(TEXT_LINE2), obj.getString(TEXT_LINE3), cardContent, sourceServer);
+			return result;
+		} catch (JSONException e) {
+			Log.i(TAG,"TextCard creation crashed and burned");
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	private boolean getAllAttachments(JSONObject cardToGet, TMMCard cardWithNoAttachments){
+		return true;
+	}
+
+
+
+
+
+
+	private class DBDeleter extends Thread {
+		private String json = "";
+
+		public DBDeleter(){
+			super();
+		}
+
+		@Override
+		public void run() { 
+
+			HttpClient httpclient = new DefaultHttpClient();
+			HttpDelete dbdeleter = new HttpDelete(LOCAL_DB_URL + ":" + port + "/" + dbName);
+
+			//execute the delete and record the response
+			HttpResponse response = null;
+			try {
+				response = httpclient.execute(dbdeleter);
+			} catch (ClientProtocolException e) {
+				Log.e(TAG, "error deleting document", e);
+				return;
+			} catch (IOException e) {
+				Log.e(TAG, "IO error delting document", e);
+				return;
+			}
+
+			//parse the reponse 
+			BufferedReader reader = null;
+			try {
+				reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			} catch (IllegalStateException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			String json = null;
+			try {
+				json = reader.readLine();
+				Log.d(TAG, "delete DB, Raw json string: " + json);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			Log.i(TAG, "deletedb method, server response is: " + json);
+
+		}
+
+
+
+	}
+
+
+
 	public boolean deleteDB(boolean areYouSure){
 		if(!areYouSure){
 			Log.d(TAG, "User wasn't sure");
 			return false;
 		}
 
-		HttpClient httpclient = new DefaultHttpClient();
-		HttpDelete dbdeleter = new HttpDelete(LOCAL_DB_URL + ":" + port + "/" + dbName);
 
-		//execute the delete and record the response
-		HttpResponse response = null;
+		DBDeleter deleter = new DBDeleter();
+
+		deleter.start();
 		try {
-			response = httpclient.execute(dbdeleter);
-		} catch (ClientProtocolException e) {
-			Log.e(TAG, "error deleting document", e);
-			return false;
-		} catch (IOException e) {
-			Log.e(TAG, "IO error delting document", e);
+			deleter.join();
+		} catch (InterruptedException e) {
+
+			e.printStackTrace();
 			return false;
 		}
-
-		//parse the reponse 
-		BufferedReader reader = null;
-		try {
-			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		} catch (IllegalStateException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		String json = null;
-		try {
-			json = reader.readLine();
-			Log.d(TAG, "delete DB, Raw json string: " + json);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		Log.i(TAG, "deletedb method, server response is: " + json);
-
-		startSync();
 		return true;
 	}
+
+
+
+
+
+
 
 
 	//TODO
@@ -412,7 +704,7 @@ public class DBManager implements Replication.ChangeListener{
 		Log.d(TAG, "error result is: " + errorResult);
 
 		if(okResult.equalsIgnoreCase("true")){
-			startSync();
+			startSync(false);
 			return true;
 		}else {
 			Log.w(TAG, "CREATION FAILURE -" + reason);
@@ -683,64 +975,6 @@ public class DBManager implements Replication.ChangeListener{
 		}
 	}
 
-//	private class entireDBGetter extends AsyncTask<Void, Void, String> {
-//
-//		@Override
-//		protected String doInBackground(Void... params) {
-//			//then we must have a good UUID
-//			// Create a new HttpClient and get Header
-//			HttpClient httpclient = new DefaultHttpClient();
-//			//
-//			//HttpGet everythingGetter = new HttpGet(LOCAL_DB_URL + ":" + port + "/" + dbName + "/_all_docs?include_docs=true");
-//			HttpGet everythingGetter = new HttpGet(LOCAL_DB_URL + ":" + port + "/" + dbName);
-//			//execute the put and record the response
-//			HttpResponse response = null;
-//			try {
-//				response = httpclient.execute(everythingGetter);
-//			} catch (ClientProtocolException e) {
-//
-//				Log.e(TAG, "error getting the DB as JSON", e);
-//			} catch (IOException e) {
-//				Log.e(TAG, "IO error getting the DB as JSON", e);
-//			}
-//
-//			Log.i(TAG, "server response to all database get: " + response);
-//
-//			//parse the reponse 
-//			BufferedReader reader = null;
-//			try {
-//				reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
-//			} catch (UnsupportedEncodingException e) {
-//				e.printStackTrace();
-//			} catch (IllegalStateException e) {
-//				e.printStackTrace();
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//			String json = null;
-//			try {
-//				json = reader.readLine();
-//				Log.d(TAG, "Raw json string: " + json);
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//
-//
-//
-//			return json;
-//		}
-//
-//		@Override
-//		protected void onPostExecute(String result) {
-//			//do stuff
-//
-//		}
-//
-//
-//
-//
-//	}
-
 	private class JSONGetter extends Thread {
 		private String json = "";
 
@@ -818,8 +1052,6 @@ public class DBManager implements Replication.ChangeListener{
 
 
 	public synchronized boolean deleteCardfromDB(TMMCard todel){
-
-
 
 		//perform sanity checks on the UUID
 		final String exUUID = "c629e32ea1c54b9b0840f0161000706e";
@@ -905,7 +1137,7 @@ public class DBManager implements Replication.ChangeListener{
 			e.printStackTrace();
 		}
 		Log.i(TAG, "deletecardfromdb method, server response is: " + json);
-		startSync();
+		startSync(false);
 
 		return true;
 
@@ -980,7 +1212,7 @@ public class DBManager implements Replication.ChangeListener{
 		Log.d(TAG, "error result is: " + errorResult);
 
 		if(okResult.equalsIgnoreCase("true")){
-			startSync();
+			startSync(false);
 			return true;
 		}else {
 			Log.w(TAG, "CREATION FAILURE -" + reason);
@@ -989,19 +1221,9 @@ public class DBManager implements Replication.ChangeListener{
 	}
 
 	//return ALL cards from all servers, sorted by priority
+	//TODO
 	public synchronized ArrayList<TMMCard> getAllCards(){
-		//TODO 
 		Log.d(TAG, "get all cards");
-		ArrayList<TMMCard> cardlist = new ArrayList<TMMCard>();
-
-
-		//sort
-		Collections.sort(cardlist);
-		return cardlist;
-	}
-
-	public ArrayList<TMMCard> findCardsbyServer(String server){
-
 
 		ArrayList<TMMCard> matches = new ArrayList<TMMCard>();
 
@@ -1010,6 +1232,38 @@ public class DBManager implements Replication.ChangeListener{
 		Collections.sort(matches);
 
 		return matches;
+	}
+
+
+	public ArrayList<TMMCard> findCardsbyServer(){
+
+		ArrayList<TMMCard> cardlist = new ArrayList<TMMCard>();
+
+		try {
+			JSONObject[] documents = getEntireDbAsJSON(LOCAL_DB_URL, 5984, dbName);
+			for (int i = 0; i < documents.length; i++) {
+				TMMCard result = convertJSONToCard(documents[i]);
+
+				//add new card to result list
+				cardlist.add(result);
+				if (result != null) {
+					String temp = "TMM";
+					if (result instanceof AudioCard) temp = "Audio";
+					if (result instanceof VideoCard) temp = "Video";
+					if (result instanceof TextCard) temp = "Text";
+					Log.i(TAG, temp + "Card Created:\nTitle: " + result.getTitle() + 
+							"\nID: " + result.getuuId() + "\n");
+				}
+			}
+		} catch (IllegalStateException e) {
+			e.printStackTrace();
+		} 
+
+		//sort
+		Collections.sort(cardlist);
+		return cardlist;
+
+
 	}
 
 }

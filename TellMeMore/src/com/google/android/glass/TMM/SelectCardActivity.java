@@ -77,7 +77,7 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 			Log.d(TAG, "Got message: " + serverName);
 			Log.i(TAG, "json representation of DB: " + app.db.getEntireDbAsJSON());
 			//retreive cards from the target server, since they have ostensibly been loaded
-			ArrayList<TMMCard> cardz = app.db.findCardsbyServer(serverName);
+			ArrayList<TMMCard> cardz = app.db.findCardsbyServer();
 
 			//TODO
 			//ugly, needs further research into options in this area

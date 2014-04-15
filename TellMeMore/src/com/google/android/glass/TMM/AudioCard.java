@@ -28,7 +28,7 @@ public class AudioCard extends TMMCard implements Serializable{
 
 
 	public AudioCard(int handle, int priority, String cardTitle, String path, Server source) {
-		super(handle, priority, cardTitle, source);
+		super(handle, priority, cardTitle, source, TMMCard.AUDIO);
 		
 		this.background_path = null;
 		this.audioClipPath = path;
@@ -37,7 +37,7 @@ public class AudioCard extends TMMCard implements Serializable{
 	}
 	
 	public AudioCard(int handle, String id, int priority, String cardTitle, int length, String backgroundPath, Server source) {
-		super(handle, id, priority, cardTitle, source);
+		super(handle, id, priority, cardTitle, source,  TMMCard.AUDIO);
 		this.lengthMillis = length;
 		this.background_path = backgroundPath;
 		this.audioClipPath = null;
@@ -46,7 +46,7 @@ public class AudioCard extends TMMCard implements Serializable{
 	}
 	
 	public AudioCard(int handle, String id, int priority, String cardTitle, String backgroundPath, Server source) {
-		super(handle, id, priority, cardTitle, source);
+		super(handle, id, priority, cardTitle, source, TMMCard.AUDIO);
 		this.background_path = backgroundPath;
 		this.audioClipPath = null;
 		int charToWipe = background_path.lastIndexOf('/');
@@ -54,7 +54,7 @@ public class AudioCard extends TMMCard implements Serializable{
 	}
 	
 	public AudioCard(int handle, String id, int priority, String cardTitle, int length, String backgroundPath, String contentPath, Server source) {
-		super(handle, id, priority, cardTitle, source);
+		super(handle, id, priority, cardTitle, source, TMMCard.AUDIO);
 		this.lengthMillis = length;
 		this.background_path = backgroundPath;
 		this.audioClipPath = contentPath;
@@ -65,7 +65,7 @@ public class AudioCard extends TMMCard implements Serializable{
 	}
 	
 	public AudioCard(int handle, String id, int priority, String cardTitle, String backgroundPath, String contentPath, Server source) {
-		super(handle, id, priority, cardTitle, source);
+		super(handle, id, priority, cardTitle, source, TMMCard.AUDIO);
 		this.background_path = backgroundPath;
 		this.audioClipPath = contentPath;
 		int charToWipe = audioClipPath.lastIndexOf('/');
