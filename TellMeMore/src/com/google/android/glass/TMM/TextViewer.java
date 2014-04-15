@@ -41,7 +41,8 @@ public class TextViewer extends Activity{
 	private static final int DEFAULT_ID = -1;
 	int height;
 	private TellMeMoreApplication app;
-	private int cardPos, cardId;
+	private int cardPos;
+	private String cardId;
 	private Context act_context; 
 	private AudioManager mAudioManager;
 	private TextToSpeech mSpeech;
@@ -55,7 +56,7 @@ public class TextViewer extends Activity{
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		cardPos =  getIntent().getIntExtra(EXTRA_SELECTED_POS, DEFAULT_POS);
-		cardId =  getIntent().getIntExtra(EXTRA_SELECTED_ID, DEFAULT_ID);
+		cardId =  getIntent().getStringExtra(EXTRA_SELECTED_ID);
 		lastPos =  getIntent().getIntExtra(EXTRA_LAST_TEXT_POS, DEFAULT_TEXT_POS);
 		Log.i(TAG, "this card is at position: " + cardPos);
 		Log.i(TAG, "cardid passed: " + cardId);
@@ -138,7 +139,7 @@ public class TextViewer extends Activity{
 			scroller.activate();
 			super.onResume();
 			cardPos =  getIntent().getIntExtra(EXTRA_SELECTED_POS, DEFAULT_POS);
-			cardId =  getIntent().getIntExtra(EXTRA_SELECTED_ID, DEFAULT_ID);
+			cardId =  getIntent().getStringExtra(EXTRA_SELECTED_ID);
 			lastPos =  getIntent().getIntExtra(EXTRA_LAST_TEXT_POS, DEFAULT_TEXT_POS);
 			boolean narrate = getIntent().getBooleanExtra(EXTRA_REQUESTED_NARRATION, DEFAULT_NARR);
 

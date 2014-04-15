@@ -27,6 +27,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import javax.net.ssl.SSLPeerUnverifiedException;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
@@ -103,7 +105,11 @@ public class DBManager implements Replication.ChangeListener{
 	public static final String VIDEO_SS_PATH = "screenshotPath";
 	public static final String VIDEO_PLAY_COUNT = "playCount";
 	public static final String VIDEO_YOUTUBE_TAG = "yttag";
+	private boolean synced;
 
+	public boolean isSynced(){
+		return synced;
+	}
 	public DBManager(Context context) throws IOException{
 		this.context = context;
 		app = ((TellMeMoreApplication)context.getApplicationContext());
@@ -115,6 +121,7 @@ public class DBManager implements Replication.ChangeListener{
 	}
 
 	public boolean open(String dbName, Context context) throws IOException, CouchbaseLiteException{
+		this.synced = false;
 		this.dbName = dbName;
 		startCBLListener(port);
 		startDatabase(manager, dbName);
@@ -179,14 +186,6 @@ public class DBManager implements Replication.ChangeListener{
 
 	}
 
-	//we will use this to broadcast to the app when the cards are loaded
-	public static void broadcastCardsLoaded(Context context, String serverName) {
-		Intent intent = new Intent("cards_loaded");
-		intent.putExtra("server_used", serverName);
-		context.sendBroadcast(intent);
-		Log.d(TAG + "broadcast", "cards loaded broadcasted");
-	}
-
 	@SuppressLint("DefaultLocale")
 	@Override
 	public void changed(Replication.ChangeEvent event) {
@@ -199,17 +198,16 @@ public class DBManager implements Replication.ChangeListener{
 
 			if(replication.getLastError() == null && replication.isPull()){
 				//then it didn't stop on error, so we can broadcast that the database is synced up
-				Log.i(TAG, "Replicator finished updating database, broadcasting notification");
-				try {
-					Thread.sleep(5000);
-				} catch (InterruptedException e1) {
-
-					e1.printStackTrace();
-				}
-				Log.i(TAG, "Raw JSON in replication listener: " + getRawJSON("https://127.0.0.1:5984/example_card_generator"));
+				//Log.i(TAG, "Replicator finished updating database, broadcasting notification");
+//				try {
+//					Thread.sleep(5000);
+//				} catch (InterruptedException e1) {
+//
+//					e1.printStackTrace();
+//				}
+				Log.i(TAG, "Raw JSON in replication listener: " + getRawJSON("http://127.0.0.1:5984/example_card_generator"));
 				Log.i(TAG, "ENTIRE DB AS OF REPLICATION COMPLETION ALERT: " + getEntireDbAsJSON());
-				findCardsbyServer();
-				broadcastCardsLoaded(context, dbName);
+				this.synced = true;
 			}
 
 
@@ -285,6 +283,63 @@ public class DBManager implements Replication.ChangeListener{
 			return null;
 		}
 	}
+	
+	private class RawJSONGetter extends Thread {
+		private String json = "";
+		private final String url;
+
+		public RawJSONGetter(String URL){
+			super();
+			url = URL;
+		}
+
+		@Override
+		public void run() { 
+			// Create a new HttpClient and get Header
+			HttpClient httpclient = new DefaultHttpClient();
+			HttpGet everythingGetter = new HttpGet(url);
+
+			// Execute the get and record the response
+			HttpResponse response = null;
+			try { 
+				response = httpclient.execute(everythingGetter);
+			} catch (ClientProtocolException e) {
+				Log.e(TAG, "error getting the DB as JSON", e);
+				return ;
+			} catch (SSLPeerUnverifiedException e1){
+				Log.i(TAG, "Peerunverified exception caught");
+				
+			}	catch (IOException e) {
+			
+				Log.e(TAG, "IO error getting the DB as JSON", e);
+				return ;
+			}
+
+			Log.i(TAG, "server response to all database get: " + response);
+
+			// Parse the response into a String 
+			HttpEntity resEntityGet = response.getEntity();
+			
+			try {
+				json = new String(EntityUtils.toString(resEntityGet));
+			} catch (ParseException e) {
+				Log.e(TAG, "Error parsing response into a string", e);
+				return;
+			} catch (IOException e) {
+				Log.e(TAG, "IO Error parsing response into a string", e);
+				return;
+			}
+			
+		}
+
+		public String getJson() {
+			return json;
+		}
+
+	}
+	
+	
+	
 
 	/**
 	 * Retrieves an unparsed JSON string from a couchDB database
@@ -292,38 +347,20 @@ public class DBManager implements Replication.ChangeListener{
 	 * @return the requested raw, unparsed JSON string. Returns null if retrieval fails.
 	 */
 	public String getRawJSON(String URL) {
-		// Create a new HttpClient and get Header
-		HttpClient httpclient = new DefaultHttpClient();
-		HttpGet everythingGetter = new HttpGet(URL);
-
-		// Execute the get and record the response
-		HttpResponse response = null;
+		RawJSONGetter raw = new RawJSONGetter(URL);
+		
+		raw.start();
 		try {
-			response = httpclient.execute(everythingGetter);
-		} catch (ClientProtocolException e) {
-			Log.e(TAG, "error getting the DB as JSON", e);
-			return null;
-		} catch (IOException e) {
-			Log.e(TAG, "IO error getting the DB as JSON", e);
+			raw.join();
+		} catch (InterruptedException e) {
+
+			e.printStackTrace();
 			return null;
 		}
 
-		Log.i(TAG, "server response to all database get: " + response);
-
-		// Parse the response into a String 
-		HttpEntity resEntityGet = response.getEntity();
-		String json;
-		try {
-			json = new String(EntityUtils.toString(resEntityGet));
-		} catch (ParseException e) {
-			Log.e(TAG, "Error parsing response into a string", e);
-			return null;
-		} catch (IOException e) {
-			Log.e(TAG, "IO Error parsing response into a string", e);
-			return null;
-		}
-
-		return json;
+		Log.d(TAG, "String being returned from getRawJSON" +  raw.getJson());
+		return raw.getJson();
+		
 	}
 
 	/**
@@ -449,10 +486,6 @@ public class DBManager implements Replication.ChangeListener{
 	}
 
 
-
-
-
-
 	private class DBDeleter extends Thread {
 		private String json = "";
 
@@ -533,9 +566,20 @@ public class DBManager implements Replication.ChangeListener{
 
 
 
-	//TODO
-	public TMMCard findCardById(long id){
-		return null;//placeholder to allow for compilation
+	//TODO - Test
+	public TMMCard findCardById(String uuid){
+		String rawobj = this.getRawJSON(LOCAL_DB_URL + ":" + port + "/" + dbName + "/" + uuid);
+		
+		JSONObject jsonObject = null;
+		try {
+			jsonObject = new JSONObject(rawobj);
+		} catch (JSONException e1) {
+			Log.e(TAG, "error making json object", e1);
+			return null;
+		}
+		
+		TMMCard toRet = this.convertJSONToCard(jsonObject);
+		return toRet;
 	}
 
 	public JSONObject getJSONRepresentation(TMMCard toCheck){

@@ -36,9 +36,10 @@ public class AudioPlayer extends Activity{
 	public static final int TIME_TO_SEEK = 100;
 	private static final int KEY_SWIPE_DOWN = 4;
 	private static final int DEFAULT_POS = 0;
-	private static final int DEFAULT_ID = 0;
+	private static final String DEFAULT_ID = "null";
 	//private myListener mlistener;
-	private int cardPos, cardId;
+	private int cardPos;
+	private String  cardId;
 	private Context act_context; 
 	private ImageView bkgrnd, stat_icon; 
 	private TextView help_txt;
@@ -58,7 +59,7 @@ public class AudioPlayer extends Activity{
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		cardPos =  getIntent().getIntExtra(EXTRA_SELECTED_POS, DEFAULT_POS);
-		cardId =  getIntent().getIntExtra(EXTRA_SELECTED_ID, DEFAULT_ID);
+		cardId =  getIntent().getStringExtra(EXTRA_SELECTED_ID);
 		lastPos =  getIntent().getIntExtra(EXTRA_LAST_PLAYER_POS, DEFAULT_POS);
 		Log.i(TAG, "this card is at position: " + cardPos);
 		setContentView(R.layout.audio_player_layout);
@@ -144,7 +145,7 @@ public class AudioPlayer extends Activity{
 	public void onResume(){
 		super.onResume();
 		cardPos =  getIntent().getIntExtra(EXTRA_SELECTED_POS, DEFAULT_POS);
-		cardId =  getIntent().getIntExtra(EXTRA_SELECTED_ID, DEFAULT_ID);
+		cardId =  getIntent().getStringExtra(EXTRA_SELECTED_ID);
 		lastPos =  getIntent().getIntExtra(EXTRA_LAST_PLAYER_POS, DEFAULT_POS);
 
 		try {

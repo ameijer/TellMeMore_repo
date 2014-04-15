@@ -135,6 +135,7 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 
 		mView.setAdapter(mAdapter);
 
+		mView.setBackgroundColor(getResources().getColor(R.color.black));
 		Log.i(TAG, "trying to start with card at postion: " + lastCard);
 		setContentView(mView);
 		mView.activate();
@@ -143,6 +144,7 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 	@Override
 	public void onResume() {
 		super.onResume();
+		registerReceiver(mMessageReceiver, new IntentFilter("cards_loaded"));
 		if(hasCards){
 			mView.activate();
 			//mView.setSelection(getIntent().getIntExtra(EXTRA_INITIAL_VALUE, 0));
@@ -152,6 +154,8 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 	@Override
 	public void onPause() {
 		super.onPause();
+		unregisterReceiver(mMessageReceiver);
+		
 		if(hasCards){
 			
 			mView.deactivate();
@@ -215,6 +219,7 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
+		unregisterReceiver(mMessageReceiver);
 		hasCards = false;
 		//finish();
 

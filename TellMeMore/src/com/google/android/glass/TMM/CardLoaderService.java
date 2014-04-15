@@ -53,6 +53,7 @@ public class CardLoaderService extends Service{
 
 			try {
 				app.db.open(EXAMPLE_CARD_SERVER, this);
+				new cardsLoadedBroadcaster().execute(this);
 
 				Log.i(TAG, "CONTENTS OF ENTIRE DB IN CARDLOADERSERVICE FOLLOWS: " + app.db.getEntireDbAsJSON());
 			} catch (IOException e) {
@@ -71,15 +72,13 @@ public class CardLoaderService extends Service{
 			//etc etc
 			try {
 				app.db.open(targetServer, this);
+				new cardsLoadedBroadcaster().execute(this);
 			} catch (IOException e) {
 
 				e.printStackTrace();
 			} catch (CouchbaseLiteException e) {
 				e.printStackTrace();
 			}
-
-
-
 
 			//once cards are stored in the DB, alert the selectcardactivity
 			//broadcastCardsLoaded(this, targetServer);
@@ -89,6 +88,39 @@ public class CardLoaderService extends Service{
 
 		return Service.START_STICKY;
 	}
+
+	private class cardsLoadedBroadcaster extends AsyncTask<Context, Integer, Long> {
+		protected Long doInBackground(Context... contexts) {
+			while(!app.db.isSynced()){
+				Log.i(TAG, "cardsloaded broadcaster, issynched reports: " + app.db.isSynced());
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e3) {
+					Log.e(TAG, "broadcast sleeper thread was interrupted", e3);
+					
+				}
+			}
+			
+			broadcastCardsLoaded(contexts[0], targetServer);
+
+
+			return (long) 1;
+
+
+		}
+		protected void onProgressUpdate(Integer... progress) {
+
+		}
+
+		protected void onPostExecute(Long result) {
+
+		}
+	}
+
+
+
+
+
 
 	private class loadDBWithSamplesTask extends AsyncTask<Context, Integer, Long> {
 		protected Long doInBackground(Context... contexts) {

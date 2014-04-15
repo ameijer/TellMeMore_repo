@@ -33,7 +33,8 @@ public class VideoPlayer extends YouTubeBaseActivity implements YouTubePlayer.On
 	private static final int DEFAULT_ID = 0;
 	private static final int KEY_SWIPE_DOWN = 4;
 	private myListener mlistener;
-	private int cardPos, cardId;
+	private int cardPos;
+	private String cardId;
 	private Context act_context; 
 	private TellMeMoreApplication app;
 	private VideoCard thisCard;
@@ -46,7 +47,7 @@ public class VideoPlayer extends YouTubeBaseActivity implements YouTubePlayer.On
 		
 		
 		cardPos =  getIntent().getIntExtra(EXTRA_SELECTED_POS, DEFAULT_POS);
-		cardId =  getIntent().getIntExtra(EXTRA_SELECTED_ID, DEFAULT_ID);
+		cardId =  getIntent().getStringExtra(EXTRA_SELECTED_ID);
 		Log.i(TAG, "this card is at position: " + cardPos);
 		Log.d(TAG, "Cardid received by videoplayer: " + cardId);
 		try{
