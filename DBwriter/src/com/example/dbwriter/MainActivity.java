@@ -346,14 +346,14 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 
 	private class AttachmentDownloader extends Thread {
 
-		private final String uuid, filename;
+		private final String uuid, filename, pathToStore; 
 
-		private char[] binaryAttachment;
-
-		public AttachmentDownloader (String uuid, String fileName){
+		public AttachmentDownloader (String uuid, String fileName, String pathToStoreAttachment){
 			super();
 			this.uuid = uuid;
-			filename = fileName;
+			this.filename = fileName;
+			this.pathToStore = pathToStoreAttachment;
+			
 		}
 
 		@Override
@@ -389,8 +389,15 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 			binaryAttachment = new char[respSize];
 			//parse the reponse 
 			BufferedReader reader = null;
+			FileOutputStream save0 = null;
 			try {
-				reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+				save0 = new FileOutputStream(new File(pathToSave +"/" + "graph_1.jpg"));
+			} catch (FileNotFoundException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			try {
+				response.getEntity().writeTo(save0);
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 			} catch (IllegalStateException e) {
@@ -409,10 +416,6 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 
 		}
 
-		public char[] getBinaryAttachment(){
-			return binaryAttachment;
-		}
-
 
 
 	}
@@ -427,20 +430,6 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		} catch (InterruptedException e) {
 
 			e.printStackTrace();
-			return false;
-		}
-
-		FileOutputStream save0;
-		try {
-			save0 = new FileOutputStream(new File(pathToStore +"/" +attachmentName));
-			save0.write(new String(dwnldr.getBinaryAttachment()).getBytes());
-			save0.flush();
-			save0.close();
-		} catch (FileNotFoundException e) {
-			Log.e(TAG, "FileNotFoundException in second part");
-			return false;
-		} catch (IOException e) {
-			Log.e(TAG, "IOException in second part");
 			return false;
 		}
 

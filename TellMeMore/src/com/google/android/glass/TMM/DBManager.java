@@ -31,6 +31,7 @@ import java.util.Collections;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
@@ -56,17 +57,9 @@ import com.couchbase.lite.replicator.Replication;
 import com.google.android.glass.TMM.TextElement.Type;
 
 import android.annotation.SuppressLint;
-import android.content.ContentValues;
 import android.content.Context;
-import android.content.ContextWrapper;
-import android.content.Intent;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 @SuppressLint("DefaultLocale")
@@ -502,38 +495,54 @@ public class DBManager implements Replication.ChangeListener{
 
 	private class AttachmentDownloader extends Thread {
 
-		private final String uuid, filename;
+		private final String uuid, filename, pathToStore; 
 
-		private char[] binaryAttachment;
-
-		public AttachmentDownloader (String uuid, String fileName){
+		public AttachmentDownloader (String uuid, String fileName, String pathToStoreAttachment){
 			super();
 			this.uuid = uuid;
-			filename = fileName;
+			this.filename = fileName;
+			this.pathToStore = pathToStoreAttachment;
+			
 		}
 
 		@Override
 		public void run() { 
 
 			HttpClient httpclient = new DefaultHttpClient();
-			HttpGet attachment = new HttpGet(LOCAL_DB_URL + ":" + port + "/" + dbName + "/" + uuid + "/" + filename);
+			HttpGet attachment = new HttpGet(LOCAL_DB_URL + ":" + 5984 + "/" + dbName + "/" + uuid + "/" + filename);
 
 			//execute the delete and record the response
 			HttpResponse response = null;
 			try {
 				response = httpclient.execute(attachment);
 			} catch (ClientProtocolException e) {
-				Log.e(TAG, "error deleting document", e);
+				Log.e(TAG, "error retrieving document attachment", e);
 				return;
 			} catch (IOException e) {
-				Log.e(TAG, "IO error delting document", e);
+				Log.e(TAG, "IO error retrieving document attachment", e);
 				return;
 			}
+			
+			Header clHead = response.getFirstHeader("Content-Length");
+			Log.i(TAG, "Content-length header: " + clHead.toString());
+			
+			int respSize = Integer.parseInt(clHead.getValue());
+			Log.i(TAG, "buffer being created to size: " + Integer.parseInt(clHead.getValue()));
+			
+			char[] binaryAttachment = new char[respSize];
+		
+			//write the attachment to file
+			FileOutputStream save0 = null;
 
-			//parse the reponse 
-			BufferedReader reader = null;
 			try {
-				reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+				save0 = new FileOutputStream(new File(pathToStore +"/" + filename));
+			} catch (FileNotFoundException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
+			try {
+				response.getEntity().writeTo(save0);
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 			} catch (IllegalStateException e) {
@@ -542,28 +551,15 @@ public class DBManager implements Replication.ChangeListener{
 				e.printStackTrace();
 			}
 
-			try {
-				reader.read(binaryAttachment);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-
-
-		}
-
-		public char[] getBinaryAttachment(){
-			return binaryAttachment;
 		}
 
 
 
 	}
 
-
 	//pathToStore does not include the filename - that will be the same as the attachment name
 	private boolean getSingleAttachment(String attachmentName, String uuidOfDoc, String pathToStore){
-		AttachmentDownloader dwnldr = new AttachmentDownloader(uuidOfDoc, attachmentName);
+		AttachmentDownloader dwnldr = new AttachmentDownloader(uuidOfDoc, attachmentName, pathToStore);
 
 		dwnldr.run();
 		try {
@@ -571,20 +567,6 @@ public class DBManager implements Replication.ChangeListener{
 		} catch (InterruptedException e) {
 
 			e.printStackTrace();
-			return false;
-		}
-
-		FileOutputStream save0;
-		try {
-			save0 = new FileOutputStream(new File(pathToStore +"/" +attachmentName));
-			save0.write(new String(dwnldr.getBinaryAttachment()).getBytes());
-			save0.flush();
-			save0.close();
-		} catch (FileNotFoundException e) {
-			Log.e(TAG, "FileNotFoundException in second part");
-			return false;
-		} catch (IOException e) {
-			Log.e(TAG, "IOException in second part");
 			return false;
 		}
 

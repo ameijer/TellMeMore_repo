@@ -156,7 +156,7 @@ public class CardLoaderService extends Service{
 			//
 			//			}
 			//
-			"Vp"
+
 			//
 			//
 			//			TextCard textCard2 = new TextCard(0, 99, "Read Paper Abstract", "From ACM PAUC", "A. Student and Dr. XYZ", "Published 1 Mar 2009",  file0.getAbsolutePath(), getSampleArr2(), source1);
