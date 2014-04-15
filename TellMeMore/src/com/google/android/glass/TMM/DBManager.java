@@ -496,15 +496,34 @@ public class DBManager implements Replication.ChangeListener{
 
 
 	}
-	
-	//TODO
+
 	private boolean downloadVideoCardAttachments(VideoCard cardToDl){
-		
+		//video card is easy - only one attachment, the screenshot
+
+		//make sure that it has a valid screenshot...
+		if(cardToDl.getScreenshotPath() == null || cardToDl.getScreenshotPath().equalsIgnoreCase("")){
+			return true;
+		}
+		return getSingleAttachment(cardToDl.getScrenshotname(), cardToDl.getuuId(), cardToDl.getScreenshotPath());
+
 	}
 
-	//TODO
 	private boolean downloadAudioCardAttachments(AudioCard cardToDl){
-
+		//audio card has 2 attachments, the mp3 and the background if there is one
+		//make sure that it has a audio clip
+		if(cardToDl.getAudioClipPath() != null && !cardToDl.getAudioClipPath().equalsIgnoreCase("")){
+			if(getSingleAttachment(cardToDl.getAudioClipName(), cardToDl.getuuId(), cardToDl.getAudioClipPath()) == false){
+				return false;
+			}
+		}
+		
+		if(cardToDl.getBackgroundPath() != null && !cardToDl.getBackgroundPath().equalsIgnoreCase("")){
+			if(getSingleAttachment(cardToDl.getBackground_name(), cardToDl.getuuId(), cardToDl.getBackgroundPath()) == false){
+				return false;
+			} 
+		}
+		return true;
+		
 	}
 
 	//TODO
