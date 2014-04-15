@@ -95,6 +95,8 @@ public class DBManager implements Replication.ChangeListener{
 	public static final String AUDIO_BG_PATH = "backgroundPath";
 	public static final String AUDIO_LENGTH = "lengthMillis";
 	public static final String AUDIO_CLIP_PATH = "audioClipPath";
+	public static final String TEXT_CARD_IC_NAME = "icFileName";
+	public static final String TEXT_CARD_IC_PATH = "iconPath";
 	public static final String TEXT_LINE1 = "line1";
 	public static final String TEXT_LINE2 = "line2";
 	public static final String TEXT_LINE3 = "line3";
@@ -473,6 +475,12 @@ public class DBManager implements Replication.ChangeListener{
 			// Create actual TextCard
 			TextCard result = new TextCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
 					obj.getString(TEXT_LINE1), obj.getString(TEXT_LINE2), obj.getString(TEXT_LINE3), cardContent, sourceServer);
+			//check if this textcard has an icon
+			Log.d(TAG, "icon path resolved to be: " + obj.getString(TEXT_CARD_IC_PATH));
+			if(!obj.getString(TEXT_CARD_IC_PATH).equalsIgnoreCase("null")){
+				result.setIconPath(obj.getString(TEXT_CARD_IC_PATH));	
+			} 
+			
 			return result;
 		} catch (JSONException e) {
 			Log.i(TAG,"TextCard creation crashed and burned");
