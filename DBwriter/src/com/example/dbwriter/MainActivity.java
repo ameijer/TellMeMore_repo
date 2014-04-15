@@ -14,6 +14,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
@@ -125,23 +126,42 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		loadCards();
-		try {
-			startCBLListener(5984);
-		} catch (IOException e2) {
-			e2.printStackTrace();
-		} catch (CouchbaseLiteException e2) {
-			e2.printStackTrace();
-		}
+		//		try {
+		//			startCBLListener(5984);
+		//		} catch (IOException e2) {
+		//			e2.printStackTrace();
+		//		} catch (CouchbaseLiteException e2) {
+		//			e2.printStackTrace();
+		//		}
 
+
+		//		//phase 1: create DB with server name
+		//		Thread t1 = new Thread(new Runnable() {
+		//			public void run() {
+		//				try {
+		//					createNewDB("http://134.82.132.99", 5984, servz.get(0).getName());
+		//				} catch (IllegalStateException e) { 
+		//					e.printStackTrace();
+		//				} catch (IOException e) {
+		//					e.printStackTrace();
+		//				}
+		//			}
+		//		});
+		//
+		//		t1.start();
+		//		try {
+		//			t1.join();
+		//		} catch (InterruptedException e1) {
+		//			e1.printStackTrace();
+		//		}
 
 		//phase 1: create DB with server name
 		Thread t1 = new Thread(new Runnable() {
 			public void run() {
 				try {
-					createNewDB("http://134.82.132.99", 5984, servz.get(0).getName());
+					//createNewDB("http://134.82.132.99", 5984, servz.get(0).getName());
+					getSingleAttachment("graph_1.jpg", "c629e32ea1c54b9b0840f0161007f280", "/storage/sdcard0/tmm2");
 				} catch (IllegalStateException e) { 
-					e.printStackTrace();
-				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
@@ -155,22 +175,21 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		}
 
 
-
-		//phase 2.1:  get data from DB with HTTP GET: UUIDs
-
-		Thread t2 = new Thread(new Runnable() {
-			public void run() {
-				try {
-					getUUID("http://134.82.132.99", 5984);
-				} catch (IllegalStateException e) {
-					e.printStackTrace();
-				}
-
-				Log.i(TAG, "Beginning Sync...");
-				startSync();
-
-			}
-		});
+		//		//phase 2.1:  get data from DB with HTTP GET: UUIDs
+		//
+		//		Thread t2 = new Thread(new Runnable() {
+		//			public void run() {
+		//				try {
+		//					getUUID("http://134.82.132.99", 5984);
+		//				} catch (IllegalStateException e) {
+		//					e.printStackTrace();
+		//				}
+		//
+		//				Log.i(TAG, "Beginning Sync...");
+		//				startSync();
+		//
+		//			}
+		//		});
 
 
 		//local replication test: get raw JSON for everything in the DB
@@ -193,109 +212,109 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		//			e.printStackTrace();
 		//		}
 		//phase 3: add a card from the DB
+		//
+		//			Thread t4 = new Thread(new Runnable() {
+		//			public void run() {
+		//				try {
+		//
+		//					TMMCard temp = null;
+		//					//try to add an object that doesn't yet exist, but has a valid UUID
+		//					for(int i = 0; i < cardz.size(); i++){
+		//						temp = cardz.get(i);
+		//						temp.setuuId(getUUID("http://134.82.132.99", 5984));
+		//						Log.i(TAG, "Thread t4, call addcardtoDB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
+		//					}
+		//
+		//					//	Log.d(TAG, "Deleted card: " + temp.toString());
+		//					//Log.d(TAG, "delete card from DB returs: " + deleteCardfromDB(temp,"http://192.168.1.2", 5984, servz.get(0).getName()));
+		//
+		//					//should throw an exception here
+		//					//Log.i(TAG, "Thread t4, second addCardto DB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
+		//				} catch (IllegalStateException e) { 
+		//					e.printStackTrace();
+		//				} catch (Exception e) {
+		//					e.printStackTrace();
+		//				}
+		//			}
+		//		});
+		//
+		//		t4.start();
+		//		try {
+		//			t4.join();
+		//		} catch (InterruptedException e) {
+		//			e.printStackTrace();
+		//		}
 
-			Thread t4 = new Thread(new Runnable() {
-			public void run() {
-				try {
 
-					TMMCard temp = null;
-					//try to add an object that doesn't yet exist, but has a valid UUID
-					for(int i = 0; i < cardz.size(); i++){
-						temp = cardz.get(i);
-						temp.setuuId(getUUID("http://134.82.132.99", 5984));
-						Log.i(TAG, "Thread t4, call addcardtoDB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
-					}
+		//		// Test Card parsing from JSON object
+		//		Thread t6 = new Thread(new Runnable() {
+		//			public void run() {
+		//				Log.i(TAG,"Starting JSON retrieval and Card Parsing");
+		//				JSONObject document;
+		//				TMMCard result;
+		//				try {
+		//					// TextCard retrieval
+		//					document = getDocumentAsJSON("http://134.82.132.99", 5984, "example_card_generator", "c629e32ea1c54b9b0840f01610070b68");
+		//					result = convertJSONToCard(document);
+		//					if (result != null)
+		//						Log.i(TAG, "Card Created:\nTitle: " + result.getTitle() + 
+		//								"\nID: " + result.getuuId() + "\n");
+		//					
+		//					// AudioCard retrieval
+		//					document = getDocumentAsJSON("http://134.82.132.99", 5984, "example_card_generator", "c629e32ea1c54b9b0840f0161007151f");
+		//					result = convertJSONToCard(document);
+		//					if (result != null)
+		//						Log.i(TAG, "Card Created:\nTitle: " + result.getTitle() + 
+		//								"\nID: " + result.getuuId() + "\n");
+		//					
+		//					// VideoCard retrieval
+		//					document = getDocumentAsJSON("http://134.82.132.99", 5984, "example_card_generator", "c629e32ea1c54b9b0840f01610072710");
+		//					result = convertJSONToCard(document);
+		//					if (result != null)
+		//						Log.i(TAG, "Card Created:\nTitle: " + result.getTitle() + 
+		//								"\nID: " + result.getuuId() + "\n");
+		//					
+		//				} catch (IllegalStateException e) {
+		//					e.printStackTrace();
+		//				} 
+		//			}
+		//		});
+		//
+		//		t6.start();
+		//		try {
+		//			t6.join();
+		//		} catch (InterruptedException e) {
+		//			e.printStackTrace();
+		//		}		
 
-					//	Log.d(TAG, "Deleted card: " + temp.toString());
-					//Log.d(TAG, "delete card from DB returs: " + deleteCardfromDB(temp,"http://192.168.1.2", 5984, servz.get(0).getName()));
-
-					//should throw an exception here
-					//Log.i(TAG, "Thread t4, second addCardto DB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
-				} catch (IllegalStateException e) { 
-					e.printStackTrace();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-
-		t4.start();
-		try {
-			t4.join();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-
-
-//		// Test Card parsing from JSON object
-//		Thread t6 = new Thread(new Runnable() {
-//			public void run() {
-//				Log.i(TAG,"Starting JSON retrieval and Card Parsing");
-//				JSONObject document;
-//				TMMCard result;
-//				try {
-//					// TextCard retrieval
-//					document = getDocumentAsJSON("http://134.82.132.99", 5984, "example_card_generator", "c629e32ea1c54b9b0840f01610070b68");
-//					result = convertJSONToCard(document);
-//					if (result != null)
-//						Log.i(TAG, "Card Created:\nTitle: " + result.getTitle() + 
-//								"\nID: " + result.getuuId() + "\n");
-//					
-//					// AudioCard retrieval
-//					document = getDocumentAsJSON("http://134.82.132.99", 5984, "example_card_generator", "c629e32ea1c54b9b0840f0161007151f");
-//					result = convertJSONToCard(document);
-//					if (result != null)
-//						Log.i(TAG, "Card Created:\nTitle: " + result.getTitle() + 
-//								"\nID: " + result.getuuId() + "\n");
-//					
-//					// VideoCard retrieval
-//					document = getDocumentAsJSON("http://134.82.132.99", 5984, "example_card_generator", "c629e32ea1c54b9b0840f01610072710");
-//					result = convertJSONToCard(document);
-//					if (result != null)
-//						Log.i(TAG, "Card Created:\nTitle: " + result.getTitle() + 
-//								"\nID: " + result.getuuId() + "\n");
-//					
-//				} catch (IllegalStateException e) {
-//					e.printStackTrace();
-//				} 
-//			}
-//		});
-//
-//		t6.start();
-//		try {
-//			t6.join();
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}		
-		
-		// Test getting entire database functionality and turn the JSON objects into cards
-		Thread t5 = new Thread(new Runnable() {
-			public void run() {
-				try {
-					JSONObject[] documents = getEntireDbAsJSON("http://134.82.132.99", 5984, "example_card_generator");
-					for (int i = 0; i < documents.length; i++) {
-						TMMCard result = convertJSONToCard(documents[i]);
-						if (result != null) {
-							String temp = "TMM";
-							if (result instanceof AudioCard) temp = "Audio";
-							if (result instanceof VideoCard) temp = "Video";
-							if (result instanceof TextCard) temp = "Text";
-							Log.i(TAG, temp + "Card Created:\nTitle: " + result.getTitle() + 
-									"\nID: " + result.getuuId() + "\n");
-						}
-					}
-				} catch (IllegalStateException e) {
-					e.printStackTrace();
-				} 
-			}
-		});
-
-		t5.start();
-		try {
-			t5.join();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		//		// Test getting entire database functionality and turn the JSON objects into cards
+		//		Thread t5 = new Thread(new Runnable() {
+		//			public void run() {
+		//				try {
+		//					JSONObject[] documents = getEntireDbAsJSON("http://134.82.132.99", 5984, "example_card_generator");
+		//					for (int i = 0; i < documents.length; i++) {
+		//						TMMCard result = convertJSONToCard(documents[i]);
+		//						if (result != null) {
+		//							String temp = "TMM";
+		//							if (result instanceof AudioCard) temp = "Audio";
+		//							if (result instanceof VideoCard) temp = "Video";
+		//							if (result instanceof TextCard) temp = "Text";
+		//							Log.i(TAG, temp + "Card Created:\nTitle: " + result.getTitle() + 
+		//									"\nID: " + result.getuuId() + "\n");
+		//						}
+		//					}
+		//				} catch (IllegalStateException e) {
+		//					e.printStackTrace();
+		//				} 
+		//			}
+		//		});
+		//
+		//		t5.start();
+		//		try {
+		//			t5.join();
+		//		} catch (InterruptedException e) {
+		//			e.printStackTrace();
+		//		}
 
 
 
@@ -324,7 +343,113 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 
 
 	}
-	
+
+	private class AttachmentDownloader extends Thread {
+
+		private final String uuid, filename;
+
+		private char[] binaryAttachment;
+
+		public AttachmentDownloader (String uuid, String fileName){
+			super();
+			this.uuid = uuid;
+			filename = fileName;
+		}
+
+		@Override
+		public void run() { 
+
+			HttpClient httpclient = new DefaultHttpClient();
+			HttpGet attachment = new HttpGet("http://134.82.132.99" + ":" + 5984 + "/" + "example_card_generator" + "/" + uuid + "/" + filename);
+
+			//execute the delete and record the response
+			HttpResponse response = null;
+			try {
+				response = httpclient.execute(attachment);
+			} catch (ClientProtocolException e) {
+				Log.e(TAG, "error deleting document", e);
+				return;
+			} catch (IOException e) {
+				Log.e(TAG, "IO error delting document", e);
+				return;
+			}
+
+			//get all headers		
+			Header[] headers = response.getAllHeaders();
+			for (Header header : headers) {
+				Log.i(TAG, "Key : " + header.getName() 
+						+ " ,Value : " + header.getValue());
+			}
+			
+			Header clHead = response.getFirstHeader("Content-Length");
+			Log.i(TAG, "Content-length header: " + clHead.toString());
+			
+			int respSize = Integer.parseInt(clHead.getValue());
+			Log.i(TAG, "buffer being created to size: " + Integer.parseInt(clHead.getValue()));
+			binaryAttachment = new char[respSize];
+			//parse the reponse 
+			BufferedReader reader = null;
+			try {
+				reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			} catch (IllegalStateException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			try {
+				reader.read(binaryAttachment);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+
+
+		}
+
+		public char[] getBinaryAttachment(){
+			return binaryAttachment;
+		}
+
+
+
+	}
+
+	//pathToStore does not include the filename - that will be the same as the attachment name
+	private boolean getSingleAttachment(String attachmentName, String uuidOfDoc, String pathToStore){
+		AttachmentDownloader dwnldr = new AttachmentDownloader(uuidOfDoc, attachmentName);
+
+		dwnldr.run();
+		try {
+			dwnldr.join();
+		} catch (InterruptedException e) {
+
+			e.printStackTrace();
+			return false;
+		}
+
+		FileOutputStream save0;
+		try {
+			save0 = new FileOutputStream(new File(pathToStore +"/" +attachmentName));
+			save0.write(new String(dwnldr.getBinaryAttachment()).getBytes());
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+			return false;
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+			return false;
+		}
+
+		return true;
+
+
+	}
+
+
 	public static final String DB_ARRAY = "rows";
 	public static final String DOC_ID = "id";
 	public static final String TYPE = "jsontype";
@@ -350,7 +475,7 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 	public static final String VIDEO_SS_PATH = "screenshotPath";
 	public static final String VIDEO_PLAY_COUNT = "playCount";
 	public static final String VIDEO_YOUTUBE_TAG = "yttag";
-	
+
 	/**
 	 * Obtains every document in a couchDB in the form of a JSON object
 	 * @param serverURLsansPort the URL of the server (without the port)
@@ -465,7 +590,7 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 			Log.e(TAG,"Cast failed");
 			return null;
 		}
-		
+
 		// Create correct type of card
 		if (type.equalsIgnoreCase("AUDIO"))
 			result = convertJSONToAudioCard(obj);
@@ -473,10 +598,10 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 			result = convertJSONToVideoCard(obj);
 		if (type.equalsIgnoreCase("TEXT"))
 			result = convertJSONToTextCard(obj);
-		
+
 		// Correctly put attachments in internal storage
 		getAllAttachments(obj, result);
-		
+
 		return result;
 	}
 
@@ -491,17 +616,17 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 			JSONObject JSONServer = obj.getJSONObject(SOURCE);
 			Server sourceServer = new Server(JSONServer.getString(SERVER_NAME), JSONServer.getString(SERVER_API_INFO),
 					Long.parseLong(JSONServer.getString(SERVER_FIRST_USED)), Long.parseLong(JSONServer.getString(SERVER_LAST_USED)));
-			
+
 			VideoCard result = new VideoCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
 					obj.getString(VIDEO_SS_PATH), obj.getInt(VIDEO_PLAY_COUNT), obj.getString(VIDEO_YOUTUBE_TAG), sourceServer);
-			
+
 			return result;
 		} catch (JSONException e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
-	
+
 	/**
 	 * Creates an AudioCard object from the JSONObject
 	 * @param obj the JSONObject to create the AudioCard
@@ -545,16 +670,16 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 					contentType = Type.IMAGE;
 				else
 					contentType = Type.TEXT_;
-				
+
 				cardContent.add(new TextElement(contentType, 
 						temp.getString(TEXT_CONTENT_TEXT), temp.getString(TEXT_CONTENT_IMG)));
 			}
-			
+
 			// Get the Server Object by JSON parsing because Java doesn't like casting
 			JSONObject JSONServer = obj.getJSONObject(SOURCE);
 			Server sourceServer = new Server(JSONServer.getString(SERVER_NAME), JSONServer.getString(SERVER_API_INFO),
 					Long.parseLong(JSONServer.getString(SERVER_FIRST_USED)), Long.parseLong(JSONServer.getString(SERVER_LAST_USED)));
-			
+
 			// Create actual TextCard
 			TextCard result = new TextCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
 					obj.getString(TEXT_LINE1), obj.getString(TEXT_LINE2), obj.getString(TEXT_LINE3), cardContent, sourceServer);
@@ -621,10 +746,8 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 
 	private void startSync(boolean deleteDBbeforeUpdate) {
 
-		if(deleteDBbeforeUpdate){
-			deleteDB();
-		}
-		
+
+
 		URL syncUrl;
 		try {
 			syncUrl = new URL(SYNC_URL + "/"+ servz.get(0).getName());

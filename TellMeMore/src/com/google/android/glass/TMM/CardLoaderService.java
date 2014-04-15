@@ -156,18 +156,7 @@ public class CardLoaderService extends Service{
 			//
 			//			}
 			//
-			//			FileOutputStream save0;
-			//			try {
-			//				save0 = new FileOutputStream(file0);
-			//				save0.write(buffer0);
-			//				save0.flush();
-			//				save0.close();
-			//			} catch (FileNotFoundException e) {
-			//				Log.e(TAG, "FileNotFoundException in second part");
-			//
-			//			} catch (IOException e) {
-			//				Log.e(TAG, "IOException in second part");
-			//			}
+			"Vp"
 			//
 			//
 			//			TextCard textCard2 = new TextCard(0, 99, "Read Paper Abstract", "From ACM PAUC", "A. Student and Dr. XYZ", "Published 1 Mar 2009",  file0.getAbsolutePath(), getSampleArr2(), source1);

@@ -15,6 +15,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
@@ -95,6 +97,7 @@ public class DBManager implements Replication.ChangeListener{
 	public static final String AUDIO_BG_PATH = "backgroundPath";
 	public static final String AUDIO_LENGTH = "lengthMillis";
 	public static final String AUDIO_CLIP_PATH = "audioClipPath";
+	public static final String AUDIO_BACKGROUND_PATH = "backgroundPath";
 	public static final String TEXT_CARD_IC_NAME = "icFileName";
 	public static final String TEXT_CARD_IC_PATH = "iconPath";
 	public static final String TEXT_LINE1 = "line1";
@@ -163,7 +166,7 @@ public class DBManager implements Replication.ChangeListener{
 		if(deleteDBbeforeUpdate){
 			this.deleteDB(true);
 		}
-		
+
 		URL syncUrl;
 		try {
 			syncUrl = new URL(MASTER_SERVER_URL + ":" + port +"/"+ dbName);
@@ -201,12 +204,12 @@ public class DBManager implements Replication.ChangeListener{
 			if(replication.getLastError() == null && replication.isPull()){
 				//then it didn't stop on error, so we can broadcast that the database is synced up
 				//Log.i(TAG, "Replicator finished updating database, broadcasting notification");
-//				try {
-//					Thread.sleep(5000);
-//				} catch (InterruptedException e1) {
-//
-//					e1.printStackTrace();
-//				}
+				//				try {
+				//					Thread.sleep(5000);
+				//				} catch (InterruptedException e1) {
+				//
+				//					e1.printStackTrace();
+				//				}
 				Log.i(TAG, "Raw JSON in replication listener: " + getRawJSON("http://127.0.0.1:5984/example_card_generator"));
 				Log.i(TAG, "ENTIRE DB AS OF REPLICATION COMPLETION ALERT: " + getEntireDbAsJSON());
 				this.synced = true;
@@ -285,7 +288,7 @@ public class DBManager implements Replication.ChangeListener{
 			return null;
 		}
 	}
-	
+
 	private class RawJSONGetter extends Thread {
 		private String json = "";
 		private final String url;
@@ -310,9 +313,9 @@ public class DBManager implements Replication.ChangeListener{
 				return ;
 			} catch (SSLPeerUnverifiedException e1){
 				Log.i(TAG, "Peerunverified exception caught");
-				
+
 			}	catch (IOException e) {
-			
+
 				Log.e(TAG, "IO error getting the DB as JSON", e);
 				return ;
 			}
@@ -321,7 +324,7 @@ public class DBManager implements Replication.ChangeListener{
 
 			// Parse the response into a String 
 			HttpEntity resEntityGet = response.getEntity();
-			
+
 			try {
 				json = new String(EntityUtils.toString(resEntityGet));
 			} catch (ParseException e) {
@@ -331,7 +334,7 @@ public class DBManager implements Replication.ChangeListener{
 				Log.e(TAG, "IO Error parsing response into a string", e);
 				return;
 			}
-			
+
 		}
 
 		public String getJson() {
@@ -339,9 +342,9 @@ public class DBManager implements Replication.ChangeListener{
 		}
 
 	}
-	
-	
-	
+
+
+
 
 	/**
 	 * Retrieves an unparsed JSON string from a couchDB database
@@ -350,7 +353,7 @@ public class DBManager implements Replication.ChangeListener{
 	 */
 	public String getRawJSON(String URL) {
 		RawJSONGetter raw = new RawJSONGetter(URL);
-		
+
 		raw.start();
 		try {
 			raw.join();
@@ -362,7 +365,7 @@ public class DBManager implements Replication.ChangeListener{
 
 		Log.d(TAG, "String being returned from getRawJSON" +  raw.getJson());
 		return raw.getJson();
-		
+
 	}
 
 	/**
@@ -434,6 +437,10 @@ public class DBManager implements Replication.ChangeListener{
 			AudioCard result = new AudioCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
 					obj.getInt(AUDIO_LENGTH), obj.getString(AUDIO_BG_PATH), obj.getString(AUDIO_CLIP_PATH), sourceServer);
 
+			if(!obj.getString(AUDIO_BACKGROUND_PATH).equalsIgnoreCase("null")){
+				result.setBackgroundPath(obj.getString(AUDIO_BACKGROUND_PATH));
+			}
+
 			return result;
 		} catch (JSONException e) {
 			Log.e(TAG, "AudioCard creation crashed and burned");
@@ -480,7 +487,7 @@ public class DBManager implements Replication.ChangeListener{
 			if(!obj.getString(TEXT_CARD_IC_PATH).equalsIgnoreCase("null")){
 				result.setIconPath(obj.getString(TEXT_CARD_IC_PATH));	
 			} 
-			
+
 			return result;
 		} catch (JSONException e) {
 			Log.i(TAG,"TextCard creation crashed and burned");
@@ -493,9 +500,103 @@ public class DBManager implements Replication.ChangeListener{
 		return true;
 	}
 
+	private class AttachmentDownloader extends Thread {
+
+		private final String uuid, filename;
+
+		private char[] binaryAttachment;
+
+		public AttachmentDownloader (String uuid, String fileName){
+			super();
+			this.uuid = uuid;
+			filename = fileName;
+		}
+
+		@Override
+		public void run() { 
+
+			HttpClient httpclient = new DefaultHttpClient();
+			HttpGet attachment = new HttpGet(LOCAL_DB_URL + ":" + port + "/" + dbName + "/" + uuid + "/" + filename);
+
+			//execute the delete and record the response
+			HttpResponse response = null;
+			try {
+				response = httpclient.execute(attachment);
+			} catch (ClientProtocolException e) {
+				Log.e(TAG, "error deleting document", e);
+				return;
+			} catch (IOException e) {
+				Log.e(TAG, "IO error delting document", e);
+				return;
+			}
+
+			//parse the reponse 
+			BufferedReader reader = null;
+			try {
+				reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			} catch (IllegalStateException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			try {
+				reader.read(binaryAttachment);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+
+
+		}
+
+		public char[] getBinaryAttachment(){
+			return binaryAttachment;
+		}
+
+
+
+	}
+
+
+	//pathToStore does not include the filename - that will be the same as the attachment name
+	private boolean getSingleAttachment(String attachmentName, String uuidOfDoc, String pathToStore){
+		AttachmentDownloader dwnldr = new AttachmentDownloader(uuidOfDoc, attachmentName);
+
+		dwnldr.run();
+		try {
+			dwnldr.join();
+		} catch (InterruptedException e) {
+
+			e.printStackTrace();
+			return false;
+		}
+
+		FileOutputStream save0;
+		try {
+			save0 = new FileOutputStream(new File(pathToStore +"/" +attachmentName));
+			save0.write(new String(dwnldr.getBinaryAttachment()).getBytes());
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+			return false;
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+			return false;
+		}
+
+		return true;
+
+
+	}
+
+
+
 
 	private class DBDeleter extends Thread {
-		private String json = "";
 
 		public DBDeleter(){
 			super();
@@ -569,7 +670,7 @@ public class DBManager implements Replication.ChangeListener{
 
 	public TMMCard findCardById(String uuid){
 		String rawobj = this.getRawJSON(LOCAL_DB_URL + ":" + port + "/" + dbName + "/" + uuid);
-		
+
 		JSONObject jsonObject = null;
 		try {
 			jsonObject = new JSONObject(rawobj);
@@ -577,7 +678,7 @@ public class DBManager implements Replication.ChangeListener{
 			Log.e(TAG, "error making json object", e1);
 			return null;
 		}
-		
+
 		TMMCard toRet = this.convertJSONToCard(jsonObject);
 		return toRet;
 	}
@@ -663,7 +764,7 @@ public class DBManager implements Replication.ChangeListener{
 		//check to make sure card doesn't already exist in DB
 		if(this.getJSONRepresentation(toAdd) != null){
 			//maybe we could update the card or something
-		
+
 			throw new Exception("The card already exists in the DB, please use the update method instead");
 
 		}
