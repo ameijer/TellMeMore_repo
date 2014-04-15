@@ -559,14 +559,6 @@ public class DBManager implements Replication.ChangeListener{
 		return true;
 	}
 
-
-
-
-
-
-
-
-	//TODO - Test
 	public TMMCard findCardById(String uuid){
 		String rawobj = this.getRawJSON(LOCAL_DB_URL + ":" + port + "/" + dbName + "/" + uuid);
 		
@@ -663,7 +655,7 @@ public class DBManager implements Replication.ChangeListener{
 		//check to make sure card doesn't already exist in DB
 		if(this.getJSONRepresentation(toAdd) != null){
 			//maybe we could update the card or something
-			//I'm going to punt on this, leave it as a TODO
+		
 			throw new Exception("The card already exists in the DB, please use the update method instead");
 
 		}

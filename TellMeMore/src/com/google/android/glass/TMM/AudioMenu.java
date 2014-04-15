@@ -23,7 +23,8 @@ public class AudioMenu extends Activity {
 	public static final String EXTRA_LAST_PLAYER_POS = "last_player_pos";
 	private static final int DEFAULT_ID = 0;
 	private static final int DEFAULT_POS = 0;
-	private int lastPos, cardPos, cardId; 
+	private int lastPos, cardPos;
+	private String cardId;
 	private AudioManager mAudioManager;
     @Override
     public void onAttachedToWindow() {
@@ -38,7 +39,7 @@ public class AudioMenu extends Activity {
         inflater.inflate(R.menu.audiomenu, menu);
         lastPos =  getIntent().getIntExtra(EXTRA_LAST_PLAYER_POS, DEFAULT_POS);
         cardPos =  getIntent().getIntExtra(EXTRA_SELECTED_POS, DEFAULT_POS);
-		cardId =  getIntent().getIntExtra(EXTRA_SELECTED_ID, DEFAULT_ID);
+		cardId =  getIntent().getStringExtra(EXTRA_SELECTED_ID);
 	
         return true;
     }
@@ -57,6 +58,7 @@ public class AudioMenu extends Activity {
                 Log.i(TAG, "last posit passed through to new player: " + lastPos);
                 intent.putExtra(EXTRA_LAST_PLAYER_POS, lastPos);
                 intent.putExtra(EXTRA_SELECTED_POS, cardPos);
+                intent.putExtra(EXTRA_SELECTED_ID, cardId);
                 startActivity(intent);
                 return true;
             case R.id.reset_audio:
@@ -66,12 +68,14 @@ public class AudioMenu extends Activity {
                  //reset = 0 ms resume position
                  intent.putExtra(EXTRA_LAST_PLAYER_POS, 0);
                  intent.putExtra(EXTRA_SELECTED_POS, cardPos);
+                 intent.putExtra(EXTRA_SELECTED_ID, cardId);
                  startActivity(intent);
             	return true;
             case R.id.quit_audio:
             	closeAudioPlayer(this);
             	intent = new Intent(this, SelectCardActivity.class);
             	intent.putExtra(EXTRA_SELECTED_POS, cardPos);
+            	intent.putExtra(EXTRA_SELECTED_ID, cardId);
         		setResult(RESULT_OK, intent);
         		startActivity(intent);
                 return true;
@@ -95,6 +99,7 @@ public class AudioMenu extends Activity {
         Log.i(TAG, "last posit passed through to new player: " + lastPos);
         intent.putExtra(EXTRA_LAST_PLAYER_POS, lastPos);
         intent.putExtra(EXTRA_SELECTED_POS, cardPos);
+        intent.putExtra(EXTRA_SELECTED_ID, cardId);
         startActivity(intent);
         finish();
     }

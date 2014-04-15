@@ -215,13 +215,19 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 		}
 		return false;
 	}
+	
+	
 
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
+		try{
 		unregisterReceiver(mMessageReceiver);
+		} catch(IllegalArgumentException e){
+			Log.i(TAG, "tried to unregister already unregistered receiver in onDestroy()");
+		}
 		hasCards = false;
-		//finish();
+		
 
 	}
 }
