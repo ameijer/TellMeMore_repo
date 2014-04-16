@@ -12,6 +12,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 
+ * Modified by D. Prudente and A. Meijer for ELEC 429
+ * 
  */
 
 package com.google.android.glass.TMM;
@@ -29,32 +32,56 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+// TODO: Auto-generated Javadoc
 /**
  * Adapter for the {@link CardSrollView} inside {@link SelectValueActivity}.
  */
 public class SelectCardScrollAdapter extends CardScrollAdapter {
 
+	/** The Constant TAG. Used for the Android debug logger. */
 	public static final String TAG = "TMM" +", " + SelectCardScrollAdapter.class.getSimpleName();
+	
+	/** The m context. */
 	private final Context mContext;
+	
+	/** The m count. */
 	private final int mCount;
+	
+	/** The card arr. */
 	private TMMCard[] cardArr;
 
+	/**
+	 * Instantiates a new select card scroll adapter.
+	 *
+	 * @param context the context
+	 * @param count the count
+	 * @param content the content
+	 */
 	public SelectCardScrollAdapter(Context context, int count, TMMCard[] content) {
 		mContext = context;
 		mCount = count;
 		cardArr = content;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.google.android.glass.widget.CardScrollAdapter#getCount()
+	 */
 	@Override
 	public int getCount() {
 		return mCount;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.google.android.glass.widget.CardScrollAdapter#getItem(int)
+	 */
 	@Override
 	public Object getItem(int position) {
 		return Integer.valueOf(position);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.google.android.glass.widget.CardScrollAdapter#getView(int, android.view.View, android.view.ViewGroup)
+	 */
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		//Log.i(TAG, "cardarr[position] instance of audiocard?: " + (cardArr[position] instanceof AudioCard));
@@ -145,6 +172,9 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 
 	}
 
+	/* (non-Javadoc)
+	 * @see com.google.android.glass.widget.CardScrollAdapter#getPosition(java.lang.Object)
+	 */
 	@Override
 	public int getPosition(Object id) {
 		if (id instanceof Integer) {

@@ -1,5 +1,5 @@
 package com.google.glass.widget;
-
+//slider views compliments of https://github.com/pif/glass-progress-bar
 import com.google.android.glass.TMM.R;
 
 import android.animation.ObjectAnimator;
@@ -14,7 +14,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 
-//slider views compliments of https://github.com/pif/glass-progress-bar
+
 public class SliderView extends FrameLayout {
 	private static final long HIDE_SLIDER_TIMEOUT_MILLIS = 1000L;
 	private static final int MIN_SLIDER_WIDTH_PX = 40;

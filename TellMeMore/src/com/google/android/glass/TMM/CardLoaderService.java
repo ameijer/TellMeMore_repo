@@ -1,3 +1,35 @@
+/*
+ * File: CardLoaderService.java
+ * Date: Apr 16, 2014
+ * Authors: A. Meijer (atm011) and D. Prudente (dcp017)
+ * 
+ * Written for ELEC429, Independent Study
+ * 
+ * Copyright 2014 atm011 and dcp017
+ * All rights reserved.
+ * Redistribution and use in source and binary forms, with or without modification, 
+ * are permitted provided that the following conditions are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright notice, this 
+ * list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, 
+ * this list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without 
+ * specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE 
+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package com.google.android.glass.TMM;
 
 import java.io.File;
@@ -20,16 +52,33 @@ import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+// TODO: Auto-generated Javadoc
 //this service will load the DB with cards it downloads from the server
 
+/**
+ * The Class CardLoaderService.
+ */
 public class CardLoaderService extends Service{
+	
+	/** The Constant TAG. Used for the Android debug logger. */
 	public static final String TAG = "TMM" +", " + CardLoaderService.class.getSimpleName();
+	
+	/** The app. */
 	private TellMeMoreApplication app;
+	
+	/** The Constant TARGET_SERVER_KEY. */
 	public static final String TARGET_SERVER_KEY = "target_server";
+	
+	/** The Constant EXAMPLE_CARD_SERVER. */
 	public static final String EXAMPLE_CARD_SERVER = "example_card_generator";
+	
+	/** The target server. */
 	private String targetServer;
 
 
+	/* (non-Javadoc)
+	 * @see android.app.Service#onStartCommand(android.content.Intent, int, int)
+	 */
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 
@@ -89,7 +138,14 @@ public class CardLoaderService extends Service{
 		return Service.START_STICKY;
 	}
 
+	/**
+	 * The Class cardsLoadedBroadcaster.
+	 */
 	private class cardsLoadedBroadcaster extends AsyncTask<Context, Integer, Long> {
+		
+		/* (non-Javadoc)
+		 * @see android.os.AsyncTask#doInBackground(Params[])
+		 */
 		protected Long doInBackground(Context... contexts) {
 			while(!app.db.isSynced()){
 				Log.i(TAG, "cardsloaded broadcaster, issynched reports: " + app.db.isSynced());
@@ -108,10 +164,17 @@ public class CardLoaderService extends Service{
 
 
 		}
+		
+		/* (non-Javadoc)
+		 * @see android.os.AsyncTask#onProgressUpdate(Progress[])
+		 */
 		protected void onProgressUpdate(Integer... progress) {
 
 		}
 
+		/* (non-Javadoc)
+		 * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
+		 */
 		protected void onPostExecute(Long result) {
 
 		}
@@ -122,7 +185,14 @@ public class CardLoaderService extends Service{
 
 
 
+	/**
+	 * The Class loadDBWithSamplesTask.
+	 */
 	private class loadDBWithSamplesTask extends AsyncTask<Context, Integer, Long> {
+		
+		/* (non-Javadoc)
+		 * @see android.os.AsyncTask#doInBackground(Params[])
+		 */
 		protected Long doInBackground(Context... contexts) {
 
 			try {
@@ -246,10 +316,17 @@ public class CardLoaderService extends Service{
 
 
 		}
+		
+		/* (non-Javadoc)
+		 * @see android.os.AsyncTask#onProgressUpdate(Progress[])
+		 */
 		protected void onProgressUpdate(Integer... progress) {
 
 		}
 
+		/* (non-Javadoc)
+		 * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
+		 */
 		protected void onPostExecute(Long result) {
 
 		}
@@ -499,6 +576,12 @@ public class CardLoaderService extends Service{
 
 
 	//we will use this to broadcast to the app when the cards are loaded
+	/**
+	 * Broadcast cards loaded.
+	 *
+	 * @param context the context
+	 * @param serverName the server name
+	 */
 	public static void broadcastCardsLoaded(Context context, String serverName) {
 		Intent intent = new Intent("cards_loaded");
 		intent.putExtra("server_used", serverName);
@@ -507,6 +590,9 @@ public class CardLoaderService extends Service{
 	}
 
 
+	/* (non-Javadoc)
+	 * @see android.app.Service#onBind(android.content.Intent)
+	 */
 	@Override
 	public IBinder onBind(Intent arg0) {
 		// TODO Auto-generated method stub

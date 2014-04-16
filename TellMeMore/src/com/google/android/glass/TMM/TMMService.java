@@ -12,51 +12,56 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 
+ * Modified by A. Meijer and D. Prudente April 2014
  */
 
 package com.google.android.glass.TMM;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 
-import com.google.android.glass.app.Card;
+
+
 import com.google.android.glass.timeline.LiveCard;
-import com.google.android.glass.timeline.LiveCard.PublishMode;
 
-import android.app.Notification;
-import android.app.NotificationManager;
+
+
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+
 import android.os.AsyncTask;
-import android.os.Binder;
-import android.os.Environment;
+
 import android.os.IBinder;
-import android.os.SystemClock;
+
 import android.util.Log;
-import android.view.WindowManager;
+
 import android.widget.RemoteViews;
 
+// TODO: Auto-generated Javadoc
 /**
  * Service owning the LiveCard living in the timeline.
  */
 public class TMMService extends Service {
+	
+	/** The Constant TAG. */
 	public static final String TAG = "TMM" +", " + TMMService.class.getSimpleName();
+	
+	/** The Constant LIVE_CARD_TAG. */
 	private static final String LIVE_CARD_TAG = "TMM";
 
+	/** The running. */
 	private boolean running;
+	
+	/** The m live card. */
 	private LiveCard mLiveCard;
 
 
 
 
+	/* (non-Javadoc)
+	 * @see android.app.Service#onCreate()
+	 */
 	@Override
 	public void onCreate() {
 		super.onCreate();
@@ -72,6 +77,11 @@ public class TMMService extends Service {
 
 	}
 
+	/**
+	 * Publish card.
+	 *
+	 * @param context the context
+	 */
 	private void publishCard(Context context) {
 		if (mLiveCard == null) {
 			//TimelineManager tm = TimelineManager.from(context);
@@ -91,6 +101,11 @@ public class TMMService extends Service {
 
 
 
+	/**
+	 * Unpublish card.
+	 *
+	 * @param context the context
+	 */
 	private void unpublishCard(Context context) {
 		if (mLiveCard != null) {
 			mLiveCard.unpublish();
@@ -99,6 +114,9 @@ public class TMMService extends Service {
 	}
 
 
+	/* (non-Javadoc)
+	 * @see android.app.Service#onStartCommand(android.content.Intent, int, int)
+	 */
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		//        if (mLiveCard == null) {
@@ -122,7 +140,14 @@ public class TMMService extends Service {
 	}
 
 
+	/**
+	 * The Class BlinkLiveCardTask.
+	 */
 	private class BlinkLiveCardTask extends AsyncTask<Context, Integer, Long> {
+		
+		/* (non-Javadoc)
+		 * @see android.os.AsyncTask#doInBackground(Params[])
+		 */
 		protected Long doInBackground(Context...contexts) {
 			Log.i("TMM","doing in background");
 			while(running){
@@ -152,16 +177,25 @@ public class TMMService extends Service {
 			return (long) 100;
 		}
 
+		/**
+		 * On progress update.
+		 */
 		protected void onProgressUpdate() {
 
 		}
 
+		/**
+		 * On post execute.
+		 */
 		protected void onPostExecute() {
 
 		}
 	}
 
 
+	/* (non-Javadoc)
+	 * @see android.app.Service#onDestroy()
+	 */
 	@Override
 	public void onDestroy() {
 		if (mLiveCard != null && mLiveCard.isPublished()) {
@@ -173,6 +207,9 @@ public class TMMService extends Service {
 		super.onDestroy();
 	}
 
+	/* (non-Javadoc)
+	 * @see android.app.Service#onBind(android.content.Intent)
+	 */
 	@Override
 	public IBinder onBind(Intent arg0) {
 		// TODO Auto-generated method stub

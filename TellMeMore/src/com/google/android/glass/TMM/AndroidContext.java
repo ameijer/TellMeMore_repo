@@ -1,3 +1,13 @@
+/*
+ * File: AndroidContext.java
+ * Date: Apr 16, 2014
+ * 
+ * Adapted for ELEC429, Independent Study
+ * 
+ * Note: this file has been taken from https://github.com/couchbase/couchbase-lite-android/blob/master/src/main/java/com/couchbase/lite/android/AndroidContext.java
+ * This file is part of the couchbase lite project 
+ */
+
 package com.google.android.glass.TMM;
 
 
