@@ -65,6 +65,14 @@ public class VideoCard extends TMMCard implements Serializable{
 		setScrenshotname(screenshot_path.substring(charToWipe + 1));
 
 	}
+	
+	public VideoCard(int handle, String id, int priority, String cardTitle, int playcount, String youTubeTag, Server source) {
+		super(handle, id, priority, cardTitle, source, TMMCard.VIDEO);
+		this.playCount = playcount;
+		this.setYTtag(youTubeTag);
+
+	}
+	
 
 	public String getScreenshotPath() {
 		return screenshot_path;

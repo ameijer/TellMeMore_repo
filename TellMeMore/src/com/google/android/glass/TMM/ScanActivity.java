@@ -2,7 +2,6 @@ package com.google.android.glass.TMM;
 
 import com.google.android.glass.app.Card;
 import com.google.android.glass.media.Sounds;
-import com.google.android.glass.timeline.TimelineManager;
 
 import android.app.Activity;
 import android.content.Context;
@@ -45,7 +44,7 @@ public class ScanActivity extends Activity
 	public static final String EXAMPLE_CARD_SERVER = "example_card_generator";
 	public static final String CARDS_READY_KEY = "cards_ready";
 	private GestureDetector mGestureDetector;
-	private TimelineManager mTimelineManager;
+	
 	private static final int KEY_SWIPE_DOWN = 4;
 	protected static final String url = "URL";
 	private TellMeMoreApplication app;
@@ -208,19 +207,19 @@ public class ScanActivity extends Activity
 				mAudioManager.playSoundEffect(Sounds.SUCCESS);
 				// Add in integration stuff to go to SelectCardActivity
 				Context context = getApplicationContext();
-				mTimelineManager = TimelineManager.from(context);
-				Card initCard = new Card(context);
-				if (uniqueId < 0x41){
-					uniqueId = 0x41;
-				}
-				String testText = "You learned about " + uniqueId;
-				uniqueId++;
-				String testFootnote = "Tap to revisit";
-				initCard.setText(testText);
-				initCard.setFootnote(testFootnote);
+				//mTimelineManager = TimelineManager.from(context);
+				//Card initCard = new Card(context);
+				//if (uniqueId < 0x41){
+				//	uniqueId = 0x41;
+				//}
+				//String testText = "You learned about " + uniqueId;
+				//uniqueId++;
+				//String testFootnote = "Tap to revisit";
+				//initCard.setText(testText);
+				//initCard.setFootnote(testFootnote);
 
 				//note-no menu or pending intents supported, google is working on this 
-				mTimelineManager.insert(initCard);
+				//mTimelineManager.insert(initCard);
 
 				//start the next activity
 				Intent intent = new Intent(context, SelectCardActivity.class);

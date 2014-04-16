@@ -71,7 +71,7 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 			final TextView view = (TextView) convertView.findViewById(R.id.audio_title);
 			view.setText(cardArr[position].getTitle());
 
-			return setItemOnCard(this, convertView);
+			return convertView;
 
 		} else if(cardArr[position] instanceof VideoCard){
 
@@ -87,7 +87,7 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 			final TextView view = (TextView) convertView.findViewById(R.id.video_title);
 			view.setText(cardArr[position].getTitle());
 
-			return setItemOnCard(this, convertView);
+			return convertView;
 		} else {//instanceof textcard
 			//Textcard is a good default anyway...
 
@@ -108,7 +108,7 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 				final TextView summary3 = (TextView) convertView.findViewById(R.id.summary_3);
 				summary3.setText(((TextCard)cardArr[position]).getLine3());
 
-				return setItemOnCard(this, convertView);
+				return convertView;
 			} else { //there is an icon for this card
 
 				if (convertView == null) {
@@ -138,7 +138,7 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 
 
 
-				return setItemOnCard(this, convertView);
+				return convertView;
 			}
 
 		}
@@ -146,7 +146,7 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 	}
 
 	@Override
-	public int findIdPosition(Object id) {
+	public int getPosition(Object id) {
 		if (id instanceof Integer) {
 			int idInt = (Integer) id;
 			if (idInt >= 0 && idInt < mCount) {
@@ -154,10 +154,6 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 			}
 		}
 		return AdapterView.INVALID_POSITION;
-	}
 
-	@Override
-	public int findItemPosition(Object item) {
-		return findIdPosition(item);
 	}
 }

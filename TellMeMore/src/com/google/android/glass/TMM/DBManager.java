@@ -400,9 +400,13 @@ public class DBManager implements Replication.ChangeListener{
 			Server sourceServer = new Server(JSONServer.getString(SERVER_NAME), JSONServer.getString(SERVER_API_INFO),
 					Long.parseLong(JSONServer.getString(SERVER_FIRST_USED)), Long.parseLong(JSONServer.getString(SERVER_LAST_USED)));
 
-			VideoCard result = new VideoCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
-					obj.getString(VIDEO_SS_PATH), obj.getInt(VIDEO_PLAY_COUNT), obj.getString(VIDEO_YOUTUBE_TAG), sourceServer);
+			VideoCard result = new VideoCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE), obj.getInt(VIDEO_PLAY_COUNT), obj.getString(VIDEO_YOUTUBE_TAG), sourceServer);
 
+			if(!obj.getString(VIDEO_SS_PATH).equalsIgnoreCase("null")){
+				//then this video has a screenshot
+				result.setScreenshot(obj.getString(VIDEO_SS_PATH));
+			}
+			
 			return result;
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -504,7 +508,8 @@ public class DBManager implements Replication.ChangeListener{
 		if(cardToDl.getScreenshotPath() == null || cardToDl.getScreenshotPath().equalsIgnoreCase("")){
 			return true;
 		}
-		return getSingleAttachment(cardToDl.getScrenshotname(), cardToDl.getuuId(), cardToDl.getScreenshotPath());
+		Log.i(TAG, "Videocard screenshot attachment path : " + cardToDl.getScreenshotPath());
+		return getSingleAttachment(cardToDl.getScrenshotname(), cardToDl.getuuId(), cardToDl.getScreenshotPath().substring(0, cardToDl.getScreenshotPath().lastIndexOf('/')));
 
 	}
 
@@ -512,13 +517,15 @@ public class DBManager implements Replication.ChangeListener{
 		//audio card has 2 attachments, the mp3 and the background if there is one
 		//make sure that it has a audio clip
 		if(cardToDl.getAudioClipPath() != null && !cardToDl.getAudioClipPath().equalsIgnoreCase("")){
-			if(getSingleAttachment(cardToDl.getAudioClipName(), cardToDl.getuuId(), cardToDl.getAudioClipPath()) == false){
+			if(getSingleAttachment(cardToDl.getAudioClipName(), cardToDl.getuuId(), cardToDl.getAudioClipPath().substring(0, cardToDl.getAudioClipPath().lastIndexOf('/'))) == false){
 				return false;
 			}
 		}
 		
-		if(cardToDl.getBackgroundPath() != null && !cardToDl.getBackgroundPath().equalsIgnoreCase("")){
-			if(getSingleAttachment(cardToDl.getBackground_name(), cardToDl.getuuId(), cardToDl.getBackgroundPath()) == false){
+		
+		if(!(cardToDl.getBackgroundPath() == null  || !cardToDl.getBackgroundPath().equalsIgnoreCase(""))){
+			Log.i(TAG, "audiocard background path: " + cardToDl.getBackgroundPath());
+			if(getSingleAttachment(cardToDl.getBackground_name(), cardToDl.getuuId(), cardToDl.getBackgroundPath().substring(0, cardToDl.getBackgroundPath().lastIndexOf('/'))) == false){
 				return false;
 			} 
 		}
@@ -529,7 +536,7 @@ public class DBManager implements Replication.ChangeListener{
 	private boolean downloadTextCardAttachments(TextCard cardToDl){
 		//first, if there is an icon, then DL it
 		if(cardToDl.getIconPath() != null && !cardToDl.getIconPath().equalsIgnoreCase("")){
-			if(getSingleAttachment(cardToDl.getIcFileName(), cardToDl.getuuId(), cardToDl.getIconPath()) == false){
+			if(getSingleAttachment(cardToDl.getIcFileName(), cardToDl.getuuId(), cardToDl.getIconPath().substring(0, cardToDl.getIconPath().lastIndexOf('/'))) == false){
 				return false;
 			} 
 		}
@@ -537,7 +544,7 @@ public class DBManager implements Replication.ChangeListener{
 		//now get all the textelements that contain images
 		for(int i = 0; i < cardToDl.getContents().size(); i++){
 			if(cardToDl.getContents().get(i).getType() == Type.IMAGE && cardToDl.getContents().get(i).getImg() != null && !cardToDl.getContents().get(i).getImg().equalsIgnoreCase("")){
-				if(getSingleAttachment(cardToDl.getContents().get(i).getImgFilename(), cardToDl.getuuId(), cardToDl.getContents().get(i).getImg()) == false){
+				if(getSingleAttachment(cardToDl.getContents().get(i).getImgFilename(), cardToDl.getuuId(), cardToDl.getContents().get(i).getImg().substring(0, cardToDl.getContents().get(i).getImg().lastIndexOf('/'))) == false){
 					return false;
 				} 
 			}
@@ -575,12 +582,7 @@ public class DBManager implements Replication.ChangeListener{
 				Log.e(TAG, "IO error retrieving document attachment", e);
 				return;
 			}
-
-			Header clHead = response.getFirstHeader("Content-Length");
-			Log.i(TAG, "Content-length header: " + clHead.toString());
-
-			int respSize = Integer.parseInt(clHead.getValue());
-			Log.i(TAG, "buffer being created to size: " + Integer.parseInt(clHead.getValue()));
+		
 
 			//write the attachment to file
 			FileOutputStream save0 = null;
@@ -611,7 +613,7 @@ public class DBManager implements Replication.ChangeListener{
 	private boolean getSingleAttachment(String attachmentName, String uuidOfDoc, String pathToStore){
 		AttachmentDownloader dwnldr = new AttachmentDownloader(uuidOfDoc, attachmentName, pathToStore);
 
-		dwnldr.run();
+		dwnldr.start();
 		try {
 			dwnldr.join();
 		} catch (InterruptedException e) {

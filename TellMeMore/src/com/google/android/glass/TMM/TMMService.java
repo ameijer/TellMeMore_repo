@@ -26,7 +26,6 @@ import java.io.UnsupportedEncodingException;
 import com.google.android.glass.app.Card;
 import com.google.android.glass.timeline.LiveCard;
 import com.google.android.glass.timeline.LiveCard.PublishMode;
-import com.google.android.glass.timeline.TimelineManager;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -53,7 +52,6 @@ public class TMMService extends Service {
 	private static final String LIVE_CARD_TAG = "TMM";
 
 	private boolean running;
-	private TimelineManager mTimelineManager;
 	private LiveCard mLiveCard;
 
 
@@ -66,7 +64,7 @@ public class TMMService extends Service {
 
 
 
-		mTimelineManager = TimelineManager.from(this);
+		//mTimelineManager = TimelineManager.from(this);
 		//mTimerDrawer = new TimerDrawer(this);
 		running = true;
 
@@ -76,8 +74,8 @@ public class TMMService extends Service {
 
 	private void publishCard(Context context) {
 		if (mLiveCard == null) {
-			TimelineManager tm = TimelineManager.from(context);
-			mLiveCard = tm.createLiveCard(LIVE_CARD_TAG);
+			//TimelineManager tm = TimelineManager.from(context);
+			mLiveCard = new LiveCard(context, LIVE_CARD_TAG);
 
 			mLiveCard.setViews(new RemoteViews(context.getPackageName(),
 					R.layout.notification_card_text));
