@@ -70,7 +70,7 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 
 	// handler for received Intents for the "my-event" event 
 	private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
-		@Override
+		@Override 
 		public void onReceive(Context context, Intent intent) {
 			// Extract data included in the Intent
 			String serverName = intent.getStringExtra("server_used");

@@ -526,9 +526,24 @@ public class DBManager implements Replication.ChangeListener{
 		
 	}
 
-	//TODO
 	private boolean downloadTextCardAttachments(TextCard cardToDl){
-
+		//first, if there is an icon, then DL it
+		if(cardToDl.getIconPath() != null && !cardToDl.getIconPath().equalsIgnoreCase("")){
+			if(getSingleAttachment(cardToDl.getIcFileName(), cardToDl.getuuId(), cardToDl.getIconPath()) == false){
+				return false;
+			} 
+		}
+		
+		//now get all the textelements that contain images
+		for(int i = 0; i < cardToDl.getContents().size(); i++){
+			if(cardToDl.getContents().get(i).getType() == Type.IMAGE && cardToDl.getContents().get(i).getImg() != null && !cardToDl.getContents().get(i).getImg().equalsIgnoreCase("")){
+				if(getSingleAttachment(cardToDl.getContents().get(i).getImgFilename(), cardToDl.getuuId(), cardToDl.getContents().get(i).getImg()) == false){
+					return false;
+				} 
+			}
+		}
+		return true;
+		
 	}
 
 	private class AttachmentDownloader extends Thread {
