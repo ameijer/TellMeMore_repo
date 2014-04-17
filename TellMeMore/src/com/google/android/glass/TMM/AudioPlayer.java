@@ -51,23 +51,20 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.glass.media.Sounds;
-//import com.google.android.glass.app.Card;
-//import com.google.android.glass.timeline.TimelineManager;
 import com.google.android.glass.touchpad.Gesture;
 import com.google.android.glass.touchpad.GestureDetector;
 import com.google.glass.widget.SliderView;
 
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class AudioPlayer.
+ * The Class AudioPlayer. This class is the Android Activity responsible for handling the content in AudioCard objects, most often by playing the audio file contain information the user wants to hear.
  */
 public class AudioPlayer extends Activity{
 	
 	/** The Constant TAG. Used for the Android debug logger. */
 	public static final String TAG = "TMM" +", " + AudioPlayer.class.getSimpleName();
 	
-	/** The m gesture detector. */
+	/** The {@link GestureDetector} that handles user input while this activity is running. */
 	private GestureDetector mGestureDetector;
 	
 	/** The Constant EXTRA_SELECTED_POS. This is used for intent extra passing. Designed to map to the position of the selected card from the {@link SelectCardActivity} so that when the user returns to it, the card they just tapped on is in focus.*/
@@ -82,10 +79,10 @@ public class AudioPlayer extends Activity{
 	/** The Constant EXTRA_LAST_PLAYER_POS. This is used for intent extra passing. This maps to the last known progress of the player through the audio clip, can be used to restart the player in a specific state. */
 	public static final String EXTRA_LAST_PLAYER_POS = "last_player_pos";
 	
-	/** The Constant TIME_TO_SEEK. */
+	/** The Constant TIME_TO_SEEK. When the user scrolls either forwards or backwards, each scroll advances the player position by this many ms. */
 	public static final int TIME_TO_SEEK = 100;
 	
-	/** The Constant KEY_SWIPE_DOWN. */
+	/** The Constant KEY_SWIPE_DOWN. Used to handle the backwards compatibility for the swipe down action used to dismiss views in glass.*/
 	private static final int KEY_SWIPE_DOWN = 4;
 	
 	/** The Constant DEFAULT_POS. Used to obtain a numeric position of the player within the audio file, in the event that one cannot be obtained from the intent*/
