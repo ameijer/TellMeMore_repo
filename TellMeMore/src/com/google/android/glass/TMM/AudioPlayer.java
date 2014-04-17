@@ -70,16 +70,16 @@ public class AudioPlayer extends Activity{
 	/** The m gesture detector. */
 	private GestureDetector mGestureDetector;
 	
-	/** The Constant EXTRA_SELECTED_POS. */
+	/** The Constant EXTRA_SELECTED_POS. This is used for intent extra passing. Designed to map to the position of the selected card from the {@link SelectCardActivity} so that when the user returns to it, the card they just tapped on is in focus.*/
 	public static final String EXTRA_SELECTED_POS = "selected_pos";
 	
-	/** The Constant EXTRA_SELECTED_ID. */
+	/** The Constant EXTRA_SELECTED_ID. This is used for intent extra passing. This maps to the String UUID of the card so that each activity my access it from the DB directly */
 	public static final String EXTRA_SELECTED_ID = "selected_id";
 	
-	/** The Constant EXTRA_PLAYER_POS. */
+	/** The Constant EXTRA_PLAYER_POS. This is used for intent extra passing. Designed to map to the last position of the player within the file, so that it can be resumed properly. */
 	public static final String EXTRA_PLAYER_POS = "selected_player_pos";
 	
-	/** The Constant EXTRA_LAST_PLAYER_POS. */
+	/** The Constant EXTRA_LAST_PLAYER_POS. This is used for intent extra passing. This maps to the last known progress of the player through the audio clip, can be used to restart the player in a specific state. */
 	public static final String EXTRA_LAST_PLAYER_POS = "last_player_pos";
 	
 	/** The Constant TIME_TO_SEEK. */
@@ -88,16 +88,13 @@ public class AudioPlayer extends Activity{
 	/** The Constant KEY_SWIPE_DOWN. */
 	private static final int KEY_SWIPE_DOWN = 4;
 	
-	/** The Constant DEFAULT_POS. */
+	/** The Constant DEFAULT_POS. Used to obtain a numeric position of the player within the audio file, in the event that one cannot be obtained from the intent*/
 	private static final int DEFAULT_POS = 0;
 	
-	/** The Constant DEFAULT_ID. */
-	private static final String DEFAULT_ID = "null";
-	
-	/** The card pos. */
+	/** The position of the card within the cardscroll view from which the user launched this audioplayer activity. */
 	private int cardPos;
 	
-	/** The card id. */
+	/** The UUID of the audio card which is serving as the source for this audio player activity. */
 	private String  cardId;
 	
 	/** The act_context. */
@@ -136,7 +133,7 @@ public class AudioPlayer extends Activity{
 	/** The prog updater. */
 	Thread progUpdater;
 	
-	/** The last pos. */
+	/** The position of the player within the audio file when the intent was launched. */
 	int lastPos;
 
 

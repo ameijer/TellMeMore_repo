@@ -44,134 +44,198 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
-// TODO: Auto-generated Javadoc
 /**
- * Activity showing the options menu.
+ * 
+ * Activity showing the options menu for the audio player activity in the
+ * application.
+ * 
  */
 public class AudioMenu extends Activity {
-	
+
 	/** The Constant TAG. Used for the Android debug logger. */
-	public static final String TAG = "TMM" +", " + AudioMenu.class.getSimpleName();
-	
-	/** The Constant EXTRA_PLAYER_POS. */
+	public static final String TAG = "TMM" + ", "
+			+ AudioMenu.class.getSimpleName();
+
+	/**
+	 * The Constant EXTRA_PLAYER_POS. This is used for intent extra passing.
+	 * Designed to map to the last position of the player within the file, so
+	 * that it can be resumed properly.
+	 */
 	public static final String EXTRA_PLAYER_POS = "selected_player_pos";
-	
-	/** The Constant EXTRA_SELECTED_POS. */
+
+	/**
+	 * The Constant EXTRA_SELECTED_POS. This is used for intent extra passing.
+	 * Designed to map to the position of the selected card from the
+	 * {@link SelectCardActivity} so that when the user returns to it, the card
+	 * they just tapped on is in focus.
+	 */
 	public static final String EXTRA_SELECTED_POS = "selected_pos";
-	
-	/** The Constant EXTRA_SELECTED_ID. */
+
+	/**
+	 * The Constant EXTRA_SELECTED_ID. This is used for intent extra passing.
+	 * This maps to the String UUID of the card so that each activity my access
+	 * it from the DB directly
+	 */
 	public static final String EXTRA_SELECTED_ID = "selected_id";
-	
-	/** The Constant EXTRA_LAST_PLAYER_POS. */
+
+	/**
+	 * The Constant EXTRA_LAST_PLAYER_POS. This is used for intent extra
+	 * passing. This maps to the last known progress of the player through the
+	 * audio clip, can be used to restart the player in a specific state.
+	 */
 	public static final String EXTRA_LAST_PLAYER_POS = "last_player_pos";
-	
-	/** The Constant DEFAULT_ID. */
-	private static final int DEFAULT_ID = 0;
-	
-	/** The Constant DEFAULT_POS. */
+
+	/**
+	 * The Constant DEFAULT_POS. Used to obtain a numeric position of the player
+	 * within the audio file, in the event that one cannot be obtained from the
+	 * intent
+	 */
 	private static final int DEFAULT_POS = 0;
-	
-	/** The card pos. */
+
+	/**
+	 * The positions of the card in the array and the position of the player
+	 * within the audio file when the intent was launched.
+	 */
 	private int lastPos, cardPos;
-	
-	/** The card id. */
+
+	/**
+	 * The UUID of the audio card which is serving as the source for this audio
+	 * player activity.
+	 */
 	private String cardId;
-	
-	/** The m audio manager. */
+
+	/**
+	 * The audio manager for this Activity. Used in this Menu class to provide
+	 * audio feedback to user actions/choices.
+	 */
 	private AudioManager mAudioManager;
-    
-    /* (non-Javadoc)
-     * @see android.app.Activity#onAttachedToWindow()
-     */
-    @Override
-    public void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        openOptionsMenu();
-    }
 
-    /* (non-Javadoc)
-     * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)
-     */
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-    	mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.audiomenu, menu);
-        lastPos =  getIntent().getIntExtra(EXTRA_LAST_PLAYER_POS, DEFAULT_POS);
-        cardPos =  getIntent().getIntExtra(EXTRA_SELECTED_POS, DEFAULT_POS);
-		cardId =  getIntent().getStringExtra(EXTRA_SELECTED_ID);
-	
-        return true;
-    }
-   
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onAttachedToWindow()
+	 */
+	@Override
+	public void onAttachedToWindow() {
+		super.onAttachedToWindow();
+		openOptionsMenu();
+	}
 
-    /* (non-Javadoc)
-     * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
-     */
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-    	 mAudioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
-        // Handle item selection.
-        switch (item.getItemId()) {
-            case R.id.resume_audio:
-            	Log.i("TMM", "resume audio menu item selected");
-                //stopService(new Intent(this, ScanActivity.class));
-                Intent intent = new Intent(this, AudioPlayer.class);
-                
-                Log.i(TAG, "last posit passed through to new player: " + lastPos);
-                intent.putExtra(EXTRA_LAST_PLAYER_POS, lastPos);
-                intent.putExtra(EXTRA_SELECTED_POS, cardPos);
-                intent.putExtra(EXTRA_SELECTED_ID, cardId);
-                startActivity(intent);
-                return true;
-            case R.id.reset_audio:
-            	closeAudioPlayer(this);
-            	 intent = new Intent(this, AudioPlayer.class);
-                 
-                 //reset = 0 ms resume position
-                 intent.putExtra(EXTRA_LAST_PLAYER_POS, 0);
-                 intent.putExtra(EXTRA_SELECTED_POS, cardPos);
-                 intent.putExtra(EXTRA_SELECTED_ID, cardId);
-                 startActivity(intent);
-            	return true;
-            case R.id.quit_audio:
-            	closeAudioPlayer(this);
-            	intent = new Intent(this, SelectCardActivity.class);
-            	intent.putExtra(EXTRA_SELECTED_POS, cardPos);
-            	intent.putExtra(EXTRA_SELECTED_ID, cardId);
-        		setResult(RESULT_OK, intent);
-        		startActivity(intent);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)
+	 */
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.audiomenu, menu);
 
-    /**
-     * Close audio player.
-     *
-     * @param context the context
-     */
-    public static void closeAudioPlayer(Context context) {
-        Intent intent = new Intent("AudioPlayer");
-        intent.putExtra("action", "close");
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-    }
-    
-    /* (non-Javadoc)
-     * @see android.app.Activity#onOptionsMenuClosed(android.view.Menu)
-     */
-    @Override
-    public void onOptionsMenuClosed(Menu menu) {
-    	mAudioManager.playSoundEffect(Sounds.DISMISSED);
-        // assume the user wants to resume
-    	Intent intent = new Intent(this, AudioPlayer.class);
-        
-        Log.i(TAG, "last posit passed through to new player: " + lastPos);
-        intent.putExtra(EXTRA_LAST_PLAYER_POS, lastPos);
-        intent.putExtra(EXTRA_SELECTED_POS, cardPos);
-        intent.putExtra(EXTRA_SELECTED_ID, cardId);
-        startActivity(intent);
-        finish();
-    }
+		// get intent attributes to pass back to next activity
+		lastPos = getIntent().getIntExtra(EXTRA_LAST_PLAYER_POS, DEFAULT_POS);
+		cardPos = getIntent().getIntExtra(EXTRA_SELECTED_POS, DEFAULT_POS);
+		cardId = getIntent().getStringExtra(EXTRA_SELECTED_ID);
+
+		return true;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
+	 */
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// provide some audio feedback to the user
+		mAudioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
+
+		// Handle item selection.
+		switch (item.getItemId()) {
+		case R.id.resume_audio:
+			Log.i("TMM", "resume audio menu item selected");
+
+			// if the user just wants to resume, we go right back to the
+			// audioplayer
+			Intent intent = new Intent(this, AudioPlayer.class);
+			Log.i(TAG, "last posit passed through to new player: " + lastPos);
+
+			// pass relevant information back to the audioplayer activity
+			// through the intent
+			intent.putExtra(EXTRA_LAST_PLAYER_POS, lastPos);
+			intent.putExtra(EXTRA_SELECTED_POS, cardPos);
+			intent.putExtra(EXTRA_SELECTED_ID, cardId);
+
+			// start the audioplayer again
+			startActivity(intent);
+			return true;
+		case R.id.reset_audio:
+
+			// kill the current audio player
+			closeAudioPlayer(this);
+			intent = new Intent(this, AudioPlayer.class);
+
+			// reset = 0 ms resume position
+			intent.putExtra(EXTRA_LAST_PLAYER_POS, 0);
+			intent.putExtra(EXTRA_SELECTED_POS, cardPos);
+			intent.putExtra(EXTRA_SELECTED_ID, cardId);
+
+			// start the new audioplayer that has been reset
+			startActivity(intent);
+			return true;
+		case R.id.quit_audio:
+			// kill the current audio player
+			closeAudioPlayer(this);
+
+			// go back to the selectcardactivity so the user can choose another
+			// card
+			intent = new Intent(this, SelectCardActivity.class);
+			intent.putExtra(EXTRA_SELECTED_POS, cardPos);
+			intent.putExtra(EXTRA_SELECTED_ID, cardId);
+			setResult(RESULT_OK, intent);
+			startActivity(intent);
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+
+	/**
+	 * Close the audio player. Used when a new, reset audio player is going to
+	 * be used or the user has finished with the activity.
+	 * 
+	 * @param context
+	 *            The {@link Context} to close the audioplayer in.
+	 */
+	public static void closeAudioPlayer(Context context) {
+		Intent intent = new Intent("AudioPlayer");
+		intent.putExtra("action", "close");
+
+		// keep the broadcasted intent local, the whole system does not need to
+		// know abou this
+		LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onOptionsMenuClosed(android.view.Menu)
+	 */
+	@Override
+	public void onOptionsMenuClosed(Menu menu) {
+
+		// play the glass-specific dismissal sound.
+		mAudioManager.playSoundEffect(Sounds.DISMISSED);
+
+		// assume the user wants to resume
+		Intent intent = new Intent(this, AudioPlayer.class);
+		Log.i(TAG, "last posit passed through to new player: " + lastPos);
+		intent.putExtra(EXTRA_LAST_PLAYER_POS, lastPos);
+		intent.putExtra(EXTRA_SELECTED_POS, cardPos);
+		intent.putExtra(EXTRA_SELECTED_ID, cardId);
+		startActivity(intent);
+
+		// kill the Audio menu activity
+		finish();
+	}
 }
