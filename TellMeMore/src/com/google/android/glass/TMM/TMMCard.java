@@ -40,7 +40,7 @@ import java.io.Serializable;
  */
 public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 	
-	/** The Constant serialVersionUID. */
+	/** The Constant serialVersionUID. Used for serialization of this object. */
 	private static final long serialVersionUID = 2159979972374818761L;
 	
 	/** The Constant TEXT. */
@@ -65,12 +65,11 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 	/** The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.*/
 	private String title; 
 
-	//the DB id
-	/** The uuid. */
+	/** The database identifier of the card. */
 	private String uuid;
 	
-	/** The source. */
-	private Server source = new Server("NO SERVER ASSIGNED", "NO SERVER ASSIGNED", 0, 0);
+	/** The source, A {@link Server} object with info about where this card came from */
+	private Server source = new Server("NO SERVER ASSIGNED", "NO SERVER ASSIGNED", 0, 0); //initialized to a default placeholder object
 
 
 
@@ -79,10 +78,10 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 	/**
 	 * Instantiates a new TMM card.
 	 *
-	 * @param uuid the uuid
+	 * @param uuid The unique UUID of the card. This must be obtained from the DB that this card resides on. 
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param source the source
+	 * @param source Information about the {@link Server} that this audio card originated from.
 	 * @param type the type
 	 */
 	public TMMCard(String uuid, int priority, String cardTitle, Server source, String type){
@@ -102,7 +101,7 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 	 *
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param source the source
+	 * @param source Information about the {@link Server} that this audio card originated from.
 	 * @param type the type
 	 */
 	public TMMCard(int priority, String cardTitle, Server source, String type){
@@ -119,9 +118,9 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 
 
 	/**
-	 * Gets the uu id.
+	 * Gets the uuid of the card. This can be used to directly reference the card in the DB.
 	 *
-	 * @return the uu id
+	 * @return The unique UUID of the card. 
 	 */
 	public String getuuId() {
 		return uuid;
@@ -130,9 +129,9 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 
 
 	/**
-	 * Sets the uu id.
+	 * Sets the uuid of the card. This must be obtained from the DB that this card resides on. 
 	 *
-	 * @param id the new uu id
+	 * @param id The new UUID of the card. 
 	 */
 	public void setuuId(String id) {
 		this.uuid = id;
@@ -205,18 +204,18 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 	}
 
 	/**
-	 * Gets the source.
+	 * Gets the source of this card as a {@link Server} object. This object contains information about the server that this audio card originated from.
 	 *
-	 * @return the source
+	 * @return A {@link Server} object containing information about the source of this card.  
 	 */
 	public Server getSource() {
 		return source;
 	}
 
 	/**
-	 * Sets the source.
+	 * Sets the source object. This object contains information about the server that this audio card originated from.
 	 *
-	 * @param source the new source
+	 * @param source The new {@link Server} object to set as the card's source. 
 	 */
 	public void setSource(Server source) {
 		this.source = source;

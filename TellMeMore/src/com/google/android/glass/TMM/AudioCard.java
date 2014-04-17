@@ -39,9 +39,11 @@ import java.io.Serializable;
 
 /**
  * The Class AudioCard. This card contains information representing a single card in the TellMeMore app. 
- * This card is used to present context-relevant audio information to the user
+ * This card is used to present context-relevant audio information to the user, usually realted to what they 
+ * are learning about at that time. 
  *
  * @author atm011
+ * @version 1.0
  */
 public class AudioCard extends TMMCard implements Serializable{
 	
@@ -51,10 +53,10 @@ public class AudioCard extends TMMCard implements Serializable{
 	/** The Constant TAG. Used for the Android debug logger. */
 	public static final String TAG = "TMM" +", " + AudioCard.class.getSimpleName();
 
-	/** length of clip in milliseconds. */
+	/** The length of clip in milliseconds. Could be displayed to the user at a later date. */
 	private int lengthMillis;
 
-	/**number of times this clip has been played. */
+	/** The number of times this clip has been played. Could be retained by system for later use/analysis*/
 	private int numPlays;
 	
 	/** Information about the image to serve as the background */
@@ -70,73 +72,78 @@ public class AudioCard extends TMMCard implements Serializable{
 	 *
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param path the path
-	 * @param source the source
+	 * @param path The path to the audio file to play if the user chooses to interact with this card. The supported file formats are those supported by Android's class {@link MediaPlayer}
+	 * @param source Information about the {@link Server} that this audio card originated from.
 	 */
 	public AudioCard(int priority, String cardTitle, String path, Server source) {
 		super(priority, cardTitle, source, TMMCard.AUDIO);
 		
 		this.background_path = null;
 		this.audioClipPath = path;
+		
+		//set the clip filename automatically, to keep the name + path consistent
 		int charToWipe = audioClipPath.lastIndexOf('/');
 		setAudioClipName(audioClipPath.substring(charToWipe + 1));
 	}
 	
 	/**
-	 * Instantiates a new audio card.
+	 * Instantiates a new audio card without a specific audio source file.
 	 *
-	 * @param handle the handle
-	 * @param id the id
+	 * @param id The unique UUID of the card. This must be obtained from the DB that this card resides on. 
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param length the length
-	 * @param backgroundPath the background path
-	 * @param source the source
+	 * @param length The length of the audio clip in milliseconds. Could be used for the UI.  
+	 * @param backgroundPath The path of an image to use as the background to the audio player. If no background is specified the system defaults to a black background. 
+	 * @param source Information about the {@link Server} that this audio card originated from.
 	 */
 	public AudioCard(String id, int priority, String cardTitle, int length, String backgroundPath, Server source) {
 		super(id, priority, cardTitle, source,  TMMCard.AUDIO);
 		this.lengthMillis = length;
 		this.background_path = backgroundPath;
 		this.audioClipPath = null;
+		
+		//set the background filename automatically, to keep the name + path consistent
 		int charToWipe = background_path.lastIndexOf('/');
 		setBackground_name(background_path.substring(charToWipe + 1));
 	}
 	
 	/**
-	 * Instantiates a new audio card.
+	 * Instantiates a new audio card without a specific audio source file or a length of that file. 
 	 *
-	 * @param handle the handle
-	 * @param id the id
+	 * @param id The unique UUID of the card. This must be obtained from the DB that this card resides on. 
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param backgroundPath the background path
-	 * @param source the source
+	 * @param backgroundPath The path of an image to use as the background to the audio player. If no background is specified the system defaults to a black background.
+	 * @param source Information about the {@link Server} that this audio card originated from.
 	 */
 	public AudioCard(String id, int priority, String cardTitle, String backgroundPath, Server source) {
 		super(id, priority, cardTitle, source, TMMCard.AUDIO);
 		this.background_path = backgroundPath;
 		this.audioClipPath = null;
+		
+		//set the background filename automatically, to keep the name + path consistent
 		int charToWipe = background_path.lastIndexOf('/');
 		setBackground_name(background_path.substring(charToWipe + 1));
 	}
 	
 	/**
-	 * Instantiates a new audio card.
+	 * Instantiates a new audio card using the most commonly available attributes.
 	 *
-	 * @param handle the handle
-	 * @param id the id
+	 * @param id The unique UUID of the card. This must be obtained from the DB that this card resides on. 
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param length the length
-	 * @param backgroundPath the background path
-	 * @param contentPath the content path
-	 * @param source the source
+	 * @param length The length of the audio clip in milliseconds. Could be used for the UI. 
+	 * @param backgroundPath The path of an image to use as the background to the audio player. If no background is specified the system defaults to a black background.
+	 * @param contentPath The path to the audio file to play if the user chooses to interact with this card. The supported file formats are those supported by Android's class {@link MediaPlayer}
+	 * @param source Information about the {@link Server} that this audio card originated from.
 	 */
 	public AudioCard(String id, int priority, String cardTitle, int length, String backgroundPath, String contentPath, Server source) {
 		super(id, priority, cardTitle, source, TMMCard.AUDIO);
 		this.lengthMillis = length;
 		this.background_path = backgroundPath;
 		this.audioClipPath = contentPath;
+		
+		//set filenames automatically from pathnames, to maintain consistency
 		int charToWipe = audioClipPath.lastIndexOf('/');
 		setAudioClipName(audioClipPath.substring(charToWipe + 1));
 		charToWipe = background_path.lastIndexOf('/');
@@ -146,18 +153,19 @@ public class AudioCard extends TMMCard implements Serializable{
 	/**
 	 * Instantiates a new audio card.
 	 *
-	 * @param handle the handle
-	 * @param id the id
+	 * @param id The unique UUID of the card. This must be obtained from the DB that this card resides on. 
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param backgroundPath the background path
-	 * @param contentPath the content path
-	 * @param source the source
+	 * @param backgroundPath The path of an image to use as the background to the audio player. If no background is specified the system defaults to a black background.
+	 * @param contentPath The path to the audio file to play if the user chooses to interact with this card. The supported file formats are those supported by Android's class {@link MediaPlayer}
+	 * @param source Information about the {@link Server} that this audio card originated from.
 	 */
 	public AudioCard(String id, int priority, String cardTitle, String backgroundPath, String contentPath, Server source) {
 		super(id, priority, cardTitle, source, TMMCard.AUDIO);
 		this.background_path = backgroundPath;
 		this.audioClipPath = contentPath;
+		
+		//set filenames automatically from pathnames, to maintain consistency
 		int charToWipe = audioClipPath.lastIndexOf('/');
 		setAudioClipName(audioClipPath.substring(charToWipe + 1));
 		charToWipe = background_path.lastIndexOf('/');
@@ -165,36 +173,36 @@ public class AudioCard extends TMMCard implements Serializable{
 	}
 
 	/**
-	 * Gets the num plays.
+	 * Gets the number of times that this clip has been played. 
 	 *
-	 * @return the num plays
+	 * @return The number of times that this clip has been played, as referenced by this card object.
 	 */
 	public int getNumPlays() {
 		return numPlays;
 	}
 
 	/**
-	 * Sets the num plays.
+	 * Sets the number of times that this clip has been played for this Audiocard object. 
 	 *
-	 * @param numPlays the new num plays
+	 * @param numPlays The new number of times that this clip has been played. 
 	 */
 	public void setNumPlays(int numPlays) {
 		this.numPlays = numPlays;
 	}
 
 	/**
-	 * Gets the length millis.
+	 * Gets the length of the audio clip in milliseconds. Could be used for the UI. 
 	 *
-	 * @return the length millis
+	 * @return The length of the audio clip in milliseconds.
 	 */
 	public int getLengthMillis() {
 		return lengthMillis;
 	}
 	
 	/**
-	 * Checks for background.
+	 * Checks if this AudioCard contains a background image to be displayed to the user. 
 	 *
-	 * @return true, if successful
+	 * @return true, if there is a non-null background image to be displayed to the user. 
 	 */
 	public boolean hasBackground(){
 		if(background_path == null || background_path.equalsIgnoreCase("")){
@@ -203,9 +211,9 @@ public class AudioCard extends TMMCard implements Serializable{
 	}
 	
 	/**
-	 * Checks for audio.
+	 * Checks if this AudioCard contains an audioclip that the user can listen to/interact with. 
 	 *
-	 * @return true, if successful
+	 * @return true, if there is a non-null audio clip contained by this card. 
 	 */
 	public boolean hasAudio(){
 		if(audioClipPath == null || audioClipPath.equalsIgnoreCase("")){
@@ -214,86 +222,89 @@ public class AudioCard extends TMMCard implements Serializable{
 	}
 
 	/**
-	 * Sets the length millis.
+	 * Sets the length of the audioclip contained in this card. 
 	 *
-	 * @param lengthMillis the new length millis
+	 * @param lengthMillis The new length of the clip (in milliseconds) to be set. 
 	 */
 	public void setLengthMillis(int lengthMillis) {
 		this.lengthMillis = lengthMillis;
 	}
 
 	/**
-	 * Gets the background path.
+	 * Gets the background image path, if it exists.
 	 *
-	 * @return the background path
+	 * @return A string contain the filesystem path to the background image if it exists. 
 	 */
 	public String getBackgroundPath() {
 		return background_path;
 	}
 
 	/**
-	 * Sets the background path.
+	 * Sets the path to the background image for this card. 
 	 *
 	 * @param backgroundPath the new background path
 	 */
 	public void setBackgroundPath(String backgroundPath) {
 		this.background_path = backgroundPath;
 		
+		//set the background file name automatically from the path - this will keep things consistent
 		int charToWipe = background_path.lastIndexOf('/');
 		setBackground_name(background_path.substring(charToWipe + 1));
 	}
 
 	/**
-	 * Gets the audio clip path.
+	 * Gets the audio clip path of the target file to play.
 	 *
-	 * @return the audio clip path
+	 * @return The path to the audio file to play if the user chooses to interact with this card. The supported file formats are those supported by Android's class {@link MediaPlayer}
 	 */
 	public String getAudioClipPath() {
 		return audioClipPath;
 	}
 
 	/**
-	 * Sets the audio clip.
+	 * Sets the path to the audio file to play when the user interacts with this card. 
 	 *
-	 * @param audioClipPath the new audio clip
+	 * @param audioClipPath The path of the new audio file to associate with this card. 
 	 */
 	public void setAudioClip(String audioClipPath) {
 		this.audioClipPath = audioClipPath;
+		
+		//set the audio clip file name automatically from the path - this will keep things consistent
 		int charToWipe = audioClipPath.lastIndexOf('/');
 		setAudioClipName(audioClipPath.substring(charToWipe + 1));
 	}
 
 	/**
-	 * Gets the audio clip name.
+	 * Gets the name of the audio file to play when the user interacts with this card. 
 	 *
-	 * @return the audio clip name
+	 * @return The path of the audio file associated with this card. 
 	 */
 	public String getAudioClipName() {
 		return audioClipName;
 	}
 
 	/**
-	 * Sets the audio clip name.
+	 * Sets the audio clip name. Users should not call this method directly to maintain consistency between the audio clip path and its filename. 
 	 *
-	 * @param audioClipName the new audio clip name
+	 * @param audioClipName The name of the audio clip to set.
 	 */
 	private void setAudioClipName(String audioClipName) {
 		this.audioClipName = audioClipName;
 	}
 
 	/**
-	 * Gets the background_name.
+	 * Gets the name of the image file used for the background of the audio player.
 	 *
-	 * @return the background_name
+	 * @return The name of the background image file. 
 	 */
 	public String getBackground_name() {
 		return background_name;
 	}
 
 	/**
-	 * Sets the background_name.
+	 * Sets the background_name. Users should not call this method directly to maintain consistency between the background image path and its filename. 
 	 *
-	 * @param background_name the new background_name
+	 * @param background_name The new name of the background image file to set.
 	 */
 	private void setBackground_name(String background_name) {
 		this.background_name = background_name;

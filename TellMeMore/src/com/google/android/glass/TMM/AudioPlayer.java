@@ -93,7 +93,7 @@ public class AudioPlayer extends Activity{
 	
 	/** The Constant DEFAULT_ID. */
 	private static final String DEFAULT_ID = "null";
-	//private myListener mlistener;
+	
 	/** The card pos. */
 	private int cardPos;
 	

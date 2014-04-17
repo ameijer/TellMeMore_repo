@@ -43,7 +43,7 @@ import java.util.ArrayList;
  */
 public class TextCard extends TMMCard implements Serializable{
 	
-	/** The Constant serialVersionUID. */
+	/** The Constant serialVersionUID. Used for serialization of this object. */
 	private static final long serialVersionUID = -4719812627361504202L;
 	
 	/** The Constant TAG. Used for the Android debug logger. */

@@ -41,7 +41,7 @@ import java.io.Serializable;
  */
 public class Server implements Serializable{
 
-	/** The Constant serialVersionUID. */
+	/** The Constant serialVersionUID. Used for serialization of this object. */
 	private static final long serialVersionUID = -5012970894877388655L;
 	
 	/** The name. */

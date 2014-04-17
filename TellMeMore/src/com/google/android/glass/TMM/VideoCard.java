@@ -40,7 +40,7 @@ import java.io.Serializable;
  */
 public class VideoCard extends TMMCard implements Serializable{
 
-	/** The Constant serialVersionUID. */
+	/** The Constant serialVersionUID. Used for serialization of this object. */
 	private static final long serialVersionUID = 6169847664604436124L;
 
 	/** The Constant TAG. Used for the Android debug logger. */

@@ -44,7 +44,7 @@ import android.os.Parcelable;
  */
 public class TextElement implements Serializable{
 	
-	/** The Constant serialVersionUID. */
+	/** The Constant serialVersionUID. Used for serialization of this object. */
 	private static final long serialVersionUID = 3730074042585803658L;
 
 	/**
