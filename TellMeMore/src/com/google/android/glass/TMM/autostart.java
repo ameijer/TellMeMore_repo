@@ -37,20 +37,23 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class autostart.
+ * The Class autostart. This class runs on startup, and starts the main
+ * application service, which displays a tooltip to the user of the glass to
+ * invite them to use the app. This can be disabled from it's menu
  */
-public class autostart extends BroadcastReceiver 
-{
-    
-    /* (non-Javadoc)
-     * @see android.content.BroadcastReceiver#onReceive(android.content.Context, android.content.Intent)
-     */
-    public void onReceive(Context arg0, Intent arg1) 
-    {
-        Intent intent = new Intent(arg0,TMMService.class);
-        arg0.startService(intent);
-        Log.i("TMM", "auto-started");
-    }
+public class autostart extends BroadcastReceiver {
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see android.content.BroadcastReceiver#onReceive(android.content.Context,
+	 * android.content.Intent)
+	 */
+	public void onReceive(Context arg0, Intent arg1) {
+		// Start the TMMService class which launches the tooltip
+		Intent intent = new Intent(arg0, TMMService.class);
+		arg0.startService(intent);
+		Log.i("TMM", "auto-started");
+	}
 }
