@@ -6,7 +6,6 @@
 package com.google.android.glass.TMM;
 
 import java.io.IOException;
-import java.util.List;
 
 import android.util.Log;
 import android.view.SurfaceView;

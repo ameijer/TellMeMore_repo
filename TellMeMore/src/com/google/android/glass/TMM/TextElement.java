@@ -33,124 +33,154 @@
 package com.google.android.glass.TMM;
 
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
-// TODO: Auto-generated Javadoc
 /**
- * The Class TextElement.
+ * The Class TextElement. This is used for holding the contents of a text card.
+ * This class can either contain a picture and a caption or only text.
  */
-public class TextElement implements Serializable{
-	
+public class TextElement implements Serializable {
+
 	/** The Constant serialVersionUID. Used for serialization of this object. */
 	private static final long serialVersionUID = 3730074042585803658L;
 
 	/**
-	 * The Enum Type.
+	 * The Enum Type. Used to indicate if the textelement contains text or
+	 * visual content (images)
 	 */
 	public enum Type {
-		
-		/** The text. */
-		TEXT_, 
- /** The image. */
- IMAGE;
+
+		/** The text enum vale. */
+		TEXT_,
+		/** The image enum value. */
+		IMAGE;
 	}
 
-	/** The type. */
+	/** The Type of the textelement, either Type.IMAGE or Type.TEXT. */
 	private Type type;
-	
-	/** The img filename. */
-	private String text, imgFilename;
-	
-	/** The img_path. */
-	private String img_path;
-	
-	/** The img size. */
-	private int imgSize;
 
 	/**
-	 * Instantiates a new text element.
-	 *
-	 * @param type the type
-	 * @param text the text
+	 * The text contained in this text element. This is either a caption to an
+	 * image or the element content itself.
 	 */
-	public TextElement(Type type, String text){
+	private String text;
+
+	/**
+	 * If this textelement contains an image, this is the name of it, including
+	 * the extension.
+	 */
+	private String imgFilename;
+
+	/**
+	 * If this textelement contains an image, this is the path of that image
+	 * used to retrieve and display that image.
+	 */
+	private String img_path;
+
+	/**
+	 * Instantiates a new text element, without an image path.
+	 * 
+	 * @param type
+	 *            Either IMAGE or TEXT, depending on the desired content of the
+	 *            element.
+	 * @param text
+	 *            The text to be used in the card, either as a picture caption
+	 *            or the content itself.
+	 */
+	public TextElement(Type type, String text) {
 		this.setType(type);
 		this.setText(text);
-		imgSize = 0;
 	}
 
 	/**
-	 * Instantiates a new text element.
-	 *
-	 * @param type the type
-	 * @param caption the caption
-	 * @param img the img
+	 * Instantiates a new text element with an image path.
+	 * 
+	 * @param type
+	 *            Either IMAGE or TEXT, depending on the desired content of the
+	 *            element.
+	 * @param caption
+	 *            The text to be used in the caption of the picture pointed to
+	 *            for this element.
+	 * @param img
+	 *            The path of the image to serve as the source image for this
+	 *            textelement.
 	 */
-	public TextElement(Type type, String caption, String img){
+	public TextElement(Type type, String caption, String img) {
 		this.setType(type);
 		this.setText(caption);
 		img_path = img;
+
+		// set the filename of the image automatically, to keep the name and
+		// path consistent
 		int charToWipe = img_path.lastIndexOf('/');
 		setImgFilename(img_path.substring(charToWipe + 1));
 
 	}
 
 	/**
-	 * Gets the img.
-	 *
-	 * @return the img
+	 * Gets the path of the image contained in this textelement, if there is a
+	 * corresponding image.
+	 * 
+	 * @return The string containing the path of the source image for this
+	 *         element.
 	 */
 	public String getImg() {
 		return img_path;
 	}
 
 	/**
-	 * Sets the img.
-	 *
-	 * @param img the new img
+	 * Sets the image path of the source image for this element.
+	 * 
+	 * @param img
+	 *            The the path of the new image to set in the texetelement.
 	 */
 	public void setImg(String img) {
 		this.img_path = img;
+
+		// set the filename of the image automatically, to keep the name and
+		// path consistent
 		int charToWipe = img_path.lastIndexOf('/');
 		setImgFilename(img_path.substring(charToWipe + 1));
 	}
 
 	/**
-	 * Gets the text.
-	 *
-	 * @return the text
+	 * Gets the text contained in this textelement. This could be either a
+	 * picture caption or the full content of this textelement.
+	 * 
+	 * @return The string containing the relevent text for this textelement.
 	 */
 	public String getText() {
 		return text;
 	}
 
 	/**
-	 * Sets the text.
-	 *
-	 * @param text the new text
+	 * Sets the text contained in the textelement.This could be either a picture
+	 * caption or the full content of this textelement.
+	 * 
+	 * @param text
+	 *            The string of new text to set as the content of the
+	 *            textelement.
 	 */
 	public void setText(String text) {
 		this.text = text;
 	}
 
 	/**
-	 * Gets the type.
-	 *
-	 * @return the type
+	 * Gets the type of this textelement, either IMAGE or TEXT.
+	 * 
+	 * @return The {@link Type} of the textelement.
 	 */
 	public Type getType() {
 		return type;
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
-	public String toString(){
-		if(type == Type.IMAGE){
+	public String toString() {
+		if (type == Type.IMAGE) {
 			return "Image, with caption: " + text;
 		} else {
 			return "Text block, contents: " + text;
@@ -158,27 +188,31 @@ public class TextElement implements Serializable{
 	}
 
 	/**
-	 * Sets the type.
-	 *
-	 * @param type the new type
+	 * Sets the Type of this textelement, either IMAGE or TEXT.
+	 * 
+	 * @param type
+	 *            The type of this textelement to set.
 	 */
 	public void setType(Type type) {
 		this.type = type;
 	}
 
 	/**
-	 * Gets the img filename.
-	 *
-	 * @return the img filename
+	 * Gets the filename of the image contained in this textelement, if one
+	 * exists.
+	 * 
+	 * @return The name of the image file being used by this textelement.
 	 */
 	public String getImgFilename() {
 		return imgFilename;
 	}
 
 	/**
-	 * Sets the img filename.
-	 *
-	 * @param imgFilename the new img filename
+	 * Sets the img filename. Should not be called by users directly to preserve
+	 * consistency
+	 * 
+	 * @param imgFilename
+	 *            The new image filename to set.
 	 */
 	private void setImgFilename(String imgFilename) {
 		this.imgFilename = imgFilename;

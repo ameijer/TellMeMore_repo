@@ -34,32 +34,30 @@ package com.google.android.glass.TMM;
 
 import java.io.Serializable;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class TMMCard.
+ * The Class TMMCard. This abstract class must be extended by all types of cards used in this application. It contains the minimum amount of interaction required for a card to function in the application.
  */
 public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 	
 	/** The Constant serialVersionUID. Used for serialization of this object. */
 	private static final long serialVersionUID = 2159979972374818761L;
 	
-	/** The Constant TEXT. */
+	/** The Constant TEXT. Used for the JSON parsing of cards. */
 	public static final String TEXT = "TEXT";
 	
-	/** The Constant AUDIO. */
+	/** The Constant AUDIO. Used for the JSON parsing of cards. */
 	public static final String AUDIO = "AUDIO";
 	
-	/** The Constant VIDEO. */
+	/** The Constant VIDEO. Used for the JSON parsing of cards.*/
 	public static final String VIDEO = "VIDEO";
 	
-	/** The jsontype. */
+	/** The specific type of the card, required when recreating card objects from JSON in HTTP responses. Can take 1 of 3 values: TEXT, AUDIO, and VIDEO. */
 	final private String jsontype;
 
 	/** The Constant TAG. Used in the debug Logger*/
 	public static final String TAG = "TMM" +", " + TMMCard.class.getSimpleName();
 
-	//lets us sort the cards in the scroll view by priority
-	/** The priority. */
+	/** The priority of the card. This allows the user to order the cards in the list used to select the card of interest. */
 	private int priority;
 
 	/** The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.*/
@@ -73,16 +71,14 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 
 
 
-
-	//only for use when creating card from DB
 	/**
-	 * Instantiates a new TMM card.
+	 * Instantiates a new TMM card if the UUID is known used when creating cards from DB query results.
 	 *
 	 * @param uuid The unique UUID of the card. This must be obtained from the DB that this card resides on. 
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
 	 * @param source Information about the {@link Server} that this audio card originated from.
-	 * @param type the type
+	 * @param type The type of the card, either AUDIO, VIDEO, or TEXT
 	 */
 	public TMMCard(String uuid, int priority, String cardTitle, Server source, String type){
 		this.uuid=uuid;
@@ -95,14 +91,13 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 		}
 	}
 
-	//only for use when creating card from DB
 	/**
-	 * Instantiates a new TMM card.
+	 * Instantiates a new TMM card, without setting the UUID of the card. Used when new card objects are created from scratch.
 	 *
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
 	 * @param source Information about the {@link Server} that this audio card originated from.
-	 * @param type the type
+	 * @param type The type of the card, either AUDIO, VIDEO, or TEXT
 	 */
 	public TMMCard(int priority, String cardTitle, Server source, String type){
 		this.uuid= "";
@@ -120,7 +115,7 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 	/**
 	 * Gets the uuid of the card. This can be used to directly reference the card in the DB.
 	 *
-	 * @return The unique UUID of the card. 
+	 * @return The String UUID of the card. 
 	 */
 	public String getuuId() {
 		return uuid;
@@ -140,7 +135,7 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 
 
 	/**
-	 * Gets the priority.
+	 * Gets the priority of the card.
 	 *
 	 * @return The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (postion 0)
 	 */
@@ -153,7 +148,7 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 	/**
 	 * Sets the priority. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (postion 0)
 	 *
-	 * @param priority the new priority
+	 * @param priority The new priority of the card. 
 	 */
 	public void setPriority(int priority) {
 		this.priority = priority;
@@ -162,7 +157,7 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 
 
 	/**
-	 * Gets the title.
+	 * Gets the card's title.
 	 *
 	 * @return The card's title.
 	 */
@@ -175,7 +170,7 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 	/**
 	 * Sets the title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
 	 *
-	 * @param title The card's title.
+	 * @param title The card's new title.
 	 */
 	public void setTitle(String title) {
 		this.title = title;
@@ -208,6 +203,7 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 	 *
 	 * @return A {@link Server} object containing information about the source of this card.  
 	 */
+	
 	public Server getSource() {
 		return source;
 	}
@@ -222,9 +218,9 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 	}
 
 	/**
-	 * Gets the jsontype.
+	 * Gets the JSON type of this card. Used in the translation of this card to/from JSON. 
 	 *
-	 * @return the jsontype
+	 * @return THe type of this card - either TEXT, AUDIO, or VIDEO.
 	 */
 	public String getJsontype() {
 		return jsontype;

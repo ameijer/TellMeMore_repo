@@ -15,14 +15,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 
-import com.couchbase.lite.AsyncTask;
-import com.couchbase.lite.Database;
-import com.couchbase.lite.replicator.Replication;
-import com.couchbase.lite.util.Log;
 
 public class AndroidNetworkReachabilityManager extends NetworkReachabilityManager {
 
-    private Context context;
     private boolean listening;
     private android.content.Context wrappedContext;
     private ConnectivityBroadcastReceiver receiver;
@@ -46,7 +41,6 @@ public class AndroidNetworkReachabilityManager extends NetworkReachabilityManage
     }
 
     public AndroidNetworkReachabilityManager(AndroidContext context) {
-        this.context = context;
         this.wrappedContext = context.getWrappedContext();
         this.receiver = new ConnectivityBroadcastReceiver();
         this.state = State.UNKNOWN;
@@ -65,7 +59,6 @@ public class AndroidNetworkReachabilityManager extends NetworkReachabilityManage
     public synchronized void stopListening() {
         if (listening) {
             wrappedContext.unregisterReceiver(receiver);
-            context = null;
             listening = false;
         }
     }
