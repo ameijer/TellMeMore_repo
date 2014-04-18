@@ -37,9 +37,14 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class TextCard.
+ * The Class TextCard. This card contains information representing a single
+ * card in the TellMeMore app. This card is used to present context-relevant
+ * textual/image information to the user, usually related to what they are learning
+ * about at that time.
+ * 
+ * @author atm011
+ * @version 1.0
  */
 public class TextCard extends TMMCard implements Serializable{
 	

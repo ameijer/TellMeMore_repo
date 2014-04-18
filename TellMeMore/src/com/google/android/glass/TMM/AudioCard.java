@@ -38,7 +38,7 @@ import java.io.Serializable;
 /**
  * The Class AudioCard. This card contains information representing a single
  * card in the TellMeMore app. This card is used to present context-relevant
- * audio information to the user, usually realted to what they are learning
+ * audio information to the user, usually related to what they are learning
  * about at that time.
  * 
  * @author atm011

@@ -34,9 +34,14 @@ package com.google.android.glass.TMM;
 
 import java.io.Serializable;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class VideoCard.
+ * The Class VideoCard. This card contains information representing a single
+ * card in the TellMeMore app. This card is used to present context-relevant
+ * video information to the user, usually related to what they are learning
+ * about at that time.
+ * 
+ * @author atm011
+ * @version 1.0
  */
 public class VideoCard extends TMMCard implements Serializable{
 
@@ -46,24 +51,26 @@ public class VideoCard extends TMMCard implements Serializable{
 	/** The Constant TAG. Used for the Android debug logger. */
 	public static final String TAG = "TMM" +", " + VideoCard.class.getSimpleName();
 
-	/** The screnshotname. */
-	private String screenshot_path, screnshotname;
+	/** The path of the image to be used as the video screenshot for this card. */
+	private String screenshot_path;
+	
+	/** The name of the screenshot image associated with the VideoCard */
+	private String screnshotname;
 
-	/** The play count. */
+	/** The play count of the video. This could be retrieved from youtube, or could be a local counter. */
 	private int playCount;
 	
-	/** The Y ttag. */
+	/** The YouTube video tag serving as the source of the video in this card. */
 	private String YTtag; 
 
 
 
 	/**
-	 * Instantiates a new video card.
+	 * Instantiates a new video card, with no source video or screenshot.
 	 *
-	 * @param handle the handle
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param source the source
+	 * @param source  Information about the {@link Server} that this audio card originated from.
 	 */
 	public VideoCard(int priority, String cardTitle, Server source) {
 		super(priority, cardTitle, source, TMMCard.VIDEO);
@@ -71,13 +78,12 @@ public class VideoCard extends TMMCard implements Serializable{
 	}
 
 	/**
-	 * Instantiates a new video card.
+	 * Instantiates a new video card, with a specific video ID tag but no screenshot.
 	 *
-	 * @param handle the handle
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param ytId the yt id
-	 * @param source the source
+	 * @param ytId The youtube ID tag of the video to play. Found at the end of the video URL.
+	 * @param source Information about the {@link Server} that this audio card originated from.
 	 */
 	public VideoCard(int priority, String cardTitle, String ytId, Server source) {
 		super(priority, cardTitle, source, TMMCard.VIDEO);
@@ -88,16 +94,17 @@ public class VideoCard extends TMMCard implements Serializable{
 	/**
 	 * Instantiates a new video card.
 	 *
-	 * @param handle the handle
-	 * @param id the id
+	 * @param id The unique UUID of the card. This must be obtained from the DB that this card resides on.
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param ss_path the ss_path
-	 * @param source the source
+	 * @param ss_path The path to the screenshot image for this video card. 
+	 * @param source Information about the {@link Server} that this audio card originated from.
 	 */
 	public VideoCard(String id, int priority, String cardTitle, String ss_path, Server source) {
 		super(id, priority, cardTitle, source, TMMCard.VIDEO);
 		screenshot_path = ss_path;
+		
+		//set the screenshot name automatically from the path to maintain consistency between the two
 		int charToWipe = screenshot_path.lastIndexOf('/');
 		setScrenshotname(screenshot_path.substring(charToWipe + 1));
 
@@ -106,18 +113,19 @@ public class VideoCard extends TMMCard implements Serializable{
 	/**
 	 * Instantiates a new video card.
 	 *
-	 * @param handle the handle
-	 * @param id the id
+	 * @param id The unique UUID of the card. This must be obtained from the DB that this card resides on.
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param ss_path the ss_path
-	 * @param playcount the playcount
-	 * @param source the source
+	 * @param ss_path The path to the screenshot image for this video card. 
+	 * @param playcount The playcount of the video, obtained either via the API or an application-specific counter
+	 * @param source Information about the {@link Server} that this audio card originated from.
 	 */
 	public VideoCard(String id, int priority, String cardTitle, String ss_path, int playcount, Server source) {
 		super(id, priority, cardTitle, source, TMMCard.VIDEO);
 		this.screenshot_path = ss_path;
 		this.playCount = playcount;
+		
+		//set the screenshot name automatically from the path to maintain consistency between the two
 		int charToWipe = screenshot_path.lastIndexOf('/');
 		setScrenshotname(screenshot_path.substring(charToWipe + 1));
 
@@ -127,18 +135,19 @@ public class VideoCard extends TMMCard implements Serializable{
 	/**
 	 * Instantiates a new video card.
 	 *
-	 * @param handle the handle
-	 * @param id the id
+	 * @param id The unique UUID of the card. This must be obtained from the DB that this card resides on.
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param ss_path the ss_path
-	 * @param youTubeTag the you tube tag
-	 * @param source the source
+	 * @param ss_path The path to the screenshot image for this video card. 
+	 * @param youTubeTag The youtube ID tag of the video to play. Found at the end of the video URL.
+	 * @param source Information about the {@link Server} that this audio card originated from.
 	 */
 	public VideoCard(String id, int priority, String cardTitle, String ss_path, String youTubeTag, Server source) {
 		super(id, priority, cardTitle, source, TMMCard.VIDEO);
 		this.screenshot_path = ss_path;
 		this.setYTtag(youTubeTag);
+		
+		//set the screenshot name automatically from the path to maintain consistency between the two
 		int charToWipe = screenshot_path.lastIndexOf('/');
 		setScrenshotname(screenshot_path.substring(charToWipe + 1));
 
@@ -147,20 +156,21 @@ public class VideoCard extends TMMCard implements Serializable{
 	/**
 	 * Instantiates a new video card.
 	 *
-	 * @param handle the handle
-	 * @param id the id
+	 * @param id The unique UUID of the card. This must be obtained from the DB that this card resides on.
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param ss_path the ss_path
-	 * @param playcount the playcount
-	 * @param youTubeTag the you tube tag
-	 * @param source the source
+	 * @param ss_path The path to the screenshot image for this video card. 
+	 * @param playcount The playcount of the video, obtained either via the API or an application-specific counter
+	 * @param youTubeTag The youtube ID tag of the video to play. Found at the end of the video URL.
+	 * @param source Information about the {@link Server} that this audio card originated from.
 	 */
 	public VideoCard(String id, int priority, String cardTitle, String ss_path, int playcount, String youTubeTag, Server source) {
 		super(id, priority, cardTitle, source, TMMCard.VIDEO);
 		screenshot_path = ss_path;
 		this.playCount = playcount;
 		this.setYTtag(youTubeTag);
+		
+		//set the screenshot name automatically from the path to maintain consistency between the two
 		int charToWipe = screenshot_path.lastIndexOf('/');
 		setScrenshotname(screenshot_path.substring(charToWipe + 1));
 
@@ -169,13 +179,12 @@ public class VideoCard extends TMMCard implements Serializable{
 	/**
 	 * Instantiates a new video card.
 	 *
-	 * @param handle the handle
-	 * @param id the id
+	 * @param id The unique UUID of the card. This must be obtained from the DB that this card resides on.
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param playcount the playcount
-	 * @param youTubeTag the you tube tag
-	 * @param source the source
+	 * @param playcount The playcount of the video, obtained either via the API or an application-specific counter
+	 * @param youTubeTag The youtube ID tag of the video to play. Found at the end of the video URL.
+	 * @param source Information about the {@link Server} that this audio card originated from.
 	 */
 	public VideoCard(String id, int priority, String cardTitle, int playcount, String youTubeTag, Server source) {
 		super(id, priority, cardTitle, source, TMMCard.VIDEO);
@@ -186,65 +195,67 @@ public class VideoCard extends TMMCard implements Serializable{
 	
 
 	/**
-	 * Gets the screenshot path.
+	 * Gets the path of the screenshot image for the VideoCard.
 	 *
-	 * @return the screenshot path
+	 * @return The path of the screenshot image. 
 	 */
 	public String getScreenshotPath() {
 		return screenshot_path;
 	}
 
 	/**
-	 * Sets the screenshot.
+	 * Sets the path of the screenshot image for the card. 
 	 *
-	 * @param screenshotPath the new screenshot
+	 * @param screenshotPath The path of the new screenshot image to set.
 	 */
 	public void setScreenshot(String screenshotPath) {
 		this.screenshot_path = screenshotPath;
+		
+		//set the screenshot name automatically from the path to maintain consistency between the two
 		int charToWipe = screenshot_path.lastIndexOf('/');
 		setScrenshotname(screenshot_path.substring(charToWipe + 1));
 	}
 
 	/**
-	 * Gets the play count.
+	 * Gets the play count of the video contained in the card.
 	 *
-	 * @return the play count
+	 * @return The number of times the video on this card has been played.
 	 */
 	public int getPlayCount() {
 		return playCount;
 	}
 
 	/**
-	 * Sets the play count.
+	 * Sets the play count of the video contained in the card.
 	 *
-	 * @param playCount the new play count
+	 * @param playCount The number to set the new play counter to. 
 	 */
 	public void setPlayCount(int playCount) {
 		this.playCount = playCount;
 	}
 
 	/**
-	 * Gets the y ttag.
+	 * Gets the youtube ID tag of the video to play.
 	 *
-	 * @return the y ttag
+	 * @return The youtube ID tag of the video to play.
 	 */
 	public String getYTtag() {
 		return YTtag;
 	}
 
 	/**
-	 * Sets the y ttag.
+	 * Sets the youtube ID tag of the video contained in the card. 
 	 *
-	 * @param yTtag the new y ttag
+	 * @param yTtag The new Youtube tag to set for the VideoCard. 
 	 */
 	public void setYTtag(String yTtag) {
 		YTtag = yTtag;
 	}
 	
 	/**
-	 * Checks for screenshot.
+	 * Checks for the existence of a screenshot contained within this card. 
 	 *
-	 * @return true, if successful
+	 * @return true, if there is a screenshot for the video contained in the card. 
 	 */
 	public boolean hasScreenshot(){
 		if(screenshot_path == null || screenshot_path.equalsIgnoreCase("")){
@@ -253,18 +264,18 @@ public class VideoCard extends TMMCard implements Serializable{
 	}
 
 	/**
-	 * Gets the screnshotname.
+	 * Gets the filename of the screenshot image. 
 	 *
-	 * @return the screnshotname
+	 * @return The name of the screenshot image file. 
 	 */
 	public String getScrenshotname() {
 		return screnshotname;
 	}
 
 	/**
-	 * Sets the screnshotname.
+	 * Sets the filename of the screenshot image. Users should not access this method directly to maintain consistency between the pathname and the filename. 
 	 *
-	 * @param screnshotname the new screnshotname
+	 * @param screnshotname The new name of the screenshot image file. 
 	 */
 	private void setScrenshotname(String screnshotname) {
 		this.screnshotname = screnshotname;
