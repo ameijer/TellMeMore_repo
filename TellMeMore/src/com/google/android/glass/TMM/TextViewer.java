@@ -57,26 +57,37 @@ import com.google.android.glass.touchpad.Gesture;
 import com.google.android.glass.touchpad.GestureDetector;
 
 
-// TODO: Auto-generated Javadoc
-/**
- * The Class TextViewer.
- */
+
 @SuppressLint("ResourceAsColor")
+/**
+ * The Class TextViewer. This is an activity that is started in response to a
+ * user selecting a text card from the list presented by the app. It handles
+ * the rendering of text and graphics and deals with user input for the textviewer.
+ */
 public class TextViewer extends Activity{
 	
 	/** The Constant TAG. Used for the Android debug logger. */
 	public static final String TAG = "TMM" +", " + TextViewer.class.getSimpleName();
 	
-	/** The m gesture detector. */
+	/** The geturedetector for this activity, used to handle user input during the time that this activity is in focus. */
 	private GestureDetector mGestureDetector;
 	
-	/** The Constant EXTRA_SELECTED_POS. */
+	/**
+	 * The Constant EXTRA_SELECTED_POS. This is used for intent extra passing.
+	 * Designed to map to the position of the selected card from the
+	 * {@link SelectCardActivity} so that when the user returns to it, the card
+	 * they just tapped on is in focus.
+	 */
 	public static final String EXTRA_SELECTED_POS = "selected_pos";
 	
-	/** The Constant EXTRA_SELECTED_ID. */
+	/**
+	 * The Constant EXTRA_SELECTED_ID. This is used for intent extra passing.
+	 * This maps to the String UUID of the card so that each activity my access
+	 * it from the DB directly
+	 */
 	public static final String EXTRA_SELECTED_ID = "selected_id";
 	
-	/** The Constant EXTRA_REQUESTED_NARRATION. */
+	/** The Constant EXTRA_REQUESTED_NARRATION. Used to retrieve a narration request from the menu intent. */
 	public static final String EXTRA_REQUESTED_NARRATION = "narration_requested";
 	
 	/** The Constant DEFAULT_NARR. */

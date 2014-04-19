@@ -18,12 +18,7 @@
 
 package com.google.android.glass.TMM;
 
-
-
-
 import com.google.android.glass.timeline.LiveCard;
-
-
 
 import android.app.PendingIntent;
 import android.app.Service;
@@ -38,53 +33,50 @@ import android.util.Log;
 
 import android.widget.RemoteViews;
 
-// TODO: Auto-generated Javadoc
 /**
- * Service owning the LiveCard living in the timeline.
+ * Service owning the LiveCard living in the timeline. The card contains a
+ * tooltip explaining to the user how to activate the raminder of the app.
  */
 public class TMMService extends Service {
-	
-	/** The Constant TAG. */
-	public static final String TAG = "TMM" +", " + TMMService.class.getSimpleName();
-	
-	/** The Constant LIVE_CARD_TAG. */
+
+	/** The Constant TAG. Used for the Android debug logger. */
+	public static final String TAG = "TMM" + ", "
+			+ TMMService.class.getSimpleName();
+
+	/** The Constant LIVE_CARD_TAG. Used when creating the tootip card tag. */
 	private static final String LIVE_CARD_TAG = "TMM";
 
-	/** The running. */
+	/**
+	 * A flag used to indicate whether the service is running or not, and act
+	 * accordingly.
+	 */
 	private boolean running;
-	
-	/** The m live card. */
+
+	/** The live card published by this service. */
 	private LiveCard mLiveCard;
 
-
-
-
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see android.app.Service#onCreate()
 	 */
 	@Override
 	public void onCreate() {
 		super.onCreate();
 
-
-
-
-		//mTimelineManager = TimelineManager.from(this);
-		//mTimerDrawer = new TimerDrawer(this);
 		running = true;
-
-
 
 	}
 
 	/**
-	 * Publish card.
-	 *
-	 * @param context the context
+	 * Publish the tooltip card to the timeline.
+	 * 
+	 * @param context
+	 *            The service's context. Used to publish the livecard.
 	 */
 	private void publishCard(Context context) {
 		if (mLiveCard == null) {
-			//TimelineManager tm = TimelineManager.from(context);
+
 			mLiveCard = new LiveCard(context, LIVE_CARD_TAG);
 
 			mLiveCard.setViews(new RemoteViews(context.getPackageName(),
@@ -99,12 +91,11 @@ public class TMMService extends Service {
 		}
 	}
 
-
-
 	/**
-	 * Unpublish card.
-	 *
-	 * @param context the context
+	 * Unpublish the tooltip card from the timeline.
+	 * 
+	 * @param context
+	 *            The service's context. Used to unpublish the livecard.
 	 */
 	private void unpublishCard(Context context) {
 		if (mLiveCard != null) {
@@ -113,62 +104,49 @@ public class TMMService extends Service {
 		}
 	}
 
-
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see android.app.Service#onStartCommand(android.content.Intent, int, int)
 	 */
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		//        if (mLiveCard == null) {
-		//            mLiveCard = mTimelineManager.createLiveCard(LIVE_CARD_TAG);
-		//
-		//            mLiveCard.setDirectRenderingEnabled(true).getSurfaceHolder().addCallback(mTimerDrawer);
-		//
-		//            Intent menuIntent = new Intent(this, MenuActivity.class);
-		//            menuIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-		//            mLiveCard.setAction(PendingIntent.getActivity(this, 0, menuIntent, 0));
-		//
-		//            mLiveCard.publish(PublishMode.REVEAL);
-		//        } else {
-		//            // TODO(alainv): Jump to the LiveCard when API is available.
-		//        }
 		Log.i("TMM", "TMM service started");
 		running = true;
+
+		// start the card blinking service, which will run asynchronously
 		new BlinkLiveCardTask().execute(this);
 
 		return START_STICKY;
 	}
 
-
 	/**
-	 * The Class BlinkLiveCardTask.
+	 * The Class BlinkLiveCardTask. This class is a runnable which blinks the
+	 * tooltip card on and off.
 	 */
 	private class BlinkLiveCardTask extends AsyncTask<Context, Integer, Long> {
-		
-		/* (non-Javadoc)
+
+		/*
+		 * (non-Javadoc)
+		 * 
 		 * @see android.os.AsyncTask#doInBackground(Params[])
 		 */
-		protected Long doInBackground(Context...contexts) {
-			Log.i("TMM","doing in background");
-			while(running){
-
+		protected Long doInBackground(Context... contexts) {
+			Log.i("TMM", "doing in background");
+			while (running) {
 
 				publishCard(contexts[0]);
 				try {
 					Thread.sleep(7000);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-
-
 
 				unpublishCard(contexts[0]);
 
 				try {
 					Thread.sleep(7000);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 
@@ -177,23 +155,11 @@ public class TMMService extends Service {
 			return (long) 100;
 		}
 
-		/**
-		 * On progress update.
-		 */
-		protected void onProgressUpdate() {
-
-		}
-
-		/**
-		 * On post execute.
-		 */
-		protected void onPostExecute() {
-
-		}
 	}
 
-
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see android.app.Service#onDestroy()
 	 */
 	@Override
@@ -207,7 +173,9 @@ public class TMMService extends Service {
 		super.onDestroy();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see android.app.Service#onBind(android.content.Intent)
 	 */
 	@Override
@@ -215,6 +183,5 @@ public class TMMService extends Service {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 
 }
