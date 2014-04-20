@@ -29,49 +29,53 @@
  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE 
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- */ 
+ */
 
 package com.google.android.glass.TMM;
 
 import java.io.File;
 import java.io.IOException;
 
-import com.couchbase.lite.CouchbaseLiteException;
-import com.couchbase.lite.Database;
-import com.couchbase.lite.Manager;
-
 import android.app.Application;
 import android.os.Environment;
 import android.util.Log;
 import android.widget.Toast;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class TellMeMoreApplication.
+ * The Class TellMeMoreApplication. This is an application-level singleton that
+ * provides resources to all components of the application. It's primary
+ * function in this application is to contain the database and its manager for
+ * this application.
  */
-public class TellMeMoreApplication extends Application{
-	
-	//our global DB, abstracted through a manager
-	/** The db. */
-	public DBManager db;
-	
-	/** The Constant TAG. */
-	public static final String TAG = "TMM" +", " + TellMeMoreApplication.class.getSimpleName();
+public class TellMeMoreApplication extends Application {
 
-	/* (non-Javadoc)
+	/** The global card data DB, abstracted through a manager */
+	public DBManager db;
+
+	/** The Constant TAG. Used for the Android debug logger. */
+	public static final String TAG = "TMM" + ", "
+			+ TellMeMoreApplication.class.getSimpleName();
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see android.app.Application#onCreate()
 	 */
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		
+
 		Log.d(TAG, "Application-level oncreate called");
 		try {
+
+			// open up the DB or create a new one if it doesn't exist
 			db = new DBManager(this);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		//check state of external storage, as detailed in http://stackoverflow.com/questions/3551821/android-write-to-sd-card-folder
+
+		// check state of external storage, as detailed in
+		// http://stackoverflow.com/questions/3551821/android-write-to-sd-card-folder
 		boolean iswriteable = true;
 		String state = Environment.getExternalStorageState();
 
@@ -82,34 +86,32 @@ public class TellMeMoreApplication extends Application{
 			// We can only read the media
 			Log.w(TAG, "Application onCreate reports storage ready for R only");
 			iswriteable = false;
-			Toast.makeText(getApplicationContext(), "Warning - readable only storage. No new audio may be downloaded",
+			Toast.makeText(
+					getApplicationContext(),
+					"Warning - readable only storage. No new audio may be downloaded",
 					Toast.LENGTH_LONG).show();
 		} else {
-			// Something else is wrong. It may be one of many other states, but all we need
-			//  to know is we can neither read nor write
+			// Something else is wrong. It may be one of many other states, but
+			// all we need
+			// to know is we can neither read nor write
 			Log.e(TAG, "Application onCreate reports storage NON R/W-able");
 			iswriteable = false;
-			Toast.makeText(getApplicationContext(), "Warning - storage is inaccesible. No audio content available",
+			Toast.makeText(
+					getApplicationContext(),
+					"Warning - storage is inaccesible. No audio content available",
 					Toast.LENGTH_LONG).show();
 		}
 
-		
-		//mkdir for the data if it isn't already there
-		if(iswriteable){
-			File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm");
+		// mkdir for the data if it isn't already there
+		if (iswriteable) {
+			File dir = new File(Environment.getExternalStorageDirectory()
+					.getAbsolutePath() + "/tmm");
 			boolean exists = dir.exists();
-			if (!exists){
+			if (!exists) {
 				dir.mkdirs();
-				}
+			}
 		}
 
-
-		//we should think about initializing our TMMservice here
 	}
 
-
-
-
-	
-	
 }

@@ -35,31 +35,36 @@ package com.google.android.glass.TMM;
 
 import java.io.Serializable;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class Server.
+ * The Class Server. This class is designed to contain information about the
+ * source of a card, which is assumed to be a server somewhere.
  */
-public class Server implements Serializable{
+public class Server implements Serializable {
 
 	/** The Constant serialVersionUID. Used for serialization of this object. */
 	private static final long serialVersionUID = -5012970894877388655L;
-	
-	/** The name. */
+
+	/** The name of the server. */
 	private String name;
-	
-	/** The AP i_info. */
+
+	/** The api info, such as auth information. */
 	private String API_info;
-	
-	/** The id. */
+
+	/** Various number describing the use times and ID of the server. */
 	private long first_used, last_used, id;
-	
+
 	/**
-	 * Instantiates a new server.
-	 *
-	 * @param name the name
-	 * @param aPI_info the a p i_info
-	 * @param first_used the first_used
-	 * @param last_used the last_used
+	 * Instantiates a new server object.
+	 * 
+	 * @param name
+	 *            The server's name.
+	 * @param aPI_info
+	 *            The API information for this server if such information
+	 *            exists.
+	 * @param first_used
+	 *            The UNIX time that the server was first used.
+	 * @param last_used
+	 *            The UNIX time that the server was last used.
 	 */
 	public Server(String name, String aPI_info, long first_used, long last_used) {
 		super();
@@ -70,93 +75,99 @@ public class Server implements Serializable{
 	}
 
 	/**
-	 * Gets the name.
-	 *
-	 * @return the name
+	 * Gets the server's name.
+	 * 
+	 * @return The server's name.
 	 */
 	public String getName() {
 		return name;
 	}
 
 	/**
-	 * Sets the name.
-	 *
-	 * @param name the name to set
+	 * Sets the server's name.
+	 * 
+	 * @param name
+	 *            The new name to set.
 	 */
 	public void setName(String name) {
 		this.name = name;
 	}
 
 	/**
-	 * Gets the AP i_info.
-	 *
-	 * @return the aPI_info
+	 * Gets the API info for this server, which may include auth information.
+	 * 
+	 * @return The string containing API info for this server.
 	 */
 	public String getAPI_info() {
 		return API_info;
 	}
 
 	/**
-	 * Sets the AP i_info.
-	 *
-	 * @param aPI_info the aPI_info to set
+	 * Sets the api info for this server.
+	 * 
+	 * @param aPI_info
+	 *            The String of new API information to set for the server
+	 *            object.
 	 */
 	public void setAPI_info(String aPI_info) {
 		API_info = aPI_info;
 	}
 
 	/**
-	 * Gets the first_used.
-	 *
-	 * @return the first_used
+	 * Gets the UNIX time of this server's first use by the app.
+	 * 
+	 * @return The long containing the UNIX time of the first server use.
 	 */
 	public long getFirst_used() {
 		return first_used;
 	}
 
 	/**
-	 * Sets the first_used.
-	 *
-	 * @param first_used the first_used to set
+	 * Sets the UNIX time of this server's first use by the app.
+	 * 
+	 * @param first_used
+	 *            The new UNIX time of this server's first use to set.
 	 */
 	public void setFirst_used(long first_used) {
 		this.first_used = first_used;
 	}
 
 	/**
-	 * Gets the last_used.
-	 *
-	 * @return the last_used
+	 * Gets the UNIX time of this server's last use by the app.
+	 * 
+	 * @return The UNIX time of this server's last use.
 	 */
 	public long getLast_used() {
 		return last_used;
 	}
 
 	/**
-	 * Sets the last_used.
-	 *
-	 * @param last_used the last_used to set
+	 * Sets the UNIX time of this server's last use by the app.
+	 * 
+	 * @param last_used
+	 *            The new UNIX time of this server's last use to set.
 	 */
 	public void setLast_used(long last_used) {
 		this.last_used = last_used;
 	}
 
 	/**
-	 * Sets the id.
-	 *
-	 * @param int1 the new id
+	 * Sets the id of the server.
+	 * 
+	 * @param int1
+	 *            THe new ID to set as the server's ID.
 	 */
 	public void setId(int int1) {
 		this.id = int1;
-		
+
 	}
-	
+
 	/**
-	 * Gets the id.
-	 *
-	 * @return the id
+	 * Gets the server's id.
+	 * 
+	 * @return The ID of the server.
 	 */
-	public long getId(){
+	public long getId() {
 		return id;
 	}
 
