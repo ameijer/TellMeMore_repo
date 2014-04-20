@@ -104,12 +104,12 @@ public class VideoPlayer extends YouTubeBaseActivity implements
 
 	/**
 	 * The position of the card within the cardscroll view from which the user
-	 * launched this audioplayer activity.
+	 * launched this videoplayer activity.
 	 */
 	private int cardPos;
 
 	/**
-	 * The UUID of the audio card which is serving as the source for this audio
+	 * The UUID of the audio card which is serving as the source for this video
 	 * player activity.
 	 */
 	private String cardId;
