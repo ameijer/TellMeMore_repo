@@ -77,7 +77,7 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 	 * @param uuid The unique UUID of the card. This must be obtained from the DB that this card resides on. 
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param source Information about the {@link Server} that this audio card originated from.
+	 * @param source Information about the {@link Server} that this card originated from.
 	 * @param type The type of the card, either AUDIO, VIDEO, or TEXT
 	 */
 	public TMMCard(String uuid, int priority, String cardTitle, Server source, String type){
@@ -96,7 +96,7 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 	 *
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param source Information about the {@link Server} that this audio card originated from.
+	 * @param source Information about the {@link Server} that this card originated from.
 	 * @param type The type of the card, either AUDIO, VIDEO, or TEXT
 	 */
 	public TMMCard(int priority, String cardTitle, Server source, String type){
@@ -199,7 +199,7 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 	}
 
 	/**
-	 * Gets the source of this card as a {@link Server} object. This object contains information about the server that this audio card originated from.
+	 * Gets the source of this card as a {@link Server} object. This object contains information about the server that this card originated from.
 	 *
 	 * @return A {@link Server} object containing information about the source of this card.  
 	 */

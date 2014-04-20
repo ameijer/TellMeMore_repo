@@ -54,38 +54,41 @@ public class TextCard extends TMMCard implements Serializable{
 	/** The Constant TAG. Used for the Android debug logger. */
 	public static final String TAG = "TMM" +", " + TextCard.class.getSimpleName();
 	
-	/** The ic_filename. */
-	private String icon_path, ic_filename;
+	/** The path to the icon image file for this text card, if there is one. */
+	private String icon_path;
 	
-	/** The line3. */
+	/** The name of the icon image file, if there is one for this textcard. */
+	private String ic_filename;
+	
+	/** The lines of text used in the TextCard when it is presented to the user in the {@link SelectCardActivity}. Usually these are used for summaries or subtitles. */
 	private String line1, line2, line3;
 	
-	/** The contents. */
+	/** The arraylist of {@link TextElement} objects that comprise the content of this textcard. */
 	private ArrayList<TextElement> contents;
 
 	/**
-	 * Instantiates a new text card.
+	 * Instantiates a new text card, with an icon but without any content. 
 	 *
-	 * @param handle the handle
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param ic_path the ic_path
-	 * @param source the source
+	 * @param ic_path The path to the icon image file to use for this card. 
+	 * @param source Information about the {@link Server} that this card originated from.
 	 */
 	public TextCard(int priority, String cardTitle, String ic_path, Server source) {
 		super(priority, cardTitle, source, TMMCard.TEXT);
 		this.icon_path = ic_path;
+		
+		//set icon file name automatically, for consistency 
 		int charToWipe = ic_path.lastIndexOf('/');
 		ic_filename = ic_path.substring(charToWipe + 1);
 	}
 	
 	/**
-	 * Instantiates a new text card.
+	 * Instantiates a new text card. This is the minimal constructor for this card requiring. 
 	 *
-	 * @param handle the handle
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param source the source
+	 * @param source Information about the {@link Server} that this card originated from.
 	 */
 	public TextCard(int priority, String cardTitle, Server source) {
 		super(priority, cardTitle, source, TMMCard.TEXT);
@@ -93,13 +96,12 @@ public class TextCard extends TMMCard implements Serializable{
 	}
 	
 	/**
-	 * Instantiates a new text card.
+	 * Instantiates a new text card with an ID obtained for the database.
 	 *
-	 * @param handle the handle
-	 * @param id the id
+	 * @param id The unique UUID of the card. This must be obtained from the DB that the card resides on.
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param source the source
+	 * @param source Information about the {@link Server} that this card originated from.
 	 */
 	public TextCard(String id, int priority, String cardTitle, Server source) {
 		super(id, priority, cardTitle, source, TMMCard.TEXT);
@@ -108,16 +110,15 @@ public class TextCard extends TMMCard implements Serializable{
 	}
 	
 	/**
-	 * Instantiates a new text card.
+	 * Instantiates a new text card with no icon or content. 
 	 *
-	 * @param handle the handle
-	 * @param id the id
+	 * @param id The unique UUID of the card. This must be obtained from the DB that the card resides on.
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param line1 the line1
-	 * @param line2 the line2
-	 * @param line3 the line3
-	 * @param source the source
+	 * @param line1 The top subtitle/summary line of text. 
+	 * @param line2 The middle subtitle/summary line of text. 
+	 * @param line3 The bottom subtitle/summary line of text.
+	 * @param source Information about the {@link Server} that this card originated from.
 	 */
 	public TextCard(String id, int priority, String cardTitle, String line1, String line2, String line3, Server source) {
 		super(id, priority, cardTitle, source, TMMCard.TEXT);
@@ -131,15 +132,14 @@ public class TextCard extends TMMCard implements Serializable{
 	/**
 	 * Instantiates a new text card.
 	 *
-	 * @param handle the handle
-	 * @param id the id
+	 * @param id The unique UUID of the card. This must be obtained from the DB that the card resides on.
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param line1 the line1
-	 * @param line2 the line2
-	 * @param line3 the line3
-	 * @param ic_path the ic_path
-	 * @param source the source
+	 * @param line1 The top subtitle/summary line of text. 
+	 * @param line2 The middle subtitle/summary line of text.
+	 * @param line3 The bottom subtitle/summary line of text.
+	 * @param ic_path The path to the icon image file to use for this card.
+	 * @param source Information about the {@link Server} that this card originated from.
 	 */
 	public TextCard(String id, int priority, String cardTitle, String line1, String line2, String line3, String ic_path, Server source) {
 		super(id, priority, cardTitle, source, TMMCard.TEXT);
@@ -147,6 +147,8 @@ public class TextCard extends TMMCard implements Serializable{
 		this.line2 = line2;
 		this.line3 = line3;
 		this.icon_path = ic_path;
+		
+		//set icon file name automatically, for consistency 
 		int charToWipe = ic_path.lastIndexOf('/');
 		ic_filename = ic_path.substring(charToWipe + 1);
 		
@@ -155,15 +157,14 @@ public class TextCard extends TMMCard implements Serializable{
 	/**
 	 * Instantiates a new text card.
 	 *
-	 * @param handle the handle
-	 * @param id the id
+	 * @param id The unique UUID of the card. This must be obtained from the DB that the card resides on.
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param line1 the line1
-	 * @param line2 the line2
-	 * @param line3 the line3
-	 * @param content the content
-	 * @param source the source
+	 * @param line1 The top subtitle/summary line of text. 
+	 * @param line2 The middle subtitle/summary line of text.
+	 * @param line3 The bottom subtitle/summary line of text.
+	 * @param content The ArrayList of {@link TextElement} objects that contain the textual/visual content of the card. 
+	 * @param source Information about the {@link Server} that this card originated from.
 	 */
 	public TextCard(String id, int priority, String cardTitle, String line1, String line2, String line3, ArrayList<TextElement> content, Server source) {
 		super(id, priority, cardTitle, source, TMMCard.TEXT);
@@ -178,14 +179,13 @@ public class TextCard extends TMMCard implements Serializable{
 	/**
 	 * Instantiates a new text card.
 	 *
-	 * @param handle the handle
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param line1 the line1
-	 * @param line2 the line2
-	 * @param line3 the line3
-	 * @param content the content
-	 * @param source the source
+	 * @param line1 The top subtitle/summary line of text. 
+	 * @param line2 The middle subtitle/summary line of text.
+	 * @param line3 The bottom subtitle/summary line of text.
+	 * @param content The ArrayList of {@link TextElement} objects that contain the textual/visual content of the card.
+	 * @param source Information about the {@link Server} that this card originated from.
 	 */
 	public TextCard(int priority, String cardTitle, String line1, String line2, String line3, ArrayList<TextElement> content, Server source) {
 		super(priority, cardTitle, source, TMMCard.TEXT);
@@ -200,15 +200,14 @@ public class TextCard extends TMMCard implements Serializable{
 	/**
 	 * Instantiates a new text card.
 	 *
-	 * @param handle the handle
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param line1 the line1
-	 * @param line2 the line2
-	 * @param line3 the line3
-	 * @param ic_path the ic_path
-	 * @param content the content
-	 * @param source the source
+	 * @param line1 The top subtitle/summary line of text. 
+	 * @param line2 The middle subtitle/summary line of text.
+	 * @param line3 The bottom subtitle/summary line of text.
+	 * @param ic_path The path to the icon image file to use for this card.
+	 * @param content The ArrayList of {@link TextElement} objects that contain the textual/visual content of the card.
+	 * @param source Information about the {@link Server} that this card originated from.
 	 */
 	public TextCard(int priority, String cardTitle, String line1, String line2, String line3, String ic_path, ArrayList<TextElement> content, Server source) {
 		super(priority, cardTitle, source, TMMCard.TEXT);
@@ -216,6 +215,8 @@ public class TextCard extends TMMCard implements Serializable{
 		this.line2 = line2;
 		this.line3 = line3;
 		this.icon_path = ic_path;
+		
+		//set icon file name automatically, for consistency 
 		int charToWipe = ic_path.lastIndexOf('/');
 		ic_filename = ic_path.substring(charToWipe + 1);
 		this.setContents(content);
@@ -223,18 +224,17 @@ public class TextCard extends TMMCard implements Serializable{
 	}
 	
 	/**
-	 * Instantiates a new text card.
+	 * Instantiates a new text card with the most amount of information contained in it upon creation.
 	 *
-	 * @param handle the handle
-	 * @param id the id
+	 * @param id The unique UUID of the card. This must be obtained from the DB that the card resides on.
 	 * @param priority The priority of the card. This is used to order the cards in the {@link SelectCardActivity}, with higher priority cards located at the beginning of the sequence (position 0)
 	 * @param cardTitle The card's title. This is displayed prominently and is usually the largest text on the card. For best visibility, this should be less than 20 characters long.
-	 * @param line1 the line1
-	 * @param line2 the line2
-	 * @param line3 the line3
-	 * @param ic_path the ic_path
-	 * @param content the content
-	 * @param source the source
+	 * @param line1 The top subtitle/summary line of text. 
+	 * @param line2 The middle subtitle/summary line of text.
+	 * @param line3 The bottom subtitle/summary line of text.
+	 * @param ic_path The path to the icon image file to use for this card.
+	 * @param content The ArrayList of {@link TextElement} objects that contain the textual/visual content of the card.
+	 * @param source Information about the {@link Server} that this card originated from.
 	 */
 	public TextCard(String id, int priority, String cardTitle, String line1, String line2, String line3, String ic_path, ArrayList<TextElement> content, Server source) {
 		super(id, priority, cardTitle, source, TMMCard.TEXT);
@@ -242,119 +242,124 @@ public class TextCard extends TMMCard implements Serializable{
 		this.line2 = line2;
 		this.line3 = line3;
 		this.icon_path = ic_path;
+		
+		//set icon file name automatically, for consistency 
 		int charToWipe = ic_path.lastIndexOf('/');
 		ic_filename = ic_path.substring(charToWipe + 1);
+		
 		this.setContents(content);
 		
 	}
 	
 	/**
-	 * Gets the icon path.
+	 * Gets the path to the icon image file of the card.
 	 *
-	 * @return the icon path
+	 * @return The path to the icon image file of the card, including filename.
 	 */
 	public String getIconPath() {
 		return icon_path;
 	}
 
 	/**
-	 * Sets the icon path.
+	 * Sets the path to the icon image file of the card.
 	 *
-	 * @param ic_path the new icon path
+	 * @param ic_path The path to the new icon image to use for this file, including the filename. 
 	 */
 	public void setIconPath(String ic_path) {
 		this.icon_path = ic_path;
+		
+		//set icon file name automatically, for consistency 
 		int charToWipe = ic_path.lastIndexOf('/');
 		ic_filename = ic_path.substring(charToWipe + 1);
 	}
 
 	/**
-	 * Gets the line1.
+	 * Gets the topmost summary/subtitle line of text of the card. 
 	 *
-	 * @return the line1
+	 * @return The contents of the topmost line of the card. 
 	 */
 	public String getLine1() {
 		return line1;
 	}
 
 	/**
-	 * Sets the line1.
+	 * Sets the topmost summary/subtitle line of text of the card.
 	 *
-	 * @param line1 the new line1
+	 * @param line1 The new contents of the topmost line of the card to set.
 	 */
 	public void setLine1(String line1) {
 		this.line1 = line1;
 	}
 
 	/**
-	 * Gets the line2.
+	 * Gets the middle summary/subtitle line of text of the card.
 	 *
-	 * @return the line2
+	 * @return The contents of the middle line of the card.
 	 */
 	public String getLine2() {
 		return line2;
 	}
 
 	/**
-	 * Sets the line2.
+	 * Sets the middle summary/subtitle line of text of the card..
 	 *
-	 * @param line2 the new line2
+	 * @param line2 The new contents of the middle line of the card to set.
 	 */
 	public void setLine2(String line2) {
 		this.line2 = line2;
 	}
 
 	/**
-	 * Gets the line3.
+	 * Gets the bottom summary/subtitle line of text of the card.
 	 *
-	 * @return the line3
+	 * @return The contents of the bottom line of the card.
 	 */
 	public String getLine3() {
 		return line3;
 	}
 
 	/**
-	 * Sets the line3.
+	 * Sets the bottom summary/subtitle line of text of the card.
 	 *
-	 * @param line3 the new line3
+	 * @param line3 The new contents of the bottom line of the card to set.
 	 */
 	public void setLine3(String line3) {
 		this.line3 = line3;
 	}
 
 	/**
-	 * Gets the contents.
+	 * Gets the TextElements that consist of the content of the card.
 	 *
-	 * @return the contents
+	 * @return The ArrayList of TextElements which are the contents of this card. 
 	 */
 	public ArrayList<TextElement> getContents() {
 		return contents;
 	}
 
 	/**
-	 * Sets the contents.
+	 * Sets the contents of this card to the Arraylist of TextElements specified. 
 	 *
-	 * @param contents the new contents
+	 * @param contents The new arraylist of contents to set as the card's contents. 
 	 */
 	public void setContents(ArrayList<TextElement> contents) {
 		this.contents = contents;
 	}
 	
 	/**
-	 * Checks for icon.
+	 * Checks for the existence of an icon image file.
 	 *
-	 * @return true, if successful
+	 * @return true, if there is a non-null icon image file path. 
 	 */
 	public boolean hasIcon(){
-		if(icon_path == null || icon_path.equalsIgnoreCase("")){
+		if(icon_path == null || icon_path.equalsIgnoreCase("") || icon_path.equalsIgnoreCase("null")){
 			return false;
 		} else return true;
 	}
 	
 	/**
-	 * Gets the ic file name.
+	 * Gets the filename of the icon image file. Note that this matches the last part of the icon image file path. 
 	 *
-	 * @return the ic file name
+	 * @return The name of the icon image file. 
 	 */
 	public String getIcFileName(){
 		return ic_filename;
