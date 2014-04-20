@@ -298,7 +298,7 @@ public class AudioCard extends TMMCard implements Serializable {
 	 *         the user.
 	 */
 	public boolean hasBackground() {
-		if (background_path == null || background_path.equalsIgnoreCase("")) {
+		if (background_path == null || background_path.equalsIgnoreCase("") || background_path.equalsIgnoreCase("null")) {
 			return false;
 		} else
 			return true;

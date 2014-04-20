@@ -154,42 +154,21 @@ public class AudioMenu extends Activity {
 		switch (item.getItemId()) {
 		case R.id.resume_audio:
 			Log.i("TMM", "resume audio menu item selected");
-
-			// if the user just wants to resume, we go right back to the
-			// audioplayer
-			Intent intent = new Intent(this, AudioPlayer.class);
-			Log.i(TAG, "last posit passed through to new player: " + lastPos);
-
-			// pass relevant information back to the audioplayer activity
-			// through the intent
-			intent.putExtra(EXTRA_LAST_PLAYER_POS, lastPos);
-			intent.putExtra(EXTRA_SELECTED_POS, cardPos);
-			intent.putExtra(EXTRA_SELECTED_ID, cardId);
-
-			// start the audioplayer again
-			startActivity(intent);
 			return true;
 		case R.id.reset_audio:
 
-			// kill the current audio player
-			closeAudioPlayer(this);
-			intent = new Intent(this, AudioPlayer.class);
-
 			// reset = 0 ms resume position
-			intent.putExtra(EXTRA_LAST_PLAYER_POS, 0);
-			intent.putExtra(EXTRA_SELECTED_POS, cardPos);
-			intent.putExtra(EXTRA_SELECTED_ID, cardId);
+			lastPos = 0;
 
-			// start the new audioplayer that has been reset
-			startActivity(intent);
+
 			return true;
 		case R.id.quit_audio:
+			
 			// kill the current audio player
 			closeAudioPlayer(this);
-
-			// go back to the selectcardactivity so the user can choose another
-			// card
-			intent = new Intent(this, SelectCardActivity.class);
+			
+			lastPos = -1;//signal to onclosed that we do not want to return to the audioplayer
+			Intent intent = new Intent(this, SelectCardActivity.class);
 			intent.putExtra(EXTRA_SELECTED_POS, cardPos);
 			intent.putExtra(EXTRA_SELECTED_ID, cardId);
 			setResult(RESULT_OK, intent);
@@ -225,17 +204,21 @@ public class AudioMenu extends Activity {
 	public void onOptionsMenuClosed(Menu menu) {
 
 		// play the glass-specific dismissal sound.
-		mAudioManager.playSoundEffect(Sounds.DISMISSED);
+		
 
-		// assume the user wants to resume
-		Intent intent = new Intent(this, AudioPlayer.class);
-		Log.i(TAG, "last posit passed through to new player: " + lastPos);
-		intent.putExtra(EXTRA_LAST_PLAYER_POS, lastPos);
-		intent.putExtra(EXTRA_SELECTED_POS, cardPos);
-		intent.putExtra(EXTRA_SELECTED_ID, cardId);
-		startActivity(intent);
+		if(lastPos >= 0){
+			// assume the user wants to resume
+			Intent intent = new Intent(this, AudioPlayer.class);
+			Log.i(TAG, "last posit passed through to new player: " + lastPos);
+			intent.putExtra(EXTRA_LAST_PLAYER_POS, lastPos);
+			intent.putExtra(EXTRA_SELECTED_POS, cardPos);
+			intent.putExtra(EXTRA_SELECTED_ID, cardId);
+			startActivity(intent);
 
-		// kill the Audio menu activity
-		finish();
+			// kill the Audio menu activity
+			finish();
+		} else {
+			mAudioManager.playSoundEffect(Sounds.DISMISSED);
+		}
 	}
 }

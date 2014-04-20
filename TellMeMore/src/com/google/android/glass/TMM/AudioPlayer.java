@@ -227,8 +227,7 @@ public class AudioPlayer extends Activity {
 		}
 
 		// set the background color
-		if (thisCard.getBackgroundPath() == null
-				|| thisCard.getBackgroundPath().equalsIgnoreCase("")) {
+		if (!thisCard.hasBackground()) {
 			// set a black background
 			layout.setBackgroundColor(getResources().getColor(R.color.black));
 		} else {
@@ -300,46 +299,47 @@ public class AudioPlayer extends Activity {
 	public void onResume() {
 		super.onResume();
 
-		// get relevant information from intent
-		cardPos = getIntent().getIntExtra(EXTRA_SELECTED_POS, DEFAULT_POS);
-		cardId = getIntent().getStringExtra(EXTRA_SELECTED_ID);
-		lastPos = getIntent().getIntExtra(EXTRA_LAST_PLAYER_POS, DEFAULT_POS);
-
-		// see if the user wants to seek
-		try {
-			mediaPlayer.seekTo(lastPos);
-			mediaPlayer.start();
-
-		} catch (IllegalStateException e) {
-			// mediaplayer known to crash, so simply re-init it
-			mediaPlayer = MediaPlayer.create(this, R.raw.powerpointdemo);
-			mediaPlayer.seekTo(0);
-			mediaPlayer.start();
-			Log.w(TAG,
-					"onresume illegal state exception caught, initing new mediaplayer");
-		}
-
-		help_txt.setText(R.string.audio_help_txt);
-		stat_icon.setImageResource(R.drawable.ic_pause);
-
-		if (progUpdater != null) {
-
-			if (!progUpdater.isAlive()) {
-				progUpdater.start();
-			}
-		} else {
-			progUpdater = new updaterControl();
-			progUpdater.start();
-		}
-
-		mediaPlayer.setOnCompletionListener(new OnCompletionListener() {
-
-			public void onCompletion(MediaPlayer mp) {
-
-				peaceOut(act_context);
-
-			}
-		});
+//		// get relevant information from intent
+//		cardPos = getIntent().getIntExtra(EXTRA_SELECTED_POS, DEFAULT_POS);
+//		cardId = getIntent().getStringExtra(EXTRA_SELECTED_ID);
+//		lastPos = getIntent().getIntExtra(EXTRA_LAST_PLAYER_POS, DEFAULT_POS);
+//
+//		Log.i(TAG, "onresume called, seeking to posit passed thru intent: " + lastPos);
+//		// see if the user wants to seek
+//		try {
+//			mediaPlayer.seekTo(lastPos);
+//			mediaPlayer.start();
+//
+//		} catch (IllegalStateException e) {
+//			// mediaplayer known to crash, so simply re-init it
+//			mediaPlayer = MediaPlayer.create(this, R.raw.powerpointdemo);
+//			mediaPlayer.seekTo(0);
+//			mediaPlayer.start();
+//			Log.w(TAG,
+//					"onresume illegal state exception caught, initing new mediaplayer");
+//		}
+//
+//		help_txt.setText(R.string.audio_help_txt);
+//		stat_icon.setImageResource(R.drawable.ic_pause);
+//
+//		if (progUpdater != null) {
+//
+//			if (!progUpdater.isAlive()) {
+//				progUpdater.start();
+//			}
+//		} else {
+//			progUpdater = new updaterControl();
+//			progUpdater.start();
+//		}
+//
+//		mediaPlayer.setOnCompletionListener(new OnCompletionListener() {
+//
+//			public void onCompletion(MediaPlayer mp) {
+//
+//				peaceOut(act_context);
+//
+//			}
+//		});
 
 	}
 

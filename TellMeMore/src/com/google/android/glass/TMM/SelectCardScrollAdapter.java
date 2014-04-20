@@ -92,8 +92,16 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 			}
 
 			final ImageView img = (ImageView) convertView.findViewById(R.id.background_audio);
-			if(((AudioCard)cardArr[position]).getBackgroundPath() == null ||((AudioCard)cardArr[position]).getBackgroundPath().equalsIgnoreCase("") ){
+			Log.i(TAG, "Audiocard has background: " + ((AudioCard)cardArr[position]).hasBackground());
+			Log.i(TAG, " background: " + ((AudioCard)cardArr[position]).getBackgroundPath());
+			if(!((AudioCard)cardArr[position]).hasBackground() ){
 				img.setBackgroundResource(R.drawable.redbmp);
+			} else {
+				Bitmap bmp = BitmapFactory.decodeFile(((AudioCard) cardArr[position]).getBackgroundPath());
+				if (bmp != null){
+					img.setImageBitmap(bmp);
+				} 
+
 			}
 			final TextView view = (TextView) convertView.findViewById(R.id.audio_title);
 			view.setText(cardArr[position].getTitle());
