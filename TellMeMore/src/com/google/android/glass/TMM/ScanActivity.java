@@ -309,8 +309,14 @@ public class ScanActivity extends Activity
 				//mTimelineManager.insert(initCard);
 
 				//start the next activity
+				//Intent intent = new Intent(context, SelectCardActivity.class);
+				//start the next activity
+				//startCardDownload(EXAMPLE_CARD_SERVER);
 				Intent intent = new Intent(context, SelectCardActivity.class);
-
+				intent.putExtra(CARDS_READY_KEY, false);
+				//Intent intent= new Intent(context, OpenYouTubePlayerActivity.class);
+				//Uri myUri = Uri.parse("ytv://eneEmDtSvzI");
+				//intent.setData(myUri);
 				//Intent intent= new Intent(context, OpenYouTubePlayerActivity.class);
 				//Uri myUri = Uri.parse("ytv://eneEmDtSvzI");
 				//intent.setData(myUri);

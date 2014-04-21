@@ -60,7 +60,7 @@ import com.google.android.youtube.player.YouTubePlayerView;
  * playback.
  */
 public class VideoPlayer extends YouTubeBaseActivity implements
-		YouTubePlayer.OnInitializedListener {
+YouTubePlayer.OnInitializedListener {
 
 	/** The Constant TAG. Used for the Android debug logger. */
 	public static final String TAG = "TMM" + ", "
@@ -76,6 +76,9 @@ public class VideoPlayer extends YouTubeBaseActivity implements
 	 * they just tapped on is in focus.
 	 */
 	public static final String EXTRA_SELECTED_POS = "selected_pos";
+
+	/** Used to prevent the return*/
+	private boolean isQuitting = true;
 
 	/**
 	 * The Constant EXTRA_SELECTED_ID. This is used for intent extra passing.
@@ -120,6 +123,12 @@ public class VideoPlayer extends YouTubeBaseActivity implements
 	 */
 	private Context act_context;
 
+	/** The youtube player view which handles the details of the video streaming for this activity */
+	YouTubePlayerView ytpv;
+	
+	/** A reference to the youtube player which resides inside the youtube player view. Use this to control video playback, and etc. */
+	YouTubePlayer player;
+	
 	/**
 	 * Reference to the parent application, which contains the database with the
 	 * card information.
@@ -156,6 +165,7 @@ public class VideoPlayer extends YouTubeBaseActivity implements
 		cardPos = getIntent().getIntExtra(EXTRA_SELECTED_POS, DEFAULT_POS);
 		cardId = getIntent().getStringExtra(EXTRA_SELECTED_ID);
 
+		isQuitting = false;
 		Log.i(TAG, "this card is at position: " + cardPos);
 		Log.d(TAG, "Cardid received by videoplayer: " + cardId);
 		try {
@@ -168,7 +178,7 @@ public class VideoPlayer extends YouTubeBaseActivity implements
 		setContentView(R.layout.video_player_layout);
 
 		// Declare YouTubePlayerView
-		YouTubePlayerView ytpv = (YouTubePlayerView) findViewById(R.id.youtubeplayer);
+		ytpv = (YouTubePlayerView) findViewById(R.id.youtubeplayer);
 
 		// Initialize YouTubePlayerView using DeveloperKey obtained from
 		// YouTubeAPIDemo
@@ -223,12 +233,13 @@ public class VideoPlayer extends YouTubeBaseActivity implements
 		// so we use the substring to chop those two off.
 		List<String> cue = new ArrayList<String>();
 
+		arg1.setFullscreen(true);
 		cue.add(thisCard.getYTtag());
 
+		player = arg1; 
 		// Play YouTube videos in the cue.
 		arg1.loadVideos(cue);
 		arg1.setPlaybackEventListener(mlistener);
-
 	}
 
 	/**
@@ -252,15 +263,15 @@ public class VideoPlayer extends YouTubeBaseActivity implements
 
 					// do something on right (forward) swipe
 					mAudioManager.playSoundEffect(Sounds.DISMISSED);
-					peaceOut(act_context);
+			
+					//peaceOut(act_context);
 				} else if (gesture == Gesture.SWIPE_LEFT) {
 
 					// do something on left (backwards) swipe
 					mAudioManager.playSoundEffect(Sounds.DISMISSED);
-					peaceOut(act_context);
+					//peaceOut(act_context);
 				} else if (gesture == Gesture.SWIPE_DOWN) {
-					mAudioManager.playSoundEffect(Sounds.DISMISSED);
-					peaceOut(act_context);
+					//we cover this case in the below onKeyUp() method
 				}
 				return false;
 			}
@@ -277,9 +288,10 @@ public class VideoPlayer extends YouTubeBaseActivity implements
 			@Override
 			public boolean onScroll(float displacement, float delta,
 					float velocity) {
-
+				//int seekTo = (int)(1000 * velocity);
+				//player.seekRelativeMillis(seekTo);
 				// do something on scrolling
-				Log.i(TAG, "scroll detected");
+				Log.i(TAG, "scroll detected, seeking to: ");
 				return true;
 			}
 		});
@@ -318,7 +330,10 @@ public class VideoPlayer extends YouTubeBaseActivity implements
 			// there was a swipe down event
 			Log.i(TAG, "hacky swipe_down method called");
 			mAudioManager.playSoundEffect(Sounds.DISMISSED);
-			peaceOut(VideoPlayer.this);
+
+
+			peaceOut(this);
+
 			return true;
 		}
 		return false;
@@ -404,7 +419,10 @@ public class VideoPlayer extends YouTubeBaseActivity implements
 			Log.i(TAG,
 					"onStopped listener called, returning to card selection activity, card number: "
 							+ cardPos);
-			peaceOut(context);
+			//fake a call to swipe down
+			if(!isQuitting){
+				onKeyUp(KEY_SWIPE_DOWN, new KeyEvent(1, 1));
+			}
 
 		}
 
@@ -426,10 +444,13 @@ public class VideoPlayer extends YouTubeBaseActivity implements
 	 *            The activity context in which this is called.
 	 */
 	private void peaceOut(Context context) {
-		Intent backToCardsIntent = new Intent(context, SelectCardActivity.class);
-		backToCardsIntent.putExtra(EXTRA_SELECTED_POS, cardPos);
-		setResult(RESULT_OK, backToCardsIntent);
-		startActivity(backToCardsIntent);
-		finish();
+		if(!isQuitting){
+			isQuitting = true;
+			Intent backToCardsIntent = new Intent(context, SelectCardActivity.class);
+			backToCardsIntent.putExtra(EXTRA_SELECTED_POS, cardPos);
+			setResult(RESULT_OK, backToCardsIntent);
+			startActivity(backToCardsIntent);
+			finish();
+		}
 	}
 }

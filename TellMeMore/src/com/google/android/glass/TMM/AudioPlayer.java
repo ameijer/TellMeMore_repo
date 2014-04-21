@@ -297,9 +297,9 @@ public class AudioPlayer extends Activity {
 		mediaPlayer.setOnCompletionListener(new OnCompletionListener() {
 
 			public void onCompletion(MediaPlayer mp) {
-
+				Log.d(TAG, "Media player completed - quit ordered.");
 				peaceOut(act_context);
-
+				
 			}
 		});
 
@@ -477,11 +477,7 @@ public class AudioPlayer extends Activity {
 					Log.i(TAG, "swipe_left method called");
 				} else if (gesture == Gesture.SWIPE_DOWN) {
 					Log.i(TAG, "swipe_down method called");
-					// keeping with the glass design pattern, a swipe down will
-					// be
-					mAudioManager.playSoundEffect(Sounds.DISMISSED);
-					peaceOut(act_context);
-					finish();
+					//leave the below onKeyUp method to handle these events
 				}
 				return false;
 			}

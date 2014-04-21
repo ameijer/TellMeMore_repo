@@ -1,4 +1,7 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/black"
+    android:keepScreenOn="true"
+    >
     <item
         android:id="@+id/resume_audio"
         android:title="@string/resume_audio"  

@@ -370,9 +370,7 @@ public class TextViewer extends Activity {
 					Log.i(TAG, "swipe_left method called");
 				} else if (gesture == Gesture.SWIPE_DOWN) {
 					Log.i(TAG, "swipe_down method called");
-					mAudioManager.playSoundEffect(Sounds.DISMISSED);
-					peaceOut(act_context);
-					finish();
+					//leave this to the onKeyUp method below
 				}
 				return false;
 			}

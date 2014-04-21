@@ -178,6 +178,30 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 	 */
 	private void enableCardScroll(){
 		registerListener();
+		if(mView == null){
+		mAdapter = new SelectCardScrollAdapter(
+				this, cardArr.length, cardArr );
+
+
+		
+		mView = new CardScrollView(this) {
+			@Override
+			public final boolean dispatchGenericFocusedEvent(MotionEvent event) {
+				if (mDetector.onMotionEvent(event)) {
+					return true;
+				}
+				return super.dispatchGenericFocusedEvent(event);
+			}
+		};
+
+		mView.deactivate();
+		mView.setHorizontalScrollBarEnabled(true);
+
+		mView.setAdapter(mAdapter);
+
+		Log.i(TAG, "trying to start with card at postion: " + lastCard);
+		setContentView(mView);
+
 		mAdapter = new SelectCardScrollAdapter(
 				this, cardArr.length, cardArr );
 
@@ -191,37 +215,16 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 				return super.dispatchGenericFocusedEvent(event);
 			}
 		};
-
-		mView.deactivate();
-		mView.setHorizontalScrollBarEnabled(true);
-
-		mView.setAdapter(mAdapter);
-
-		Log.i(TAG, "trying to start with card at postion: " + lastCard);
-		setContentView(mView);
-		mView.activate();mAdapter = new SelectCardScrollAdapter(
-				this, cardArr.length, cardArr );
-
-
-		mView = new CardScrollView(this) {
-			@Override
-			public final boolean dispatchGenericFocusedEvent(MotionEvent event) {
-				if (mDetector.onMotionEvent(event)) {
-					return true;
-				}
-				return super.dispatchGenericFocusedEvent(event);
-			}
-		};
-
-		mView.deactivate();
 		mView.setHorizontalScrollBarEnabled(true);
 
 		mView.setAdapter(mAdapter);
 
 		mView.setBackgroundColor(getResources().getColor(R.color.black));
 		Log.i(TAG, "trying to start with card at postion: " + lastCard);
+		
 		setContentView(mView);
 		mView.activate();
+		}
 		mView.setSelection(lastCard);
 	}
 
@@ -249,6 +252,7 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 		if(hasCards){
 			
 			mView.deactivate();
+			
 		}
 	}
 
@@ -306,10 +310,11 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 			resultIntent.putExtra(EXTRA_SELECTED_POS, mView.getSelectedItemPosition());
 			setResult(RESULT_OK, resultIntent);
 			mAudioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
+			finish();
 			startActivity(resultIntent);
 			Log.d(TAG, "after gesture handled, cardId sent to viewer/player activity is: " + id);
 			Log.i(TAG, "finishing gesture handling");
-			finish();
+			
 			return true;
 		}
 		return false;
