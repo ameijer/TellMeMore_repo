@@ -32,6 +32,9 @@
  */
 package com.google.android.glass.TMM;
 
+import java.io.IOException;
+import java.net.URI;
+
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -41,6 +44,7 @@ import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -71,6 +75,9 @@ public class AudioPlayer extends Activity {
 	 * is running.
 	 */
 	private GestureDetector mGestureDetector;
+	
+	/** Controls the dimness of the backgrounds on the cards. */
+	private final float ALPHA_VALUE = 0.30f;
 
 	/**
 	 * The Constant EXTRA_SELECTED_POS. This is used for intent extra passing.
@@ -233,6 +240,7 @@ public class AudioPlayer extends Activity {
 		} else {
 			bkgrnd.setImageBitmap(BitmapFactory.decodeFile(thisCard
 					.getBackgroundPath()));
+			bkgrnd.setAlpha(ALPHA_VALUE);
 		}
 
 		// set the default values
@@ -241,7 +249,33 @@ public class AudioPlayer extends Activity {
 
 		// set up audio and start the clip automatically
 		mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-		mediaPlayer = MediaPlayer.create(this, R.raw.powerpointdemo);
+		
+	
+		mediaPlayer = new MediaPlayer();
+		try {
+			mediaPlayer.setDataSource(thisCard.getAudioClipPath());
+		} catch (IllegalArgumentException e) {
+		
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+		
+			e.printStackTrace();
+		} catch (IOException e) {
+		
+			e.printStackTrace();
+		}
+		try {
+			mediaPlayer.prepare();
+		} catch (IllegalStateException e) {
+
+			e.printStackTrace();
+		} catch (IOException e) {
+
+			e.printStackTrace();
+		}
 		Log.i(TAG, "lastPos as read by audioplayer: " + lastPos);
 		if (lastPos > 0) {
 			mediaPlayer.seekTo(lastPos);
@@ -387,6 +421,7 @@ public class AudioPlayer extends Activity {
 		// overlaid
 		stat_icon.setImageResource(R.color.black);
 		help_txt.setText(R.string.null_string);
+		bkgrnd.setImageResource(R.color.black);
 
 		try {
 

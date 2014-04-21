@@ -14,54 +14,62 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/greendark"
     android:keepScreenOn="true" >
 
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent" 
-        android:id="@+id/text_holder"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/text_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center|top"
-            
-            android:layout_marginLeft="10px" />
-
-        <TextView
-            android:id="@+id/summary_1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/text_title"
-            android:layout_marginLeft="10px" />
-
-        <TextView
-            android:id="@+id/summary_2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/summary_1"
-            android:layout_marginLeft="10px" />
-
-        <TextView
-            android:id="@+id/summary_3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/summary_2"
-            android:layout_marginLeft="10px" />
-    </LinearLayout>
-
     <ImageView
-        android:id="@+id/text_icon"
-        android:layout_width="225px"
-        android:layout_height="225px"
-        android:layout_alignBottom="@id/text_holder"
-        android:layout_alignRight="@id/text_holder" />
+        android:id="@+id/background_txt_ic"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
-</RelativeLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:keepScreenOn="true" >
+
+        <LinearLayout
+            android:id="@+id/text_holder"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/text_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center|top"
+                android:layout_marginLeft="10px" />
+
+            <TextView
+                android:id="@+id/summary_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/text_title"
+                android:layout_marginLeft="10px" />
+
+            <TextView
+                android:id="@+id/summary_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/summary_1"
+                android:layout_marginLeft="10px" />
+
+            <TextView
+                android:id="@+id/summary_3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/summary_2"
+                android:layout_marginLeft="10px" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/text_icon"
+            android:layout_width="225px"
+            android:layout_height="225px"
+            android:layout_alignBottom="@id/text_holder"
+            android:layout_alignRight="@id/text_holder" />
+    </RelativeLayout>
+
+</FrameLayout>

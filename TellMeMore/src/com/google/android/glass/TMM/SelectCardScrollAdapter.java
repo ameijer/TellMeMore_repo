@@ -32,23 +32,25 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-// TODO: Auto-generated Javadoc
 /**
- * Adapter for the {@link CardSrollView} inside {@link SelectValueActivity}.
+ * Adapter for the {@link CardSrollView} inside {@link SelectCardActivity}. 
  */
 public class SelectCardScrollAdapter extends CardScrollAdapter {
 
 	/** The Constant TAG. Used for the Android debug logger. */
 	public static final String TAG = "TMM" +", " + SelectCardScrollAdapter.class.getSimpleName();
-	
+
 	/** The m context. */
 	private final Context mContext;
-	
+
 	/** The m count. */
 	private final int mCount;
-	
+
 	/** The card arr. */
 	private TMMCard[] cardArr;
+
+	/** Controls the dimness of the backgrounds on the cards. */
+	private final float ALPHA_VALUE = 0.30f;
 
 	/**
 	 * Instantiates a new select card scroll adapter.
@@ -96,10 +98,12 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 			Log.i(TAG, " background: " + ((AudioCard)cardArr[position]).getBackgroundPath());
 			if(!((AudioCard)cardArr[position]).hasBackground() ){
 				img.setBackgroundResource(R.drawable.redbmp);
+				img.setAlpha(ALPHA_VALUE);
 			} else {
 				Bitmap bmp = BitmapFactory.decodeFile(((AudioCard) cardArr[position]).getBackgroundPath());
 				if (bmp != null){
 					img.setImageBitmap(bmp);
+					img.setAlpha(ALPHA_VALUE);
 				} 
 
 			}
@@ -115,8 +119,16 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 			}
 
 			final ImageView img = (ImageView) convertView.findViewById(R.id.background_video);
-			if(((VideoCard)cardArr[position]).getScreenshotPath() == null || ((VideoCard)cardArr[position]).getScreenshotPath().equalsIgnoreCase("")){
+			if(!((VideoCard)cardArr[position]).hasScreenshot()){
 				img.setBackgroundResource(R.drawable.blue);
+				img.setAlpha(ALPHA_VALUE);
+			} else {
+				Bitmap bmp = BitmapFactory.decodeFile(((VideoCard) cardArr[position]).getScreenshotPath());
+				if (bmp != null){
+					img.setImageBitmap(bmp);
+					img.setAlpha(ALPHA_VALUE);
+
+				} 
 			}
 
 			final TextView view = (TextView) convertView.findViewById(R.id.video_title);
@@ -130,6 +142,11 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 				if (convertView == null) {
 					convertView = LayoutInflater.from(mContext).inflate(R.layout.text_card_no_icon, parent);
 				}
+				
+				final ImageView img = (ImageView) convertView.findViewById(R.id.background_txt_no_ic);
+
+				img.setBackgroundResource(R.drawable.green);
+				img.setAlpha(ALPHA_VALUE);
 
 				final TextView view = (TextView) convertView.findViewById(R.id.text_title);
 				view.setText(cardArr[position].getTitle());
@@ -149,6 +166,11 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 				if (convertView == null) {
 					convertView = LayoutInflater.from(mContext).inflate(R.layout.text_card, parent);
 				}
+				final ImageView img = (ImageView) convertView.findViewById(R.id.background_txt_ic);
+				img.setBackgroundResource(R.drawable.green);
+				img.setAlpha(ALPHA_VALUE);
+
+
 
 				final TextView view = (TextView) convertView.findViewById(R.id.text_title);
 				view.setText(cardArr[position].getTitle());

@@ -168,7 +168,7 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 			hasCards = true;
 			enableCardScroll();
 	
-			//mView.setSelection(lastCard);
+			
 			//registerListener();
 		}
 	};
@@ -222,6 +222,7 @@ public class SelectCardActivity extends Activity implements GestureDetector.Base
 		Log.i(TAG, "trying to start with card at postion: " + lastCard);
 		setContentView(mView);
 		mView.activate();
+		mView.setSelection(lastCard);
 	}
 
 	/* (non-Javadoc)
