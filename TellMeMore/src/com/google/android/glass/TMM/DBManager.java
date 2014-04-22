@@ -1786,7 +1786,7 @@ public class DBManager implements Replication.ChangeListener {
 	 */
 	private class JSONGetter extends Thread {
 
-		/** The JSON string containing the JSOn item retreived. */
+		/** The JSON string containing the JSOn item retrieved. */
 		private String json = "";
 
 		/**

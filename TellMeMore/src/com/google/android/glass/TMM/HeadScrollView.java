@@ -47,43 +47,58 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.ScrollView;
 
-
-// TODO: Auto-generated Javadoc
 /**
- * The Class HeadScrollView.
+ * The Class HeadScrollView. This view provides a scrollview that is linked to a
+ * sensor listener. This allows the user to scroll up and down the view using
+ * head motions, which simulates (roughly) reading down a wall of text.
  */
 public class HeadScrollView extends ScrollView implements SensorEventListener {
 
-	/** The m sensor. */
+	/** The sensor object used to obtain sensor data. */
 	private Sensor mSensor;
-	
-	/** The m last accuracy. */
+
+	/** The last accuracy reading, used for sensor adjustments. */
 	private int mLastAccuracy;
-	
-	/** The m sensor manager. */
+
+	/** The Sensor manager, which provides access to the sensors for this view. */
 	private SensorManager mSensorManager;
-	
-	/** The Constant SENSOR_RATE_uS. */
+
+	/**
+	 * The sensor poll rate in microseconds. Decrease this for faster response,
+	 * but more enegery usage.
+	 */
 	private static final int SENSOR_RATE_uS = 200000;
-	
-	/** The last x. */
+
+	/** The last known X position. */
 	private static float lastX;
-	
+
 	/** The Constant TAG. Used for the Android debug logger. */
-	public static final String TAG = "TMM" +", " + HeadScrollView.class.getSimpleName();
-	
-	/** The Constant HEAD_MOVEMENT_DEG. */
+	public static final String TAG = "TMM" + ", "
+			+ HeadScrollView.class.getSimpleName();
+
+	/**
+	 * The Constant HEAD_MOVEMENT_DEG. This is set to the maximum degrees that a
+	 * person must move their head to read the entire contents of a card,
+	 * regardless of its length.
+	 */
 	public static final int HEAD_MOVEMENT_DEG = 50;
-	
-	/** The children height. */
+
+	/**
+	 * The height of the views within this scrollview. Used for dynamically
+	 * calculating the sensitivity of the view's sensors.
+	 */
 	private double incrementPx, childrenHeight;
 
 	/**
 	 * Instantiates a new head scroll view.
-	 *
-	 * @param context the context
-	 * @param attrs the attrs
-	 * @param defStyle the def style
+	 * 
+	 * @param context
+	 *            The current activity context, used to access sensors and the
+	 *            screen.
+	 * @param attrs
+	 *            The View attribute set.
+	 * @param defStyle
+	 *            The defstyle of this view. Used by a superclass.
 	 */
 	public HeadScrollView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
@@ -92,9 +107,12 @@ public class HeadScrollView extends ScrollView implements SensorEventListener {
 
 	/**
 	 * Instantiates a new head scroll view.
-	 *
-	 * @param context the context
-	 * @param attrs the attrs
+	 * 
+	 * @param context
+	 *            The current activity context, used to access sensors and the
+	 *            screen.
+	 * @param attrs
+	 *            The View attribute set.
 	 */
 	public HeadScrollView(Context context, AttributeSet attrs) {
 		super(context, attrs);
@@ -103,8 +121,10 @@ public class HeadScrollView extends ScrollView implements SensorEventListener {
 
 	/**
 	 * Instantiates a new head scroll view.
-	 *
-	 * @param context the context
+	 * 
+	 * @param context
+	 *            The current activity context, used to access sensors and the
+	 *            screen.
 	 */
 	public HeadScrollView(Context context) {
 		super(context);
@@ -112,32 +132,38 @@ public class HeadScrollView extends ScrollView implements SensorEventListener {
 	}
 
 	/**
-	 * Inits the.
+	 * Inits the accelerometer and maps it in the class vars.
 	 */
 	public void init() {
-		mSensorManager = (SensorManager) getContext().getSystemService(Context.SENSOR_SERVICE);
+		mSensorManager = (SensorManager) getContext().getSystemService(
+				Context.SENSOR_SERVICE);
 		mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
 
-
-
 	}
-	
+
 	/**
-	 * Enable scrolling.
+	 * Enables scrolling of the headscroll view. This should be called only
+	 * after all the child views have been drawn, so that the correct scroll
+	 * amounts can be determined.
 	 */
-	public void enableScrolling(){
-		if(childrenHeight == 0){
+	public void enableScrolling() {
+		if (childrenHeight == 0) {
+			//dont freeze the view, run it on a non-ui thread
 			new Thread(new Runnable() {
 				public void run() {
-			
+
 					if (mSensor == null)
 						return;
-					for(int i=0; i< getChildCount(); ++i) {
+					for (int i = 0; i < getChildCount(); ++i) {
+						
+						//calculate the total hight of the entire view
 						childrenHeight += getChildAt(i).getHeight();
-						Log.d(TAG, "Child: " + i + " has height: " + getChildAt(i).getHeight());
+						Log.d(TAG, "Child: " + i + " has height: "
+								+ getChildAt(i).getHeight());
 					}
 
-					//we want the entire range to be spread evenly throughout the children views 
+					// we want the entire range to be spread evenly throughout
+					// the children views
 					incrementPx = childrenHeight / HEAD_MOVEMENT_DEG;
 				}
 			}).start();
@@ -145,51 +171,58 @@ public class HeadScrollView extends ScrollView implements SensorEventListener {
 	}
 
 	/**
-	 * Activate.
+	 * Activate the sensor listeners for this view.
 	 */
 	public void activate() {
-
-		
 
 		mSensorManager.registerListener(this, mSensor, SENSOR_RATE_uS);
 	}
 
 	/**
-	 * Deactivate.
+	 * Deactivate the sensor listeners for this view.
 	 */
 	public void deactivate() {
 		mSensorManager.unregisterListener(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see android.hardware.SensorEventListener#onAccuracyChanged(android.hardware.Sensor, int)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * android.hardware.SensorEventListener#onAccuracyChanged(android.hardware
+	 * .Sensor, int)
 	 */
 	@Override
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {
 		mLastAccuracy = accuracy;
 	}
 
-
-	/* (non-Javadoc)
-	 * @see android.hardware.SensorEventListener#onSensorChanged(android.hardware.SensorEvent)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * android.hardware.SensorEventListener#onSensorChanged(android.hardware
+	 * .SensorEvent)
 	 */
 	@Override
 	public void onSensorChanged(SensorEvent event) {
-		float[] mat = new float[9],
-				orientation = new float[3];
+		float[] mat = new float[9], orientation = new float[3];
 
 		if (mLastAccuracy == SensorManager.SENSOR_STATUS_UNRELIABLE)
 			return;
 
 		SensorManager.getRotationMatrixFromVector(mat, event.values);
-		SensorManager.remapCoordinateSystem(mat, SensorManager.AXIS_X, SensorManager.AXIS_Z, mat);
+		SensorManager.remapCoordinateSystem(mat, SensorManager.AXIS_X,
+				SensorManager.AXIS_Z, mat);
 		SensorManager.getOrientation(mat, orientation);
 
 		float z = orientation[0], x = orientation[1], y = orientation[2];
 
-
-		float diff =  ((x - lastX) * 100); 
+		//calculate the velocity via the position-shift of the X accelerometer axis
+		float diff = ((x - lastX) * 100);
 		lastX = x;
+		
+		//scroll the view by that amount
 		smoothScrollBy(0, (int) ((incrementPx * diff)));
 
 	}
