@@ -61,6 +61,8 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -264,13 +266,22 @@ public class DBManager implements Replication.ChangeListener {
 	 */
 	public static final String TEXT_CONTENT_IMG = "img";
 
-	/** The the JSON field identifier for the path of the screenshot image file for the video card contained in the JSON document, if it exists. */
+	/**
+	 * The the JSON field identifier for the path of the screenshot image file
+	 * for the video card contained in the JSON document, if it exists.
+	 */
 	public static final String VIDEO_SS_PATH = "screenshotPath";
 
-	/** The the JSON field identifier for the play count field in the videocard JSON document. */
+	/**
+	 * The the JSON field identifier for the play count field in the videocard
+	 * JSON document.
+	 */
 	public static final String VIDEO_PLAY_COUNT = "playCount";
 
-	/** TThe the JSON field identifier for the youtube tag of the videocard contained in the JSON document. */
+	/**
+	 * TThe the JSON field identifier for the youtube tag of the videocard
+	 * contained in the JSON document.
+	 */
 	public static final String VIDEO_YOUTUBE_TAG = "yttag";
 
 	/**
@@ -280,9 +291,10 @@ public class DBManager implements Replication.ChangeListener {
 	private boolean synced;
 
 	/**
-	 * Checks if is synced.
+	 * Checks if the database currently open in the manager is synchronized with
+	 * the master database.
 	 * 
-	 * @return true, if is synced
+	 * @return true, if the database has completed its synchronization.
 	 */
 	public boolean isSynced() {
 		return synced;
@@ -292,59 +304,73 @@ public class DBManager implements Replication.ChangeListener {
 	 * Instantiates a new DB manager.
 	 * 
 	 * @param context
-	 *            the context
+	 *            The application context. Used to obtain a writable private
+	 *            directory.
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
 	public DBManager(Context context) throws IOException {
+
+		// open a NoSQL manager
 		manager = new Manager(new AndroidContext(context).getFilesDir(),
 				Manager.DEFAULT_OPTIONS);
 	}
 
 	/**
-	 * Gets the name.
+	 * Gets the name of the currently open database contained in this manager.
 	 * 
-	 * @return the name
+	 * @return THe name of the database. Note that this is usually the project
+	 *         name and will NOT be a URL.
 	 */
 	public String getName() {
 		return this.dbName;
 	}
 
 	/**
-	 * Open.
+	 * Opens the database with the name specified, and synchronizes it. The
+	 * isSynced() function should be used to check for the completion of the
+	 * synchronization before using the newly opened database. If the database
+	 * with the specified name does not exist, then it will be created.
 	 * 
 	 * @param dbName
-	 *            the db name
+	 *            The name of the database to open (if it exists) or create if
+	 *            it does not exist.
 	 * @param context
-	 *            the context
-	 * @return true, if successful
+	 *            The current context to use for the opening of the database.
+	 * @return true, if the synchronization starts with no apparent problems.
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 * @throws CouchbaseLiteException
-	 *             the couchbase lite exception
+	 *             Signals that an exception with the local NoSQL DB has been
+	 *             thrown during initialization and/or sync.
 	 */
 	public boolean open(String dbName, Context context) throws IOException,
 			CouchbaseLiteException {
+
+		// set the synced flag, assume un-updated database
 		this.synced = false;
 		this.dbName = dbName;
+
+		// start a local listener for the app to access the local DB
 		startCBLListener(port);
 		startDatabase(manager, dbName);
 
-		// sync up database here
+		// sync up database
 		startSync(false);
 		return true;
 	}
 
 	/**
-	 * Start cbl listener.
+	 * Starts a local Couchbase lite NoSQL DB listening on the specified port.
 	 * 
 	 * @param suggestedListenPort
-	 *            the suggested listen port
-	 * @return the int
+	 *            The number of the suggested port to listen on.
+	 * @return The port that the DB is listening on.
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 * @throws CouchbaseLiteException
-	 *             the couchbase lite exception
+	 *             Signals that an exception with the local NoSQL DB has been
+	 *             thrown during initialization.
 	 */
 	private int startCBLListener(int suggestedListenPort) throws IOException,
 			CouchbaseLiteException {
@@ -361,7 +387,7 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * Start database.
+	 * Starts database. Used as a wrapper for other CBL opening methods.
 	 * 
 	 * @param manager
 	 *            the manager
@@ -377,24 +403,23 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * Close.
+	 * Closes the database.
 	 */
 	public void close() {
 		database.close();
 	}
 
 	/**
-	 * Start sync.
+	 * Starts the background synchronization of the local database in either one
+	 * or two directions.
 	 * 
-	 * @param deleteDBbeforeUpdate
-	 *            the delete d bbefore update
+	 * @param pushLocalChanges
+	 *            Set to true to push changes made to the local database to the
+	 *            master database.
 	 */
-	private void startSync(boolean deleteDBbeforeUpdate) {
+	private void startSync(boolean pushLocalChanges) {
 
-		if (deleteDBbeforeUpdate) {
-			this.deleteDB(true);
-		}
-
+		// form target sync URL
 		URL syncUrl;
 		try {
 			syncUrl = new URL(MASTER_SERVER_URL + ":" + port + "/" + dbName);
@@ -403,21 +428,34 @@ public class DBManager implements Replication.ChangeListener {
 			throw new RuntimeException(e);
 		}
 
+		// start pulling changes from the master
 		Replication pullReplication = database.createPullReplication(syncUrl);
 		pullReplication.setCreateTarget(true);
+
+		// do not sync continuously. This can be changed in the future to allow
+		// real-time updates to be pushed
 		pullReplication.setContinuous(false);
+		Replication pushReplication = null;
 
-		// Replication pushReplication =
-		// database.createPushReplication(syncUrl);
-		// pullReplication.setCreateTarget(true);
-		// pushReplication.setContinuous(false);
+		// only push changes if specified
+		if (pushLocalChanges) {
+			pushReplication = database.createPushReplication(syncUrl);
+			pullReplication.setCreateTarget(true);
+			pushReplication.setContinuous(false);
+		}
 
+		// start the synchronizer(s)
 		pullReplication.start();
-		// pushReplication.start();
+
+		if (pushLocalChanges) {
+			pushReplication.start();
+		}
 
 		pullReplication.addChangeListener(this);
-		// pushReplication.addChangeListener(this);
 
+		if (pushLocalChanges) {
+			pushReplication.addChangeListener(this);
+		}
 	}
 
 	/*
@@ -437,16 +475,14 @@ public class DBManager implements Replication.ChangeListener {
 			String msg = String
 					.format("Replicator %s not running", replication);
 
+			// if the replication is not running and has no last error, then we
+			// assume a successful, completed sync
 			if (replication.getLastError() == null && replication.isPull()) {
 
-				Log.i(TAG,
-						"Raw JSON in replication listener: "
-								+ getRawJSON("http://127.0.0.1:5984/example_card_generator"));
-				Log.i(TAG, "ENTIRE DB AS OF REPLICATION COMPLETION ALERT: "
-						+ getEntireDbAsJSON());
 				this.synced = true;
 			}
 
+			// try to restart if there is a problem.
 			if (replication.getLastError() != null) {
 				Log.e(TAG, "REPLICATION FAILED IN CHANGELISTENER");
 				replication.restart();
@@ -454,6 +490,8 @@ public class DBManager implements Replication.ChangeListener {
 
 			Log.d(TAG, msg);
 		} else {
+
+			// log replication updated for user/developer
 			int processed = replication.getCompletedChangesCount();
 			int total = replication.getChangesCount();
 			String msg = String.format("Replicator processed %d / %d",
@@ -467,12 +505,13 @@ public class DBManager implements Replication.ChangeListener {
 	 * Obtains every document in a couchDB in the form of a JSON object.
 	 * 
 	 * @param serverURLsansPort
-	 *            the URL of the server (without the port)
+	 *            The URL of the server (without the port).
 	 * @param port
-	 *            the port number of the server
+	 *            The port number of the server.
 	 * @param dbName
-	 *            the name of the database (in this case project)
-	 * @return all documents associated with a given database
+	 *            The name of the database (in this case project). NOT A URL
+	 * @return Array of JSONObjects containing all documents associated with a
+	 *         given database.
 	 */
 	public JSONObject[] getEntireDbAsJSON(String serverURLsansPort, int port,
 			String dbName) {
@@ -509,14 +548,14 @@ public class DBManager implements Replication.ChangeListener {
 	 * UUID.
 	 * 
 	 * @param serverURLsansPort
-	 *            the URL of the server (without the port)
+	 *            The URL of the server (without the port).
 	 * @param port
-	 *            the port number of the server
+	 *            The port number of the server.
 	 * @param dbName
-	 *            the name of the database (in this case project)
+	 *            The name of the database (in this case project).
 	 * @param UUID
-	 *            the ID of the requested document
-	 * @return the requested document in the form of a JSON Object. Returns null
+	 *            The String UUID of the requested document.
+	 * @return The requested document in the form of a JSON Object. Returns null
 	 *         if creation fails.
 	 */
 	public JSONObject getDocumentAsJSON(String serverURLsansPort, int port,
@@ -537,21 +576,27 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * The Class RawJSONGetter.
+	 * The Class RawJSONGetter. This runnable is used to perform asynchronous
+	 * HTTP gets for JSON in the local DB. After the run() method completes
+	 * (i.e. the class is joined()) then the retrieved data is stored in the
+	 * class member vars and can be retrieved via the getter(s) provided.
+	 * 
+	 * @author atm011
 	 */
 	private class RawJSONGetter extends Thread {
 
-		/** The json. */
+		/** The json string returned from the HTTP GET call to the database. */
 		private String json = "";
 
-		/** The url. */
+		/** The url to access for the raw JSON data. */
 		private final String url;
 
 		/**
-		 * Instantiates a new raw json getter.
+		 * Instantiates a new raw JOSN getter, which will retrieve the JSON at
+		 * the specified URL.
 		 * 
 		 * @param URL
-		 *            the url
+		 *            The address of the JSON to retrieve.
 		 */
 		public RawJSONGetter(String URL) {
 			super();
@@ -603,9 +648,11 @@ public class DBManager implements Replication.ChangeListener {
 		}
 
 		/**
-		 * Gets the json.
+		 * Gets the json retrieved by this class. Will return the null string
+		 * until the run() method of the object has been called.
 		 * 
-		 * @return the json
+		 * @return The string containing the JSON retrieved by the class, if any
+		 *         exists at the specified URL.
 		 */
 		public String getJson() {
 			return json;
@@ -617,15 +664,22 @@ public class DBManager implements Replication.ChangeListener {
 	 * Retrieves an unparsed JSON string from a couchDB database.
 	 * 
 	 * @param URL
-	 *            the URL of the document wanted from a database
-	 * @return the requested raw, unparsed JSON string. Returns null if
+	 *            The URL of the document wanted from the database.
+	 * @return The requested raw, unparsed JSON string. Returns null if
 	 *         retrieval fails.
 	 */
 	public String getRawJSON(String URL) {
+
+		// create an asynchronous getter at the target URL
 		RawJSONGetter raw = new RawJSONGetter(URL);
 
 		raw.start();
 		try {
+			// wait until the task completes. It is OK to join here since we are
+			// using a local DB with known retrieval times.
+			// If this is to be used with an actual remote DB, then this join()
+			// is a poor choice and should be replaced with other non-blocking
+			// measures
 			raw.join();
 		} catch (InterruptedException e) {
 
@@ -639,12 +693,12 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * Creates a TMMCard object from the JSONObject.
+	 * Creates a {@link TMMCard} object from the JSONObject.
 	 * 
 	 * @param obj
-	 *            the JSONObject to create the TMMCard
-	 * @return the TMMCard created from parsing the JSONObject. Returns null if
-	 *         creation fails.
+	 *            The JSONObject to create the {@link TMMCard} from.
+	 * @return The {@link TMMCard} created from parsing the JSONObject. Returns
+	 *         null if creation fails.
 	 */
 	public TMMCard convertJSONToCard(JSONObject obj) {
 		TMMCard result = null;
@@ -674,14 +728,15 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * Creates a VideoCard object from the JSONObject.
+	 * Creates a {@link VideoCard} object from the JSONObject. A helper method
+	 * for the above convertJSONToCard() method.
 	 * 
 	 * @param obj
-	 *            the JSONObject to create the VideoCard
-	 * @return the VideoCard created from parsing the JSONObject. Returns null
-	 *         if creation fails.
+	 *            The JSONObject to create the {@link VideoCard} .
+	 * @return The {@link VideoCard} created from parsing the JSONObject.
+	 *         Returns null if creation fails.
 	 */
-	public VideoCard convertJSONToVideoCard(JSONObject obj) {
+	private VideoCard convertJSONToVideoCard(JSONObject obj) {
 		try {
 			// Get the Server Object by JSON parsing because Java doesn't like
 			// casting
@@ -691,6 +746,7 @@ public class DBManager implements Replication.ChangeListener {
 					Long.parseLong(JSONServer.getString(SERVER_FIRST_USED)),
 					Long.parseLong(JSONServer.getString(SERVER_LAST_USED)));
 
+			// call the huge constructor using fields obtained from JSON
 			VideoCard result = new VideoCard(obj.getString(UUID),
 					obj.getInt(PRIORITY), obj.getString(TITLE),
 					obj.getInt(VIDEO_PLAY_COUNT),
@@ -709,14 +765,15 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * Creates an AudioCard object from the JSONObject.
+	 * Creates an {@link AudioCard} object from the JSONObject. A helper method
+	 * for the above convertJSONToCard() method.
 	 * 
 	 * @param obj
-	 *            the JSONObject to create the AudioCard
-	 * @return the AudioCard created from parsing the JSONObject. Returns null
-	 *         if creation fails.
+	 *            The JSONObject to create the {@link AudioCard}.
+	 * @return The {@link AudioCard} created from parsing the JSONObject.
+	 *         Returns null if creation fails.
 	 */
-	public AudioCard convertJSONToAudioCard(JSONObject obj) {
+	private AudioCard convertJSONToAudioCard(JSONObject obj) {
 		try {
 			// Get the Server Object by JSON parsing because Java doesn't like
 			// casting
@@ -725,7 +782,7 @@ public class DBManager implements Replication.ChangeListener {
 					JSONServer.getString(SERVER_API_INFO),
 					Long.parseLong(JSONServer.getString(SERVER_FIRST_USED)),
 					Long.parseLong(JSONServer.getString(SERVER_LAST_USED)));
-
+			// call the huge constructor using fields obtained from JSON
 			AudioCard result = new AudioCard(obj.getString(UUID),
 					obj.getInt(PRIORITY), obj.getString(TITLE),
 					obj.getInt(AUDIO_LENGTH),
@@ -733,6 +790,8 @@ public class DBManager implements Replication.ChangeListener {
 					obj.getString(AUDIO_CLIP_PATH), sourceServer);
 
 			if (!obj.getString(AUDIO_BACKGROUND_PATH).equalsIgnoreCase("null")) {
+				// then this audio card has a background we need to store and
+				// retrieve
 				result.setBackgroundPath(obj.getString(AUDIO_BACKGROUND_PATH));
 			}
 
@@ -745,21 +804,24 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * Creates a TextCard object from the JSONObject.
+	 * Creates a {@link TextCard} object from the JSONObject. A helper method
+	 * for the above convertJSONToCard() method.
 	 * 
 	 * @param obj
-	 *            the JSONObject to create the TextCard
-	 * @return the TextCard created from parsing the JSONObject. Returns null if
-	 *         creation fails.
+	 *            The JSONObject to create the {@link TextCard}.
+	 * @return The {@link TextCard} created from parsing the JSONObject. Returns
+	 *         null if creation fails.
 	 */
-	public TextCard convertJSONToTextCard(JSONObject obj) {
+	private TextCard convertJSONToTextCard(JSONObject obj) {
 		try {
+
 			// Get array of contents for the TextCard
 			JSONArray contents = obj.getJSONArray(TEXT_CONTENTS);
 			ArrayList<TextElement> cardContent = new ArrayList<TextElement>();
 
 			// Create all cardContents for the text card from JSON
 			for (int i = 0; i < contents.length(); i++) {
+
 				// Get the contentType by string parsing because Java doesn't
 				// like casting an object from obj.get to an enum
 				JSONObject temp = contents.getJSONObject(i);
@@ -787,6 +849,7 @@ public class DBManager implements Replication.ChangeListener {
 					obj.getInt(PRIORITY), obj.getString(TITLE),
 					obj.getString(TEXT_LINE1), obj.getString(TEXT_LINE2),
 					obj.getString(TEXT_LINE3), cardContent, sourceServer);
+
 			// check if this textcard has an icon
 			Log.d(TAG,
 					"icon path resolved to be: "
@@ -804,13 +867,18 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * Gets the all attachments.
+	 * Downloads local copies of all the attachments for the card passed to this
+	 * method.
 	 * 
 	 * @param cardWithNoAttachments
-	 *            the card with no attachments
-	 * @return the all attachments
+	 *            The {@link TMMCard} object with all attachment paths set, but
+	 *            no actual files at those paths.
+	 * @return true, if successful in obtaining all the attachments for the
+	 *         card.
 	 */
 	private boolean getAllAttachments(TMMCard cardWithNoAttachments) {
+
+		// call helpers depending on the type of card
 		if (cardWithNoAttachments instanceof VideoCard) {
 			return downloadVideoCardAttachments((VideoCard) cardWithNoAttachments);
 		} else if (cardWithNoAttachments instanceof AudioCard) {
@@ -823,11 +891,14 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * Download video card attachments.
+	 * Download all attachments for specified {@link VideoCard} object.
+	 * Attachments will be saved at paths designated in parameter object. This
+	 * is a helper method for the above getAllAttachments() method.
 	 * 
 	 * @param cardToDl
-	 *            the card to dl
-	 * @return true, if successful
+	 *            The {@link VideoCard} object with paths for attachments set,
+	 *            but no actual attachment files at those paths.
+	 * @return true, if all attachments for the card downloaded successfully.
 	 */
 	private boolean downloadVideoCardAttachments(VideoCard cardToDl) {
 		// video card is easy - only one attachment, the screenshot
@@ -840,6 +911,9 @@ public class DBManager implements Replication.ChangeListener {
 		Log.i(TAG,
 				"Videocard screenshot attachment path : "
 						+ cardToDl.getScreenshotPath());
+
+		// call the single attachment getter on the only attachment for this
+		// card type
 		return getSingleAttachment(
 				cardToDl.getScrenshotname(),
 				cardToDl.getuuId(),
@@ -849,11 +923,14 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * Download audio card attachments.
+	 * Download all attachments for specified {@link AudioCard} object.
+	 * Attachments will be saved at paths designated in parameter object. This
+	 * is a helper method for the above getAllAttachments() method.
 	 * 
 	 * @param cardToDl
-	 *            the card to dl
-	 * @return true, if successful
+	 *            The {@link AudioCard} object with paths for attachments set,
+	 *            but no actual attachment files at those paths.
+	 * @return true, if all attachments for the card downloaded successfully.
 	 */
 	private boolean downloadAudioCardAttachments(AudioCard cardToDl) {
 		// audio card has 2 attachments, the mp3 and the background if there is
@@ -870,6 +947,7 @@ public class DBManager implements Replication.ChangeListener {
 			}
 		}
 
+		// get the background image attachment if it exists
 		if (!(cardToDl.getBackgroundPath() == null || !cardToDl
 				.getBackgroundPath().equalsIgnoreCase(""))) {
 			Log.i(TAG,
@@ -888,11 +966,14 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * Download text card attachments.
+	 * Download all attachments for specified {@link TextCard} object.
+	 * Attachments will be saved at paths designated in parameter object. This
+	 * is a helper method for the above getAllAttachments() method.
 	 * 
 	 * @param cardToDl
-	 *            the card to dl
-	 * @return true, if successful
+	 *            The {@link TextCard} object with paths for attachments set,
+	 *            but no actual attachment files at those paths.
+	 * @return true, if all attachments for the card downloaded successfully.
 	 */
 	private boolean downloadTextCardAttachments(TextCard cardToDl) {
 		// first, if there is an icon, then DL it
@@ -932,22 +1013,34 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * The Class AttachmentDownloader.
+	 * The Class AttachmentDownloader. This runnable is used to perform
+	 * asynchronous HTTP gets for binary attachment data in the local DB. It
+	 * writes the retrieved data to the file path specified, so by the time the
+	 * runnable is joined the file is ready to access locally.
+	 * 
+	 * @author atm011
 	 */
 	private class AttachmentDownloader extends Thread {
 
-		/** The path to store. */
-		private final String uuid, filename, pathToStore;
+		/** The UUID of the parent document of the attachment. */
+		private final String uuid;
+
+		/** The name of the attachment to download, NOT the path. */
+		private final String filename;
+
+		/** The local filesystem path to store the downloaded attachment file. */
+		private final String pathToStore;
 
 		/**
 		 * Instantiates a new attachment downloader.
 		 * 
 		 * @param uuid
-		 *            the uuid
+		 *            The UUID of the parent document of the attachment.
 		 * @param fileName
-		 *            the file name
+		 *            The name of the attachment to download, NOT the path.
 		 * @param pathToStoreAttachment
-		 *            the path to store attachment
+		 *            The local filesystem path to store the downloaded
+		 *            attachment file.
 		 */
 		public AttachmentDownloader(String uuid, String fileName,
 				String pathToStoreAttachment) {
@@ -1006,18 +1099,19 @@ public class DBManager implements Replication.ChangeListener {
 
 	}
 
-	// pathToStore does not include the filename - that will be the same as the
-	// attachment name
 	/**
-	 * Gets the single attachment.
+	 * Gets the single attachment. Essentially an API wrapper for the attachment
+	 * downloader runnable. This methods returns with the attachment in a known
+	 * state - completely downloaded and saved to the local filesystem.
 	 * 
 	 * @param attachmentName
-	 *            the attachment name
+	 *            The name of the attachment to download, NOT the path.
 	 * @param uuidOfDoc
-	 *            the uuid of doc
+	 *            The UUID of the parent document of the attachment.
 	 * @param pathToStore
-	 *            the path to store
-	 * @return the single attachment
+	 *            The local filesystem path to store the downloaded attachment
+	 *            file.
+	 * @return true, if the attachment was downloaded successfully.
 	 */
 	private boolean getSingleAttachment(String attachmentName,
 			String uuidOfDoc, String pathToStore) {
@@ -1026,6 +1120,12 @@ public class DBManager implements Replication.ChangeListener {
 
 		dwnldr.start();
 		try {
+
+			// wait until the task completes. It is OK to join here since we are
+			// using a local DB with known retrieval times.
+			// If this is to be used with an actual remote DB, then this join()
+			// is a poor choice and should be replaced with other non-blocking
+			// measures
 			dwnldr.join();
 		} catch (InterruptedException e) {
 
@@ -1038,7 +1138,10 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * The Class DBDeleter.
+	 * The Class DBDeleter. This runnable is used to perform asynchronous HTTP
+	 * DELETEs to wipe the database currently open in the manager.
+	 * 
+	 * @author atm011
 	 */
 	private class DBDeleter extends Thread {
 
@@ -1099,11 +1202,11 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * Delete db.
+	 * Deletes the database currently open in this db manager.
 	 * 
 	 * @param areYouSure
-	 *            the are you sure
-	 * @return true, if successful
+	 *            Just to check that you know what you are doing
+	 * @return true, if the DB was successfully deleted.
 	 */
 	public boolean deleteDB(boolean areYouSure) {
 		if (!areYouSure) {
@@ -1115,6 +1218,11 @@ public class DBManager implements Replication.ChangeListener {
 
 		deleter.start();
 		try {
+			// wait until the task completes. It is OK to join here since we are
+			// using a local DB with known access times.
+			// If this is to be used with an actual remote DB, then this join()
+			// is a poor choice and should be replaced with other non-blocking
+			// measures
 			deleter.join();
 		} catch (InterruptedException e) {
 
@@ -1125,11 +1233,13 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * Find card by id.
+	 * Find a card in the database by UUID.
 	 * 
 	 * @param uuid
-	 *            the uuid
-	 * @return the TMM card
+	 *            The UUID of the card to retrieve. If it is not an exact match
+	 *            to an actual UUID, then the call will fail.
+	 * @return The {@link TMMCard} with the specified UUID retrieved from the
+	 *         database.
 	 */
 	public TMMCard findCardById(String uuid) {
 		String rawobj = this.getRawJSON(LOCAL_DB_URL + ":" + port + "/"
@@ -1148,14 +1258,17 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * Gets the JSON representation.
+	 * Gets the JSON representation of the specified TMMCard. The TMMCard must
+	 * have a valid UUID for a valid JSONObject to be retrieved.
 	 * 
 	 * @param toCheck
-	 *            the to check
-	 * @return the JSON representation
+	 *            The card to obtain the JSON representation from the DB of.
+	 * @return The JSONOBject of the specified TMMCard, if the card can be found
+	 *         in the DB.
 	 */
 	public JSONObject getJSONRepresentation(TMMCard toCheck) {
 
+		// perform sanity checks on the UUID
 		if (toCheck.getuuId() == null) {
 			return null;
 		}
@@ -1207,6 +1320,7 @@ public class DBManager implements Replication.ChangeListener {
 
 		JSONObject jsonObject = null;
 		try {
+			// convert to JSONObject
 			jsonObject = new JSONObject(json);
 		} catch (JSONException e1) {
 			Log.e(TAG, "error making json object", e1);
@@ -1215,6 +1329,8 @@ public class DBManager implements Replication.ChangeListener {
 		String errorResult = null;
 		String reason = null;
 		try {
+
+			// check to make sure the JSONObject wasn't an error object
 			errorResult = jsonObject.getString("error");
 			reason = jsonObject.getString("reason");
 			Log.d(TAG, "json representation error result is: " + errorResult);
@@ -1228,29 +1344,24 @@ public class DBManager implements Replication.ChangeListener {
 		}
 	}
 
-	// returns the message as it exists in the DB
 	/**
-	 * Adds the card.
+	 * Adds a {@link TMMCard} to the database.
 	 * 
 	 * @param toAdd
-	 *            the to add
-	 * @return true, if successful
-	 * @throws Exception
-	 *             the exception
+	 *            The {@link TMMCard} to add to the database.
+	 * @return true, if the card was successfully added.
+	 * @throws IOException
+	 *             Thrown if the is an IO problem while adding the card.
+	 * @throws JsonMappingException
+	 *             Thrown if there is a problem mapping the card object to a
+	 *             JSON string to store in the DB.
+	 * @throws JsonGenerationException
+	 *             Thrown if there is a problem generating the JSON form of the
+	 *             card.
 	 */
-	public synchronized boolean addCard(TMMCard toAdd) throws Exception {
+	public synchronized boolean addCard(TMMCard toAdd)
+			throws JsonGenerationException, JsonMappingException, IOException {
 
-		// check to make sure card doesn't already exist in DB
-		if (this.getJSONRepresentation(toAdd) != null) {
-			// maybe we could update the card or something
-
-			throw new Exception(
-					"The card already exists in the DB, please use the update method instead");
-
-		}
-
-		// if we made it here, safe to assume that the card doesn't exist in the
-		// DB
 		// get a UUID to use from couch
 		String uuid = getUUID();
 		toAdd.setuuId(uuid);
@@ -1313,10 +1424,10 @@ public class DBManager implements Replication.ChangeListener {
 		try {
 			okResult = jsonObject.getString("ok");
 		} catch (JSONException e) {
-			// e.printStackTrace();
-			Log.i(TAG, "DB reports creation did not go well...");
+			Log.e(TAG, "DB reports creation did not go well...", e);
 		}
 
+		//check for error condition
 		String errorResult = null;
 		String reason = null;
 		try {
@@ -1331,7 +1442,7 @@ public class DBManager implements Replication.ChangeListener {
 		Log.d(TAG, "error result is: " + errorResult);
 
 		if (okResult.equalsIgnoreCase("true")) {
-			startSync(false);
+			startSync(true);
 			return true;
 		} else {
 			Log.w(TAG, "CREATION FAILURE -" + reason);
@@ -1341,9 +1452,9 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * Gets the uuid.
+	 * Gets a new uuid from the database to use for the addition of new material to the DB.
 	 * 
-	 * @return the uuid
+	 * @return A string containing a valid UUID from the database.
 	 */
 	private String getUUID() {
 
@@ -1398,6 +1509,7 @@ public class DBManager implements Replication.ChangeListener {
 			e.printStackTrace();
 		}
 
+		//extract the UUID from the JSON object that is returned from the call
 		String uuidToRet = "";
 		try {
 			uuidToRet = uuids.getString(0);
@@ -1412,13 +1524,13 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * Upload card attachments.
+	 * Upload all card attachments for a single {@link TMMCard}.
 	 * 
 	 * @param toAdd
-	 *            the to add
+	 *            The card containing valid paths to the files to be uploaded. 
 	 * @param jsonObject
-	 *            the json object
-	 * @return true, if successful
+	 *            The JSON object returned when the card was added to the database. This is used to revise and access the card in the DB to add the attachments. 
+	 * @return true, if all of the card's attachments were uploaded successfully
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
@@ -1427,6 +1539,8 @@ public class DBManager implements Replication.ChangeListener {
 		// will need case statement for each subclass of TMMCard
 		if (toAdd instanceof VideoCard) {
 			if (((VideoCard) toAdd).hasScreenshot()) {
+				
+				//write binary byte array of the attachment to the server
 				Bitmap bmp = BitmapFactory.decodeFile(((VideoCard) toAdd)
 						.getScreenshotPath());
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -1441,6 +1555,7 @@ public class DBManager implements Replication.ChangeListener {
 			if (((AudioCard) toAdd).hasBackground()) {
 				Bitmap bmp = BitmapFactory.decodeFile(((AudioCard) toAdd)
 						.getBackgroundPath());
+				//write binary byte array of the attachment to the server
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
 				bmp.compress(Bitmap.CompressFormat.JPEG, 90, out);
 				Log.d(TAG, "filename audio background image being uploaded: "
@@ -1454,6 +1569,7 @@ public class DBManager implements Replication.ChangeListener {
 			if (((AudioCard) toAdd).hasAudio()) {
 				File audio = new File(((AudioCard) toAdd).getAudioClipPath());
 				FileInputStream fileInputStream = new FileInputStream(audio);
+				//write binary byte array of the attachment to the server
 				byte[] b = new byte[(int) audio.length()];
 				fileInputStream.read(b);
 				fileInputStream.close();
@@ -1467,6 +1583,7 @@ public class DBManager implements Replication.ChangeListener {
 			if (((TextCard) toAdd).hasIcon()) {
 				Bitmap bmp = BitmapFactory.decodeFile(((TextCard) toAdd)
 						.getIconPath());
+				//write binary byte array of the attachment to the server
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
 				bmp.compress(Bitmap.CompressFormat.JPEG, 90, out);
 				Log.d(TAG, "filename of icon image being uploaded: "
@@ -1481,6 +1598,7 @@ public class DBManager implements Replication.ChangeListener {
 
 			JSONObject respObj = getJSONRepresentation(toAdd);
 
+			//go through all the elements of this Textcard, uploading images when necessary. 
 			for (int i = 0; i < ((TextCard) toAdd).getContents().size(); i++) {
 				TextElement temp = ((TextCard) toAdd).getContents().get(i);
 				// we only care about uploading images
@@ -1492,7 +1610,7 @@ public class DBManager implements Replication.ChangeListener {
 							+ temp.getImgFilename());
 					uploadSingleAttachment(out.toByteArray(), respObj,
 							temp.getImgFilename(), "image/jpg");
-					// confirm revision occured, and update our rev number
+					// confirm revision occurred, and update our rev number
 					respObj = getJSONRepresentation(toAdd);
 				}
 
@@ -1505,21 +1623,22 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * Upload single attachment.
+	 * Upload single attachment to the JSONObject passed in.
 	 * 
 	 * @param data
-	 *            the data
+	 *            The binary representation of the attachment to store in the database. 
 	 * @param jsonObject
-	 *            the json object
+	 *            The JSON Object containing the identifier and revision number of the document to which the attachment will be uploaded. 
 	 * @param fileName
-	 *            the file name
+	 *            The attachment's filename, which is what it will be called after it is attached. 
 	 * @param contentType
-	 *            the content type
-	 * @return true, if successful
+	 *            The MIME-type, useful for browsers wishing to view the content. 
+	 * @return true, if the attachment is successfully uploaded
 	 */
 	private boolean uploadSingleAttachment(byte[] data, JSONObject jsonObject,
 			String fileName, String contentType) {
 
+		//extract relevant information (UUID and rev no.) 
 		final String exRev = "1-4ce605cd9fac335e98662dd4645cd332";
 		final String exUUID = "c629e32ea1c54b9b0840f0161000706e";
 
@@ -1556,6 +1675,7 @@ public class DBManager implements Replication.ChangeListener {
 
 		}
 
+		//sanity checks
 		if (revNo.length() != exRev.length()) {
 			Log.w(TAG, "No revision found in uploadsingleattachment");
 			return false;
@@ -1625,7 +1745,8 @@ public class DBManager implements Replication.ChangeListener {
 			e.printStackTrace();
 			Log.i(TAG, "DB reports creation did not go well...");
 		}
-
+		
+		//check for error condition
 		String errorResult = null;
 		String reason = null;
 		try {
@@ -1648,11 +1769,16 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * The Class JSONGetter.
+	 * The Class JSONGetter. This runnable is used to perform asynchronous
+	 * HTTP gets for JSON in the local DB. After the run() method completes
+	 * (i.e. the class is joined()) then the retrieved data is stored in the
+	 * class member vars and can be retrieved via the getter(s) provided.
+	 * 
+	 * @author atm011
 	 */
 	private class JSONGetter extends Thread {
 
-		/** The json. */
+		/** The JSON string containing the JSOn item retreived. */
 		private String json = "";
 
 		/**
@@ -1673,9 +1799,6 @@ public class DBManager implements Replication.ChangeListener {
 			// then we must have a good UUID
 			// Create a new HttpClient and get Header
 			HttpClient httpclient = new DefaultHttpClient();
-			//
-			// HttpGet everythingGetter = new HttpGet(LOCAL_DB_URL + ":" + port
-			// + "/" + dbName + "/_all_docs?include_docs=true");
 			HttpGet everythingGetter = new HttpGet(LOCAL_DB_URL + ":" + port
 					+ "/" + dbName);
 			// execute the put and record the response
@@ -1714,9 +1837,9 @@ public class DBManager implements Replication.ChangeListener {
 		}
 
 		/**
-		 * Gets the json.
+		 * Gets the json object retrieved by this method.
 		 * 
-		 * @return the json
+		 * @return A string containing 
 		 */
 		public String getJson() {
 			return json;
@@ -1725,7 +1848,7 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * Gets the entire db as json.
+	 * Get the entire contents of the .
 	 * 
 	 * @return the entire db as json
 	 */
@@ -1845,7 +1968,7 @@ public class DBManager implements Replication.ChangeListener {
 			e.printStackTrace();
 		}
 		Log.i(TAG, "deletecardfromdb method, server response is: " + json);
-		startSync(false);
+		startSync(true);
 
 		return true;
 
@@ -1931,7 +2054,7 @@ public class DBManager implements Replication.ChangeListener {
 		Log.d(TAG, "error result is: " + errorResult);
 
 		if (okResult.equalsIgnoreCase("true")) {
-			startSync(false);
+			startSync(true);
 			return true;
 		} else {
 			Log.w(TAG, "CREATION FAILURE -" + reason);
@@ -1958,15 +2081,17 @@ public class DBManager implements Replication.ChangeListener {
 	}
 
 	/**
-	 * Find cardsby server.
+	 * Retrieve all the cards from the currently open database in the DBManager object. 
 	 * 
-	 * @return the array list
+	 * @return The arraylist of all available {@link TMMCard} objects for the currently open database. 
 	 */
 	public ArrayList<TMMCard> findCardsbyServer() {
 
 		ArrayList<TMMCard> cardlist = new ArrayList<TMMCard>();
 
 		try {
+			
+			//get everything
 			JSONObject[] documents = getEntireDbAsJSON(LOCAL_DB_URL, 5984,
 					dbName);
 			for (int i = 0; i < documents.length; i++) {
@@ -1991,7 +2116,7 @@ public class DBManager implements Replication.ChangeListener {
 			e.printStackTrace();
 		}
 
-		// sort
+		// sort the list by priority
 		Collections.sort(cardlist);
 		return cardlist;
 
