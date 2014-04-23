@@ -73,7 +73,7 @@ public class AudioPlayer extends Activity {
 	 * is running.
 	 */
 	private GestureDetector mGestureDetector;
-	
+
 	/** Controls the dimness of the backgrounds on the cards. */
 	private final float ALPHA_VALUE = 0.30f;
 
@@ -247,22 +247,21 @@ public class AudioPlayer extends Activity {
 
 		// set up audio and start the clip automatically
 		mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-		
-	
+
 		mediaPlayer = new MediaPlayer();
 		try {
 			mediaPlayer.setDataSource(thisCard.getAudioClipPath());
 		} catch (IllegalArgumentException e) {
-		
+
 			e.printStackTrace();
 		} catch (SecurityException e) {
-			
+
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
-		
+
 			e.printStackTrace();
 		} catch (IOException e) {
-		
+
 			e.printStackTrace();
 		}
 		try {
@@ -297,7 +296,7 @@ public class AudioPlayer extends Activity {
 			public void onCompletion(MediaPlayer mp) {
 				Log.d(TAG, "Media player completed - quit ordered.");
 				peaceOut(act_context);
-				
+
 			}
 		});
 
@@ -475,7 +474,7 @@ public class AudioPlayer extends Activity {
 					Log.i(TAG, "swipe_left method called");
 				} else if (gesture == Gesture.SWIPE_DOWN) {
 					Log.i(TAG, "swipe_down method called");
-					//leave the below onKeyUp method to handle these events
+					// leave the below onKeyUp method to handle these events
 				}
 				return false;
 			}

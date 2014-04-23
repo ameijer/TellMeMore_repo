@@ -42,7 +42,6 @@ import android.media.AudioManager;
 import android.os.Bundle;
 import android.util.Log;
 
-
 import android.widget.Toast;
 import android.os.Handler;
 import android.view.KeyEvent;
@@ -85,9 +84,9 @@ public class ScanActivity extends Activity {
 	public static final String EXAMPLE_CARD_SERVER = "example_card_generator";
 
 	/**
-	 * The Constant CARDS_READY_KEY. Used to alert the scanactivity that the
-	 * cards have not yet been updated by the cardloader service and that it
-	 * should splay a waiting screen.
+	 * The Constant CARDS_READY_KEY. Used in intent passing to contain the
+	 * status of the synchronization process, either true for completed or false
+	 * for not completed.
 	 */
 	public static final String CARDS_READY_KEY = "cards_ready";
 
@@ -97,7 +96,10 @@ public class ScanActivity extends Activity {
 	 */
 	private static final int KEY_SWIPE_DOWN = 4;
 
-	/** The camera object used by the app to read QR codes to determine its context. */
+	/**
+	 * The camera object used by the app to read QR codes to determine its
+	 * context.
+	 */
 	private Camera mCamera;
 
 	/** The camera preview used in this activity to obtain QR code scans. */
@@ -106,7 +108,10 @@ public class ScanActivity extends Activity {
 	/** The auto focus handler. */
 	private Handler autoFocusHandler;
 
-	/** The audio manager for this class. Used to provide a response to user actions. */
+	/**
+	 * The audio manager for this class. Used to provide a response to user
+	 * actions.
+	 */
 	private AudioManager mAudioManager;
 
 	/** The scanner object used to interpret QR codes. */
@@ -158,7 +163,7 @@ public class ScanActivity extends Activity {
 		/* Instance barcode scanner */
 		createScanner();
 
-		//call the scanQR method
+		// call the scanQR method
 		scanQR();
 	}
 
@@ -183,8 +188,8 @@ public class ScanActivity extends Activity {
 
 			// start the card downloader service using the default server
 			startCardDownload(EXAMPLE_CARD_SERVER);
-			
-			//start the next activity
+
+			// start the next activity
 			Intent intent = new Intent(this, SelectCardActivity.class);
 			intent.putExtra(CARDS_READY_KEY, false);
 			startActivity(intent);
@@ -285,18 +290,19 @@ public class ScanActivity extends Activity {
 				SymbolSet syms = scanner.getResults();
 				for (Symbol sym : syms) {
 					text = sym.getData();
-					
-					//start the carddownloader service as soon as we have a good URL
+
+					// start the carddownloader service as soon as we have a
+					// good URL
 					startCardDownload(text);
 					break;
 				}
 				mAudioManager.playSoundEffect(Sounds.SUCCESS);
-				
-				//start the next activity
+
+				// start the next activity
 				Context context = getApplicationContext();
 				Intent intent = new Intent(context, SelectCardActivity.class);
 				intent.putExtra(CARDS_READY_KEY, false);
-				
+
 				startActivity(intent);
 				finish();
 			}
@@ -318,7 +324,7 @@ public class ScanActivity extends Activity {
 		return;
 	}
 
-	/** Mimic continuous auto-focusing*/
+	/** Mimic continuous auto-focusing */
 	AutoFocusCallback autoFocusCB = new AutoFocusCallback() {
 		public void onAutoFocus(boolean success, Camera camera) {
 			autoFocusHandler.postDelayed(doAutoFocus, 1000);

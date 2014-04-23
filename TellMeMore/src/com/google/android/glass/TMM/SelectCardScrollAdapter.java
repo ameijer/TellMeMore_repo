@@ -33,20 +33,27 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 /**
- * Adapter for the {@link CardSrollView} inside {@link SelectCardActivity}. 
+ * Adapter for the {@link CardSrollView} inside {@link SelectCardActivity}.
  */
 public class SelectCardScrollAdapter extends CardScrollAdapter {
 
 	/** The Constant TAG. Used for the Android debug logger. */
-	public static final String TAG = "TMM" +", " + SelectCardScrollAdapter.class.getSimpleName();
+	public static final String TAG = "TMM" + ", "
+			+ SelectCardScrollAdapter.class.getSimpleName();
 
-	/** The m context. */
+	/** The adapter's context, used here to access views. */
 	private final Context mContext;
 
-	/** The m count. */
+	/**
+	 * The number of elements in the adapter (i.e. the number of cards to
+	 * display).
+	 */
 	private final int mCount;
 
-	/** The card arr. */
+	/**
+	 * The array of {@link TMMCard} objects used by the adapter to diplay their
+	 * contents.
+	 */
 	private TMMCard[] cardArr;
 
 	/** Controls the dimness of the backgrounds on the cards. */
@@ -54,10 +61,15 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 
 	/**
 	 * Instantiates a new select card scroll adapter.
-	 *
-	 * @param context the context
-	 * @param count the count
-	 * @param content the content
+	 * 
+	 * @param context
+	 *            The adapter's context.
+	 * @param count
+	 *            The total number of cards being used in the adapter.
+	 * @param content
+	 *            The card array containing the card objects to display. The
+	 *            order of the array is the order in which the cards will be
+	 *            displayed.
 	 */
 	public SelectCardScrollAdapter(Context context, int count, TMMCard[] content) {
 		mContext = context;
@@ -65,7 +77,9 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 		cardArr = content;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.google.android.glass.widget.CardScrollAdapter#getCount()
 	 */
 	@Override
@@ -73,7 +87,9 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 		return mCount;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.google.android.glass.widget.CardScrollAdapter#getItem(int)
 	 */
 	@Override
@@ -81,119 +97,150 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 		return Integer.valueOf(position);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.google.android.glass.widget.CardScrollAdapter#getView(int, android.view.View, android.view.ViewGroup)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.google.android.glass.widget.CardScrollAdapter#getView(int,
+	 * android.view.View, android.view.ViewGroup)
 	 */
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		//Log.i(TAG, "cardarr[position] instance of audiocard?: " + (cardArr[position] instanceof AudioCard));
 
-		if(cardArr[position] instanceof AudioCard){
+		//populate the view for an audiocard
+		if (cardArr[position] instanceof AudioCard) {
 			if (convertView == null) {
-				convertView = LayoutInflater.from(mContext).inflate(R.layout.audio_card, parent);
+				//inflate the view from the supplied XML
+				convertView = LayoutInflater.from(mContext).inflate(
+						R.layout.audio_card, parent);
 			}
 
-			final ImageView img = (ImageView) convertView.findViewById(R.id.background_audio);
-			Log.i(TAG, "Audiocard has background: " + ((AudioCard)cardArr[position]).hasBackground());
-			Log.i(TAG, " background: " + ((AudioCard)cardArr[position]).getBackgroundPath());
-			if(!((AudioCard)cardArr[position]).hasBackground() ){
+			final ImageView img = (ImageView) convertView
+					.findViewById(R.id.background_audio);
+			Log.i(TAG, "Audiocard has background: "
+					+ ((AudioCard) cardArr[position]).hasBackground());
+			Log.i(TAG,
+					" background: "
+							+ ((AudioCard) cardArr[position])
+									.getBackgroundPath());
+			if (!((AudioCard) cardArr[position]).hasBackground()) {
 				img.setBackgroundResource(R.drawable.redbmp);
 				img.setAlpha(ALPHA_VALUE);
 			} else {
-				Bitmap bmp = BitmapFactory.decodeFile(((AudioCard) cardArr[position]).getBackgroundPath());
-				if (bmp != null){
+				Bitmap bmp = BitmapFactory
+						.decodeFile(((AudioCard) cardArr[position])
+								.getBackgroundPath());
+				if (bmp != null) {
 					img.setImageBitmap(bmp);
 					img.setAlpha(ALPHA_VALUE);
-				} 
+				}
 
 			}
-			final TextView view = (TextView) convertView.findViewById(R.id.audio_title);
+			final TextView view = (TextView) convertView
+					.findViewById(R.id.audio_title);
 			view.setText(cardArr[position].getTitle());
 
 			return convertView;
 
-		} else if(cardArr[position] instanceof VideoCard){
-
+		} else if (cardArr[position] instanceof VideoCard) {
+			//handle the array element if it is a video card
 			if (convertView == null) {
-				convertView = LayoutInflater.from(mContext).inflate(R.layout.video_card, parent);
+				convertView = LayoutInflater.from(mContext).inflate(
+						R.layout.video_card, parent);
 			}
 
-			final ImageView img = (ImageView) convertView.findViewById(R.id.background_video);
-			if(!((VideoCard)cardArr[position]).hasScreenshot()){
+			final ImageView img = (ImageView) convertView
+					.findViewById(R.id.background_video);
+			if (!((VideoCard) cardArr[position]).hasScreenshot()) {
 				img.setBackgroundResource(R.drawable.blue);
 				img.setAlpha(ALPHA_VALUE);
 			} else {
-				Bitmap bmp = BitmapFactory.decodeFile(((VideoCard) cardArr[position]).getScreenshotPath());
-				if (bmp != null){
+				Bitmap bmp = BitmapFactory
+						.decodeFile(((VideoCard) cardArr[position])
+								.getScreenshotPath());
+				if (bmp != null) {
 					img.setImageBitmap(bmp);
 					img.setAlpha(ALPHA_VALUE);
 
-				} 
+				}
 			}
 
-			final TextView view = (TextView) convertView.findViewById(R.id.video_title);
+			final TextView view = (TextView) convertView
+					.findViewById(R.id.video_title);
 			view.setText(cardArr[position].getTitle());
 
 			return convertView;
-		} else {//instanceof textcard
-			//Textcard is a good default anyway...
+		} else {// instanceof textcard
+			// Textcard is a good default anyway...
 
-			if(((TextCard) cardArr[position]).getIconPath() == null || ((TextCard) cardArr[position]).getIconPath().equalsIgnoreCase("")){//no icon specified
+			if (((TextCard) cardArr[position]).getIconPath() == null
+					|| ((TextCard) cardArr[position]).getIconPath()
+							.equalsIgnoreCase("")) {// no icon specified
 				if (convertView == null) {
-					convertView = LayoutInflater.from(mContext).inflate(R.layout.text_card_no_icon, parent);
+					convertView = LayoutInflater.from(mContext).inflate(
+							R.layout.text_card_no_icon, parent);
 				}
-				
-				final ImageView img = (ImageView) convertView.findViewById(R.id.background_txt_no_ic);
+
+				final ImageView img = (ImageView) convertView
+						.findViewById(R.id.background_txt_no_ic);
 
 				img.setBackgroundResource(R.drawable.green);
 				img.setAlpha(ALPHA_VALUE);
 
-				final TextView view = (TextView) convertView.findViewById(R.id.text_title);
+				final TextView view = (TextView) convertView
+						.findViewById(R.id.text_title);
 				view.setText(cardArr[position].getTitle());
 
-				final TextView summary1 = (TextView) convertView.findViewById(R.id.summary_1);
-				summary1.setText(((TextCard)cardArr[position]).getLine1());
+				final TextView summary1 = (TextView) convertView
+						.findViewById(R.id.summary_1);
+				summary1.setText(((TextCard) cardArr[position]).getLine1());
 
-				final TextView summary2= (TextView) convertView.findViewById(R.id.summary_2);
-				summary2.setText(((TextCard)cardArr[position]).getLine2());
+				final TextView summary2 = (TextView) convertView
+						.findViewById(R.id.summary_2);
+				summary2.setText(((TextCard) cardArr[position]).getLine2());
 
-				final TextView summary3 = (TextView) convertView.findViewById(R.id.summary_3);
-				summary3.setText(((TextCard)cardArr[position]).getLine3());
+				final TextView summary3 = (TextView) convertView
+						.findViewById(R.id.summary_3);
+				summary3.setText(((TextCard) cardArr[position]).getLine3());
 
 				return convertView;
-			} else { //there is an icon for this card
+			} else { // there is an icon for this card
 
 				if (convertView == null) {
-					convertView = LayoutInflater.from(mContext).inflate(R.layout.text_card, parent);
+					convertView = LayoutInflater.from(mContext).inflate(
+							R.layout.text_card, parent);
 				}
-				final ImageView img = (ImageView) convertView.findViewById(R.id.background_txt_ic);
+				final ImageView img = (ImageView) convertView
+						.findViewById(R.id.background_txt_ic);
 				img.setBackgroundResource(R.drawable.green);
 				img.setAlpha(ALPHA_VALUE);
 
-
-
-				final TextView view = (TextView) convertView.findViewById(R.id.text_title);
+				final TextView view = (TextView) convertView
+						.findViewById(R.id.text_title);
 				view.setText(cardArr[position].getTitle());
 
-				final TextView summary1 = (TextView) convertView.findViewById(R.id.summary_1);
-				summary1.setText(((TextCard)cardArr[position]).getLine1());
+				final TextView summary1 = (TextView) convertView
+						.findViewById(R.id.summary_1);
+				summary1.setText(((TextCard) cardArr[position]).getLine1());
 
-				final TextView summary2= (TextView) convertView.findViewById(R.id.summary_2);
-				summary2.setText(((TextCard)cardArr[position]).getLine2());
+				final TextView summary2 = (TextView) convertView
+						.findViewById(R.id.summary_2);
+				summary2.setText(((TextCard) cardArr[position]).getLine2());
 
-				final TextView summary3 = (TextView) convertView.findViewById(R.id.summary_3);
-				summary3.setText(((TextCard)cardArr[position]).getLine3());
+				final TextView summary3 = (TextView) convertView
+						.findViewById(R.id.summary_3);
+				summary3.setText(((TextCard) cardArr[position]).getLine3());
 
-				final ImageView ic = (ImageView) convertView.findViewById(R.id.text_icon);
-				Bitmap bmp = BitmapFactory.decodeFile(((TextCard)cardArr[position]).getIconPath());
-				if (bmp != null){
+				final ImageView ic = (ImageView) convertView
+						.findViewById(R.id.text_icon);
+				Bitmap bmp = BitmapFactory
+						.decodeFile(((TextCard) cardArr[position])
+								.getIconPath());
+				if (bmp != null) {
 					ic.setImageBitmap(bmp);
 				} else {
 					Log.d(TAG, "Using default icon");
 					ic.setBackgroundResource(R.drawable.unknown_user);
 				}
-
-
 
 				return convertView;
 			}
@@ -202,8 +249,12 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 
 	}
 
-	/* (non-Javadoc)
-	 * @see com.google.android.glass.widget.CardScrollAdapter#getPosition(java.lang.Object)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.google.android.glass.widget.CardScrollAdapter#getPosition(java.lang
+	 * .Object)
 	 */
 	@Override
 	public int getPosition(Object id) {
