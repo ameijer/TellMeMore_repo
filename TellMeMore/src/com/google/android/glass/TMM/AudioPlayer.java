@@ -33,7 +33,6 @@
 package com.google.android.glass.TMM;
 
 import java.io.IOException;
-import java.net.URI;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -44,7 +43,6 @@ import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;

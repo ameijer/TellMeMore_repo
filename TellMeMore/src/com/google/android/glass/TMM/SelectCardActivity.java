@@ -42,7 +42,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -53,8 +52,7 @@ import com.google.android.glass.touchpad.GestureDetector;
 import com.google.android.glass.widget.CardScrollView;
 import com.google.glass.widget.SliderView;
 
-      
-// TODO: Auto-generated Javadoc
+ 
 /**
  * The Class SelectCardActivity.
  */

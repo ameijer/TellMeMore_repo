@@ -43,8 +43,6 @@ import android.os.Bundle;
 import android.util.Log;
 
 
-import com.google.android.glass.touchpad.GestureDetector;
-
 import android.widget.Toast;
 import android.os.Handler;
 import android.view.KeyEvent;
@@ -63,137 +61,132 @@ import net.sourceforge.zbar.Symbol;
 import net.sourceforge.zbar.SymbolSet;
 import net.sourceforge.zbar.Config;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class ScanActivity.
+ * The Class ScanActivity. This activity handles the scanning of QR codes and
+ * their interpretation. The cardloader service is started from here, as is the
+ * selectcardactivity.
  */
-public class ScanActivity extends Activity 
-{
-	
-	/** The Constant TAG. Used for the Android debug logger. */
-	public static final String TAG = "TMM" +", " + ScanActivity.class.getSimpleName();
-	
-	/** The unique id. */
-	public static char uniqueId;
-	
-	/** The Constant TARGET_SERVER_KEY. */
-	public static final String TARGET_SERVER_KEY = "target_server";
-	
-	/** The Constant EXAMPLE_CARD_SERVER. */
-	public static final String EXAMPLE_CARD_SERVER = "example_card_generator";
-	
-	/** The Constant CARDS_READY_KEY. */
-	public static final String CARDS_READY_KEY = "cards_ready";
-	
-	/** The m gesture detector. */
-	private GestureDetector mGestureDetector;
-	
-	/** The Constant KEY_SWIPE_DOWN. */
-	private static final int KEY_SWIPE_DOWN = 4;
-	
-	/** The Constant url. */
-	protected static final String url = "URL";
-	
-	/** The app. */
-	private TellMeMoreApplication app;
+public class ScanActivity extends Activity {
 
-	/** The m camera. */
+	/** The Constant TAG. Used for the Android debug logger. */
+	public static final String TAG = "TMM" + ", "
+			+ ScanActivity.class.getSimpleName();
+
+	/**
+	 * The Constant TARGET_SERVER_KEY. This is used for retrieving intent data,
+	 * specifically the name of the DB to synchronize.
+	 */
+	public static final String TARGET_SERVER_KEY = "target_server";
+
+	/**
+	 * The Constant EXAMPLE_CARD_SERVER. This is our default server to use if
+	 * there is no QR code available.
+	 */
+	public static final String EXAMPLE_CARD_SERVER = "example_card_generator";
+
+	/**
+	 * The Constant CARDS_READY_KEY. Used to alert the scanactivity that the
+	 * cards have not yet been updated by the cardloader service and that it
+	 * should splay a waiting screen.
+	 */
+	public static final String CARDS_READY_KEY = "cards_ready";
+
+	/**
+	 * The Constant KEY_SWIPE_DOWN. Used to handle the backwards compatibility
+	 * for the swipe down action used to dismiss views in glass.
+	 */
+	private static final int KEY_SWIPE_DOWN = 4;
+
+	/** The camera object used by the app to read QR codes to determine its context. */
 	private Camera mCamera;
-	
-	/** The m preview. */
+
+	/** The camera preview used in this activity to obtain QR code scans. */
 	private CameraPreview mPreview;
-	
+
 	/** The auto focus handler. */
 	private Handler autoFocusHandler;
-	
-	/** The m audio manager. */
-	private AudioManager mAudioManager;
-	
-	/** The scan button. */
-	Button scanButton;
 
-	/** The scanner. */
+	/** The audio manager for this class. Used to provide a response to user actions. */
+	private AudioManager mAudioManager;
+
+	/** The scanner object used to interpret QR codes. */
 	ImageScanner scanner;
 
-	/** The previewing. */
+	/** The previewing flag controlling the behavior of the activity. */
 	private boolean previewing = true;
 
 	static {
 		System.loadLibrary("iconv");
-	} 
+	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see android.app.Activity#onCreate(android.os.Bundle)
 	 */
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		app = (TellMeMoreApplication) this.getApplication();
 		mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 		setContentView(R.layout.scan_activity_layout);
 		Log.i(TAG, "onCreateCalled");
 
-		this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		//setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+		this.getWindow().addFlags(
+				WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		autoFocusHandler = new Handler();
 
-
-
-
-		//For some reason, right after launching from the "ok, glass" menu the camera is locked
-		//Try 3 times to grab the camera, with a short delay in between.
-		for(int i=0; i < 3; i++)
-		{
+		// For some reason, right after launching from the "ok, glass" menu the
+		// camera is locked
+		// Try 3 times to grab the camera, with a short delay in between.
+		for (int i = 0; i < 3; i++) {
 			mCamera = getCameraInstance();
-			if(mCamera != null) break;
+			if (mCamera != null)
+				break;
 
-			//Toast.makeText(this, "Couldn't lock camera, trying again in 1 second", Toast.LENGTH_SHORT).show();
 			try {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		if(mCamera == null)
-		{
-			Toast.makeText(this, "Camera cannot be locked", Toast.LENGTH_SHORT).show();
+		if (mCamera == null) {
+			Toast.makeText(this, "Camera cannot be locked", Toast.LENGTH_SHORT)
+					.show();
 			finish();
 		}
 
 		/* Instance barcode scanner */
 		createScanner();
 
+		//call the scanQR method
 		scanQR();
 	}
 
-
-	//temporary debug code
-	//atm011
-	/* (non-Javadoc)
+	// temporary debug code
+	// atm011
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see android.app.Activity#onKeyUp(int, android.view.KeyEvent)
 	 */
 	@Override
-	public boolean onKeyUp(int keyCode, KeyEvent event)
-	{
-		if (keyCode == KEY_SWIPE_DOWN)
-		{
-		
-			//when we start the select card activity from here, we are going to want to download/update the new cards, so 
-			//tell the selectcardactivity that the cards arent ready yet
-			
-			
+	public boolean onKeyUp(int keyCode, KeyEvent event) {
+		if (keyCode == KEY_SWIPE_DOWN) {
+
+			// when we start the select card activity from here, we are going to
+			// want to download/update the new cards, so
+			// tell the selectcardactivity that the cards aren't ready yet
+
 			// there was a swipe down event
 			Log.i(TAG, "hacky swipe_down method called");
 			mAudioManager.playSoundEffect(Sounds.DISMISSED);
+
+			// start the card downloader service using the default server
+			startCardDownload(EXAMPLE_CARD_SERVER);
 			
 			//start the next activity
-			startCardDownload(EXAMPLE_CARD_SERVER);
 			Intent intent = new Intent(this, SelectCardActivity.class);
 			intent.putExtra(CARDS_READY_KEY, false);
-			//Intent intent= new Intent(context, OpenYouTubePlayerActivity.class);
-			//Uri myUri = Uri.parse("ytv://eneEmDtSvzI");
-			//intent.setData(myUri);
 			startActivity(intent);
 			finish();
 			return true;
@@ -201,9 +194,8 @@ public class ScanActivity extends Activity
 		return false;
 	}
 
-
 	/**
-	 * Creates the scanner.
+	 * Creates and configures the scanner.
 	 */
 	public void createScanner() {
 		scanner = new ImageScanner();
@@ -212,15 +204,17 @@ public class ScanActivity extends Activity
 	}
 
 	/**
-	 * Scan qr.
+	 * Scan the QR code.
 	 */
 	public void scanQR() {
 		mPreview = new CameraPreview(this, mCamera, previewCb, autoFocusCB);
-		FrameLayout preview = (FrameLayout)findViewById(R.id.cameraPreview);
+		FrameLayout preview = (FrameLayout) findViewById(R.id.cameraPreview);
 		preview.addView(mPreview);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see android.app.Activity#onPause()
 	 */
 	public void onPause() {
@@ -229,16 +223,16 @@ public class ScanActivity extends Activity
 	}
 
 	/**
-	 *  A safe way to get an instance of the Camera object.
-	 *
+	 * A safe way to get an instance of the Camera object.
+	 * 
 	 * @return the camera instance
 	 */
-	public static Camera getCameraInstance(){
+	public static Camera getCameraInstance() {
 		Camera c = null;
 		try {
 			c = Camera.open();
 			Log.d(TAG, "getCamera = " + c);
-		} catch (Exception e){
+		} catch (Exception e) {
 			Log.d(TAG, e.toString());
 		}
 		return c;
@@ -256,7 +250,7 @@ public class ScanActivity extends Activity
 		}
 	}
 
-	/** The do auto focus. */
+	/** The auto-focusing thread. */
 	private Runnable doAutoFocus = new Runnable() {
 		public void run() {
 			if (previewing)
@@ -264,11 +258,14 @@ public class ScanActivity extends Activity
 		}
 	};
 
-	/** The preview cb. */
+	/** The callback that is called when the preview view is running. */
 	PreviewCallback previewCb = new PreviewCallback() {
-		
-		/* (non-Javadoc)
-		 * @see android.hardware.Camera.PreviewCallback#onPreviewFrame(byte[], android.hardware.Camera)
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see android.hardware.Camera.PreviewCallback#onPreviewFrame(byte[],
+		 * android.hardware.Camera)
 		 */
 		public void onPreviewFrame(byte[] data, Camera camera) {
 			Camera.Parameters parameters = camera.getParameters();
@@ -288,72 +285,40 @@ public class ScanActivity extends Activity
 				SymbolSet syms = scanner.getResults();
 				for (Symbol sym : syms) {
 					text = sym.getData();
+					
+					//start the carddownloader service as soon as we have a good URL
 					startCardDownload(text);
 					break;
 				}
 				mAudioManager.playSoundEffect(Sounds.SUCCESS);
-				// Add in integration stuff to go to SelectCardActivity
+				
+				//start the next activity
 				Context context = getApplicationContext();
-				//mTimelineManager = TimelineManager.from(context);
-				//Card initCard = new Card(context);
-				//if (uniqueId < 0x41){
-				//	uniqueId = 0x41;
-				//}
-				//String testText = "You learned about " + uniqueId;
-				//uniqueId++;
-				//String testFootnote = "Tap to revisit";
-				//initCard.setText(testText);
-				//initCard.setFootnote(testFootnote);
-
-				//note-no menu or pending intents supported, google is working on this 
-				//mTimelineManager.insert(initCard);
-
-				//start the next activity
-				//Intent intent = new Intent(context, SelectCardActivity.class);
-				//start the next activity
-				//startCardDownload(EXAMPLE_CARD_SERVER);
 				Intent intent = new Intent(context, SelectCardActivity.class);
 				intent.putExtra(CARDS_READY_KEY, false);
-				//Intent intent= new Intent(context, OpenYouTubePlayerActivity.class);
-				//Uri myUri = Uri.parse("ytv://eneEmDtSvzI");
-				//intent.setData(myUri);
-				//Intent intent= new Intent(context, OpenYouTubePlayerActivity.class);
-				//Uri myUri = Uri.parse("ytv://eneEmDtSvzI");
-				//intent.setData(myUri);
+				
 				startActivity(intent);
 				finish();
-
-
-				//                    // Return to the calling activity with the result
-				//                    Intent resultIntent = new Intent();
-				//                    resultIntent.putExtra(ScanActivity.url, text);
-				//                    setResult(Activity.RESULT_OK, resultIntent);
-				//                    finish();
 			}
 		}
 	};
 
 	/**
 	 * Start card download.
-	 *
-	 * @param url the url
+	 * 
+	 * @param url
+	 *            The name of the DB to obtain/synchronize
 	 */
-	void startCardDownload(String url)
-	{
-		
-		//start the card download service
-		//TODO -perform sanity check on the scanned text
+	void startCardDownload(String url) {
+
+		// start the card download service
 		Intent intent = new Intent(this, CardLoaderService.class);
 		intent.putExtra(TARGET_SERVER_KEY, url);
-		
-        startService(intent);
-		//Toast t = Toast.makeText(getApplicationContext(), url, Toast.LENGTH_SHORT);
-		//t.show();
+		startService(intent);
 		return;
 	}
 
-	// Mimic continuous auto-focusing
-	/** The auto focus cb. */
+	/** Mimic continuous auto-focusing*/
 	AutoFocusCallback autoFocusCB = new AutoFocusCallback() {
 		public void onAutoFocus(boolean success, Camera camera) {
 			autoFocusHandler.postDelayed(doAutoFocus, 1000);
