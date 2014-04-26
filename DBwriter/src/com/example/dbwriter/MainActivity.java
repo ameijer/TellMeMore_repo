@@ -59,111 +59,235 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.view.Menu;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
 
-public class MainActivity extends Activity implements Replication.ChangeListener{
+public class MainActivity extends Activity {
 
 	public static final String TAG = "DBwriter mainactivity"; 
 	public static final String EXAMPLE_CARD_SERVER = "example_card_generator";
+	public static final String POSTER_CARD_SERVER = "tellmemore_poster";
 	public static final String UUID_GETTER_PATH = "_uuids";
 	public static final String SYNC_URL = "http://192.168.1.2:5984"; 
+	private Context context; 
+	/**
+	 * The Constant MASTER_SERVER_URL. This URL is for the server containing all
+	 * the cards to synchronize with.
+	 */
+	public static final String MASTER_SERVER_URL = "http://134.82.132.99";
+
+	private static Button deleteExample, deletePoster, makeExample, makePoster;
 	ArrayList<TMMCard> cardz = new ArrayList<TMMCard>();
 	ArrayList<Server> servz = new ArrayList<Server>();
-	private Database database;
 
 	JSONObject jo = null;
 
-	protected Manager startCBLite() throws IOException {
 
-		Manager manager = new Manager(new AndroidContext(this).getFilesDir(), Manager.DEFAULT_OPTIONS);
-		return manager;
-	} 
 
-	protected void startDatabase(Manager manager, String databaseName) throws CouchbaseLiteException {
-		database = manager.getDatabase(databaseName);
-		database.open();
-	}
-
-	@Override
-	public void changed(Replication.ChangeEvent event) {
-
-		Replication replication = event.getSource();
-		Log.d(TAG, "Replication : " + replication + " changed.");
-		if (!replication.isRunning()) {
-			String msg = String.format("Replicator %s not running", replication);
-			Log.d(TAG, msg);
-		}
-		else {
-			int processed = replication.getCompletedChangesCount();
-			int total = replication.getChangesCount();
-			String msg = String.format("Replicator processed %d / %d", processed, total);
-			Log.d(TAG, msg);
-		}
+	public void findViews(){
+		deleteExample = (Button) findViewById(R.id.deleteExampleDB);
+		deletePoster = (Button) findViewById(R.id.deletePosterDB);
+		makeExample = (Button) findViewById(R.id.makeExampleDB);
+		makePoster = (Button) findViewById(R.id.makePosterDB);
 
 	}
 
+	public void setListeners(){
+		deleteExample.setOnClickListener(new View.OnClickListener()   
+		{
+			public void onClick(View view) 
+			{
 
+
+				Thread t1 = new Thread(new Runnable() {
+					public void run() {
+						try {
+							boolean result = deleteDB(MASTER_SERVER_URL, 5984, EXAMPLE_CARD_SERVER, true);
+							Toast.makeText(context,"deleted example DB, result is: " + result, Toast.LENGTH_LONG).show();
+						} catch (IllegalStateException e) { 
+							e.printStackTrace();
+						}
+					}
+				});
+
+				t1.start();
+				try {
+					t1.join();
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+
+
+			}
+		});
+
+		deletePoster.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View view) 
+			{
+
+
+				Thread t1 = new Thread(new Runnable() {
+					public void run() {
+						try {
+							boolean result = false;
+							result = deleteDB(MASTER_SERVER_URL, 5984, POSTER_CARD_SERVER, true);
+							Toast.makeText(context,"deleted poster DB, result is: " + result, Toast.LENGTH_LONG).show();
+						} catch (IllegalStateException e) { 
+							e.printStackTrace();
+						}
+					}
+				});
+
+				t1.start();
+				try {
+					t1.join();
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+
+
+			}
+		});
+
+		makeExample.setOnClickListener(new View.OnClickListener()   
+		{
+			public void onClick(View view) 
+			{
+
+				Thread t1 = new Thread(new Runnable() {
+					public void run() {
+						try {
+							createNewDB(MASTER_SERVER_URL, 5984, EXAMPLE_CARD_SERVER);
+						} catch (IllegalStateException e) { 
+							e.printStackTrace();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				});
+
+				t1.start();
+				try {
+					t1.join();
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+
+
+				loadExampleCards();
+
+
+				//phase 2: add the cards from the DB
+
+				Thread t4 = new Thread(new Runnable() {
+					public void run() {
+						try {
+
+							TMMCard temp = null;
+							//try to add an object that doesn't yet exist, but has a valid UUID
+							for(int i = 0; i < cardz.size(); i++){
+								temp = cardz.get(i);
+								temp.setuuId(getUUID(MASTER_SERVER_URL, 5984));
+								Log.i(TAG, "Thread t4, call addcardtoDB returns: " + addCardToDB(temp, MASTER_SERVER_URL, 5984, EXAMPLE_CARD_SERVER));
+							}
+
+						} catch (IllegalStateException e) { 
+							e.printStackTrace();
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				});
+
+				t4.start();
+				try {
+					t4.join();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+
+				Toast.makeText(context,"created example DB, server returns: " + getEntireDbAsJSON(EXAMPLE_CARD_SERVER) , Toast.LENGTH_LONG).show();
+
+			}
+		});
+		makePoster.setOnClickListener(new View.OnClickListener()   
+		{
+			public void onClick(View view) 
+			{
+
+
+				Thread t1 = new Thread(new Runnable() {
+					public void run() {
+						try {
+							createNewDB(MASTER_SERVER_URL, 5984, POSTER_CARD_SERVER);
+						} catch (IllegalStateException e) { 
+							e.printStackTrace();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				});
+
+				t1.start();
+				try {
+					t1.join();
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+
+
+				loadPosterCards();
+
+
+				//phase 2: add the cards from the DB
+
+				Thread t4 = new Thread(new Runnable() {
+					public void run() {
+						try {
+
+							TMMCard temp = null;
+							//try to add an object that doesn't yet exist, but has a valid UUID
+							for(int i = 0; i < cardz.size(); i++){
+								temp = cardz.get(i);
+								temp.setuuId(getUUID(MASTER_SERVER_URL, 5984));
+								Log.i(TAG, "Thread t4, call addcardtoDB returns: " + addCardToDB(temp, MASTER_SERVER_URL, 5984, POSTER_CARD_SERVER));
+							}
+
+						} catch (IllegalStateException e) { 
+							e.printStackTrace();
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				});
+
+				t4.start();
+				try {
+					t4.join();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+
+				Toast.makeText(context,"created poster DB, server returns: " + getEntireDbAsJSON(POSTER_CARD_SERVER) , Toast.LENGTH_LONG).show();
+
+			}
+
+		});
+	}
 
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		loadCards();
-
-
-		//phase 1: create DB with server name
-		Thread t1 = new Thread(new Runnable() {
-			public void run() {
-				try {
-					createNewDB("http://134.82.132.99", 5984, servz.get(0).getName());
-				} catch (IllegalStateException e) { 
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		});
-
-		t1.start();
-		try {
-			t1.join();
-		} catch (InterruptedException e1) {
-			e1.printStackTrace();
-		}
+		context = this;
+		findViews();
+		setListeners();
 
 
 
 
-
-
-		//phase 2: add the cards from the DB
-
-		Thread t4 = new Thread(new Runnable() {
-			public void run() {
-				try {
-
-					TMMCard temp = null;
-					//try to add an object that doesn't yet exist, but has a valid UUID
-					for(int i = 0; i < cardz.size(); i++){
-						temp = cardz.get(i);
-						temp.setuuId(getUUID("http://134.82.132.99", 5984));
-						Log.i(TAG, "Thread t4, call addcardtoDB returns: " + addCardToDB(temp, "http://192.168.1.2", 5984, servz.get(0).getName()));
-					}
-
-				} catch (IllegalStateException e) { 
-					e.printStackTrace();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-
-		t4.start();
-		try {
-			t4.join();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 
 
 	}
@@ -227,6 +351,127 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 			return null;
 		}
 	}
+
+	/**
+	 * The Class JSONGetter. This runnable is used to perform asynchronous HTTP
+	 * gets for JSON in the local DB. After the run() method completes (i.e. the
+	 * class is joined()) then the retrieved data is stored in the class member
+	 * vars and can be retrieved via the getter(s) provided.
+	 * 
+	 * @author atm011
+	 */
+	private class JSONGetter extends Thread {
+
+		/** The JSON string containing the JSOn item retrieved. */
+		private String json = "";
+		private String dbName;
+
+		/**
+		 * Instantiates a new JSON getter.
+		 */
+		public JSONGetter(String name) {
+			super();
+			dbName = name;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see java.lang.Thread#run()
+		 */
+		@Override
+		public void run() {
+
+			// then we must have a good UUID
+			// Create a new HttpClient and get Header
+			HttpClient httpclient = new DefaultHttpClient();
+			HttpGet everythingGetter = new HttpGet(MASTER_SERVER_URL + ":" + 5984
+					+ "/" + dbName);
+			// execute the put and record the response
+			HttpResponse response = null;
+			try {
+				response = httpclient.execute(everythingGetter);
+			} catch (ClientProtocolException e) {
+
+				Log.e(TAG, "error getting the DB as JSON", e);
+			} catch (IOException e) {
+				Log.e(TAG, "IO error getting the DB as JSON", e);
+			}
+
+			Log.i(TAG, "server response to all database get: " + response);
+
+			// parse the reponse
+			BufferedReader reader = null;
+			try {
+				reader = new BufferedReader(new InputStreamReader(response
+						.getEntity().getContent(), "UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			} catch (IllegalStateException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			// String json = null;
+			try {
+				json = reader.readLine();
+				Log.d(TAG, "Raw json string: " + json);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+		}
+
+		/**
+		 * Gets the JSON object retrieved by this method.
+		 * 
+		 * @return A string containing the JSON representation of the object
+		 *         retrieved by this method.
+		 */
+		public String getJson() {
+			return json;
+		}
+
+	}
+
+	/**
+	 * Get the entire contents of the currently open database as a JSON string.
+	 * 
+	 * @return A string containing the JSON representation of all the documents
+	 *         in the currently open DB.
+	 */
+	public String getEntireDbAsJSON(String name) {
+
+		JSONGetter jsonGetter = new JSONGetter(name);
+
+		jsonGetter.start();
+		try {
+			jsonGetter.join();
+		} catch (InterruptedException e) {
+
+			e.printStackTrace();
+			return null;
+		}
+
+		Log.d(TAG,
+				"String being returned from getEntireDBasJSON "
+						+ jsonGetter.getJson());
+		return jsonGetter.getJson();
+
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	/**
 	 * Obtains a single document from a couchDB with a given
@@ -1064,7 +1309,7 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 
 
 
-	private void loadCards() {
+	private void loadExampleCards() {
 
 		Server source1 = new Server(EXAMPLE_CARD_SERVER, "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
 		//Server source2 = new Server("CardloaderService's sample card generator second 'server'", "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
@@ -1145,9 +1390,9 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 
 		AudioCard audioCard1 = new AudioCard(0, 97, "Hear A Student Narration", file.getAbsolutePath(), source1);
 		Log.d(TAG, "audio card 1 added, returned: " + cardz.add(audioCard1));
-		
-		
-		
+
+
+
 		File file11 = new File(dir, "chartreading.mp3");
 
 		//manually write the audio file to the external to emulate it being downloaded
@@ -1176,7 +1421,7 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 			Log.e(TAG, "IOException in second part");
 
 		}    
-		
+
 		File file12 = new File(dir, "chartreadbkgrnd.png");
 
 		//manually write the audio file to the external to emulate it being downloaded
@@ -1205,13 +1450,13 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 			Log.e(TAG, "IOException in second part");
 
 		} 
-		
-		
+
+
 		AudioCard audioCard2 = new AudioCard(0, 96, "Focus: Immigration Chart", file11.getAbsolutePath(), source1);
 		audioCard2.setBackgroundPath(file12.getPath());
-		
+
 		Log.d(TAG, "audio card 2 added, returned: " + cardz.add(audioCard2));
-		
+
 		VideoCard videoCard1 = new VideoCard(0, 90, "Watch the Experiment", "wtnI3kyCnmA", source1);
 		File file9 = new File(dir, "reactor.png");
 
@@ -1241,9 +1486,9 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 			Log.e(TAG, "IOException in second part");
 
 		} 
-		
-		
-		
+
+
+
 		videoCard1.setScreenshot(file9.getPath());
 		VideoCard videoCard2 = new VideoCard(0, 89, "View the presentation", "cn5mMJiPYmw", source1);
 		Log.d(TAG, "video card 1 added, returned: " + cardz.add(videoCard1));
@@ -1492,4 +1737,254 @@ public class MainActivity extends Activity implements Replication.ChangeListener
 		return retVals;
 	}
 
+
+
+
+	private void loadPosterCards() {
+
+		Server source1 = new Server(POSTER_CARD_SERVER, "null", System.currentTimeMillis(), System.currentTimeMillis());
+		
+		File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm");
+		
+		//declare the basic cards that we will be using
+		TextCard authors = new TextCard(10, "About the Authors", source1);
+		VideoCard glassIntro = new VideoCard(20, "Watch a Glass Video", source1); // source vid: v1uyQZNg2vE
+		TextCard useCases = new TextCard(30, "Possible Use Cases", source1);
+		AudioCard narrate = new AudioCard(40, "Hear a Student Narration", dir.toString() + "/narration.mp3", source1);
+		TextCard sysFocus = new TextCard(50, "Focus: System Diagram", source1);
+		VideoCard release = new VideoCard(60, "Watch the News Story", source1); //source: OLn0cSZfl6c
+		TextCard future = new TextCard(70, "The Future of Wearable Tech", source1);
+		VideoCard myGlass = new VideoCard(80, "MyGlass App Explained", source1); //source: vrwFwl3ZVRU
+		TextCard myGlasstxt = new TextCard(85, "The MyGlass Helper App", source1);
+		VideoCard hwOverview = new VideoCard(90, "Glass's Hardware Explained", source1); //source: Ee5JzKbOAaw
+		TextCard lims = new TextCard(100, "Platform Limitations", source1);
+		TextCard nosql = new TextCard (110, "Focus: NoSQL Databases", source1);
+		
+		
+		//set up the videocards
+		
+		File file0 = new File(dir, "glassintrobkgrnd.jpg");
+
+		//manually write the audio file to the external to emulate it being downloaded
+		InputStream fIn0 = getBaseContext().getResources().openRawResource(R.raw.glassintrobkgrnd);
+		byte[] buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		FileOutputStream save0;
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+		
+		
+		
+		glassIntro.setYTtag("v1uyQZNg2vE");
+		glassIntro.setScreenshot(file0.getPath());
+		
+		
+		
+
+		
+		
+		
+		
+		
+		
+		
+		
+		//			Bitmap bmp2 = BitmapFactory.decodeResource(contexts[0].getResources(), R.raw.acmicon);
+		//			ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
+		//			bmp2.compress(Bitmap.CompressFormat.PNG, 100, stream2);
+		//			byte[] iconArray = stream2.toByteArray();
+
+		File file0 = new File(dir, "acmicon.jpg");
+
+		//manually write the audio file to the external to emulate it being downloaded
+		InputStream fIn0 = getBaseContext().getResources().openRawResource(R.raw.acmicon);
+		byte[] buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		FileOutputStream save0;
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+
+
+		TextCard textCard2 = new TextCard(0, 99, "Read Paper Abstract", "From ACM PAUC", "A. Student and Dr. XYZ", "Published 1 Mar 2009",  file0.getAbsolutePath(), getSampleArr2(), source1);
+
+		Log.d(TAG, "text card 2 added, returned: " + cardz.add(textCard2));
+		Log.d(TAG, "text card 1 added, returned: " + cardz.add(textCard1));
+
+		String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm/powerpointdemo.mp3";
+
+		dir.mkdirs();
+
+		File file = new File(dir, "powerpointdemo.mp3");
+
+		//manually write the audio file to the external to emulate it being downloaded
+		InputStream fIn = getBaseContext().getResources().openRawResource(R.raw.powerpointdemo);
+		byte[] buffer = null;
+		try {
+			int size = fIn.available();
+			buffer = new byte[size];
+			fIn.read(buffer);
+			fIn.close();
+		} catch (IOException e2) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		FileOutputStream save;
+		try {
+			save = new FileOutputStream(file);
+			save.write(buffer);
+			save.flush();
+			save.close();
+		} catch (FileNotFoundException e2) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e1) {
+			Log.e(TAG, "IOException in second part");
+
+		}    
+
+		AudioCard audioCard1 = new AudioCard(0, 97, "Hear A Student Narration", file.getAbsolutePath(), source1);
+		Log.d(TAG, "audio card 1 added, returned: " + cardz.add(audioCard1));
+
+
+
+		File file11 = new File(dir, "chartreading.mp3");
+
+		//manually write the audio file to the external to emulate it being downloaded
+		InputStream fIn11 = getBaseContext().getResources().openRawResource(R.raw.chartreading);
+		byte[] buffer11 = null;
+		try {
+			int size11 = fIn11.available();
+			buffer11 = new byte[size11];
+			fIn11.read(buffer11);
+			fIn11.close();
+		} catch (IOException e2) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		FileOutputStream save11;
+		try {
+			save11 = new FileOutputStream(file11);
+			save11.write(buffer11);
+			save11.flush();
+			save11.close();
+		} catch (FileNotFoundException e2) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e1) {
+			Log.e(TAG, "IOException in second part");
+
+		}    
+
+		File file12 = new File(dir, "chartreadbkgrnd.png");
+
+		//manually write the audio file to the external to emulate it being downloaded
+		InputStream fIn12 = getBaseContext().getResources().openRawResource(R.raw.chartreadbkgrnd);
+		byte[] buffer12 = null;
+		try {
+			int size12 = fIn12.available();
+			buffer12 = new byte[size12];
+			fIn12.read(buffer12);
+			fIn12.close();
+		} catch (IOException e2) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		FileOutputStream save12;
+		try {
+			save12 = new FileOutputStream(file12);
+			save12.write(buffer12);
+			save12.flush();
+			save12.close();
+		} catch (FileNotFoundException e2) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e1) {
+			Log.e(TAG, "IOException in second part");
+
+		} 
+
+
+		AudioCard audioCard2 = new AudioCard(0, 96, "Focus: Immigration Chart", file11.getAbsolutePath(), source1);
+		audioCard2.setBackgroundPath(file12.getPath());
+
+		Log.d(TAG, "audio card 2 added, returned: " + cardz.add(audioCard2));
+
+		VideoCard videoCard1 = new VideoCard(0, 90, "Watch the Experiment", "wtnI3kyCnmA", source1);
+		File file9 = new File(dir, "reactor.png");
+
+		//manually write the audio file to the external to emulate it being downloaded
+		InputStream fIn9 = getBaseContext().getResources().openRawResource(R.raw.reactor);
+		byte[] buffer9 = null;
+		try {
+			int size9 = fIn9.available();
+			buffer9 = new byte[size9];
+			fIn9.read(buffer9);
+			fIn9.close();
+		} catch (IOException e2) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		FileOutputStream save9;
+		try {
+			save9 = new FileOutputStream(file9);
+			save9.write(buffer9);
+			save9.flush();
+			save9.close();
+		} catch (FileNotFoundException e2) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e1) {
+			Log.e(TAG, "IOException in second part");
+
+		} 
+
+
+
+		videoCard1.setScreenshot(file9.getPath());
+		VideoCard videoCard2 = new VideoCard(0, 89, "View the presentation", "cn5mMJiPYmw", source1);
+		Log.d(TAG, "video card 1 added, returned: " + cardz.add(videoCard1));
+		Log.d(TAG, "video card 2 added, returned: " + cardz.add(videoCard2));
+
+		Log.d(TAG, "server source 1 added, returned: " + servz.add(source1));
+	}
 }

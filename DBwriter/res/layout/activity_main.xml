@@ -8,9 +8,37 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity" >
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/hello_world" />
+    <Button 
+        android:id="@+id/makeExampleDB"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_alignParentTop="true"
+    android:text="make example DB" 
+        
+        />
+    
+    <Button 
+        android:id="@+id/makePosterDB"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:text="make DB for TMMPoster" 
+    android:layout_below="@id/makeExampleDB"    
+        />
+    
+    <Button 
+        android:id="@+id/deleteExampleDB"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:text="delete example DB" 
+    android:layout_below="@id/makePosterDB"    
+        />
+    
+    <Button 
+        android:id="@+id/deletePosterDB"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:text="delete DB for TMMPoster" 
+    android:layout_below="@id/deleteExampleDB"    
+        />
 
 </RelativeLayout>
