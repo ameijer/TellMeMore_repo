@@ -1703,27 +1703,21 @@ public class MainActivity extends Activity {
 																					// //DONE
 		TextCard useCases = new TextCard(200, "Possible Use Cases", source1);      //DONE
 		
-		AudioCard narrate = new AudioCard(40, "Hear a Student Narration",
-				dir.toString() + "/narration.mp3", source1);
+		AudioCard narrate = new AudioCard(40, "Hear a Student Narration", dir.toString() + "/narration.mp3", source1); //TODO
 		
-		TextCard sysFocus = new TextCard(50, "Focus: System Diagram", source1);
+		TextCard sysFocus = new TextCard(50, "Focus: System Diagram", source1); //DONE
 	
-		VideoCard release = new VideoCard(60, "Watch the Glass Release Story",
-				source1); // source: OLn0cSZfl6c //DONE
+		VideoCard release = new VideoCard(60, "Watch the Glass Release Story", source1); // source: OLn0cSZfl6c //DONE
 		
-		TextCard future = new TextCard(70, "What the Future Holds",
-				source1);
+		TextCard future = new TextCard(70, "What the Future Holds", source1); //DONE
 		
-		//analytics via synchrniiztion 
 		VideoCard myGlass = new VideoCard(80, "MyGlass App Explained", source1); // source:
 																					// vrwFwl3ZVRU
 																					// //DONE
-		TextCard myGlasstxt = new TextCard(85, "The MyGlass Helper App",
-				source1);
-		VideoCard hwOverview = new VideoCard(90, "Glass's Hardware Explained",
-				source1); // source: Ee5JzKbOAaw //DONE
-		TextCard lims = new TextCard(100, "Platform Limitations", source1);
-		TextCard nosql = new TextCard(110, "Focus: NoSQL Databases", source1);
+		TextCard myGlasstxt = new TextCard(85, "The MyGlass Helper App", source1); //TODO
+		VideoCard hwOverview = new VideoCard(90, "Glass's Hardware Explained", source1); // source: Ee5JzKbOAaw //DONE
+		TextCard lims = new TextCard(100, "Platform Limitations", source1); //TODO
+		TextCard nosql = new TextCard(110, "Focus: NoSQL Databases", source1); //TODO
 
 		// set up the videocards
 		// video: a look through glass
@@ -1869,6 +1863,43 @@ public class MainActivity extends Activity {
 		ArrayList<TextElement> useCases_contents = getUseCases();
 		useCases.setContents(useCases_contents);
 
+		//narration
+		file0 = new File(dir, "poster_full.jpg");
+		fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.poster_full);
+		buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+		
+		narrate.setBackgroundPath(file0.getPath());
+		
+		//system focus diagram
+		ArrayList<TextElement> sysFoucsd_contents = generateSysFocusContent();
+		sysFocus.setContents(sysFoucsd_contents);
+		
+		//what the future holds
+		ArrayList<TextElement> future_contents = getFutureContent();
+		future.setContents(future_contents);
+		
 		// add all the poster card to the class varaible to be uploaded
 		cardz = new ArrayList<TMMCard>();
 		cardz.add(authors);
@@ -1886,6 +1917,65 @@ public class MainActivity extends Activity {
 		cardz.add(nosql);
 		Log.i(TAG, "size of cardz array: " + cardz.size());
 
+	}
+	
+	private ArrayList<TextElement> getFutureContent(){
+		ArrayList<TextElement> toReturn = new ArrayList<TextElement>();
+		File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm");
+		
+		TextElement t1 = new TextElement(Type.TEXT_, "There are a number of improvments planned for the near future of TellMeMore: \n");
+		
+		TextElement t2 = new TextElement(Type.TEXT_, "The NoSQL databases used by the system can support 2 way synchronization. This allows for analytical information to be uploaded to the master database about how each user uses their glass.");
+		
+		TextElement t3 = new TextElement(Type.TEXT_, "Such analytics can include: \n -Time spent on each card \n-Number of views per card");
+		
+		TextElement t3_2 = new TextElement(Type.TEXT_, "MapReduce applications can be added to the master database making aggregate analyitics generation easy and fast.");
+		
+		File file0 = new File(dir, "mapreduce.jpg");
+
+		// manually write the audio file to the external to emulate it being
+		// downloaded
+		InputStream fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.mapreduce);
+		byte[] buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		FileOutputStream save0;
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+		
+		TextElement t3_3 = new TextElement(Type.IMAGE, "How MapReduce works", file0.getPath());
+		
+		TextElement t4 = new TextElement(Type.TEXT_, "TellMeMore will also use other methods to determine context in the future, such as RFID tags, WiFi localization, or Geo-Fencing");
+		
+		TextElement t5 = new TextElement(Type.TEXT_, "TellmeMore cards will be able to be created in many different ways. The most popular will undoubtedly be web-based card creation tools, but mobile and desktop apps can also be created to push new content. For example, an Android app can be used to make a video using the built-in phone camera, and the resulting video will automatically be added to the database using the mobile app.");
+		
+		toReturn.add(t1);
+		toReturn.add(t2);
+		toReturn.add(t3);
+		toReturn.add(t3_2);
+		toReturn.add(t3_3);
+		toReturn.add(t4);
+		toReturn.add(t5);
+		
+		return toReturn;
 	}
 
 	private ArrayList<TextElement> getUseCases() {
@@ -2058,11 +2148,174 @@ public class MainActivity extends Activity {
 		
 		TextElement t1 = new TextElement(Type.TEXT_, "The TellMeMore System uses a QR code with a plaintext string encoded in it to determine what the user is looking at. In this example, the string \"project_1\" has been encoded into the QR code. The system does not scan a URL from the QR code, which allows for improved security. ");
 		//qr code + string here 
+		File dir = new File(Environment.getExternalStorageDirectory()
+				.getAbsolutePath() + "/tmm");
+		File file0 = new File(dir, "qrdiagram.jpg");
+
+		// manually write the audio file to the external to emulate it being
+		// downloaded
+		InputStream fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.qrdiagram);
+		byte[] buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		FileOutputStream save0;
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+		
+		TextElement t1_1 = new TextElement(Type.IMAGE, "", file0.getPath());
+		toReturn.add(t1);
+		toReturn.add(t1_1);
 		
 		TextElement t2 = new TextElement(Type.TEXT_, "The QR Scanner and Reader system uses the Glass' camera and the Zbar library to read the QR code and parse the contents. This library then passes the string contained in the QR code to the remainder of the system. ");
 		//qr code scanner block, maybe with approaching and leaving arrows
+		file0 = new File(dir, "qrscannerd.jpg");
+		fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.qrscannerd);
+		buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
 		
-		TextElement t3 = new TextElement(Type.TEXT_, "Using the ")
+		TextElement t2_1 = new TextElement(Type.IMAGE, "", file0.getPath());
+		
+		toReturn.add(t2);
+		toReturn.add(t2_1);
+		
+		TextElement t3 = new TextElement(Type.TEXT_, "Using the name of the database obtained from the QR scanner, the NoSQL database on the Glass establishes a connection with the master NoSQL database over HTTP. It makes a request for all the cards for porject 1, and receives them back in JSON from the master. ");
+		//middle rectange part here showing data moving in multiple directions
+		file0 = new File(dir, "midpart.jpg");
+		fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.midpart);
+		buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+		
+		TextElement t3_1 = new TextElement(Type.IMAGE, "", file0.getPath());
+		
+		toReturn.add(t3);
+		toReturn.add(t3_1);
+		
+		TextElement t4 = new TextElement(Type.TEXT_, "The card adapters and the assocated players and viewers for each type of card then acces the local database directly. This allows for fast access of card content once the local database has been synchronized. Also, the local database functions as a cache for recent card data, so in the event that network connectivity is lost, the cards stored locally can still be accessed.");
+		//bottom part under client DB goes here
+		file0 = new File(dir, "cardadapter.jpg");
+		fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.cardadapter);
+		buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+		
+		TextElement t4_1 = new TextElement(Type.IMAGE, "", file0.getPath());
+		
+		toReturn.add(t4);
+		toReturn.add(t4_1);
+		
+		TextElement t5 = new TextElement(Type.TEXT_, "New cards can be created from a wide variety of platorms, and uploaded to the master database easily. Cards can also be easily updated in the same manner.");
+		//bottom new card addition part goes here
+		file0 = new File(dir, "newcards.jpg");
+		fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.newcards);
+		buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+		
+		
+		TextElement t5_1 = new TextElement(Type.IMAGE, "", file0.getPath());
+		
+		toReturn.add(t5);
+		toReturn.add(t5_1);
 		
 		return toReturn;
 	}
