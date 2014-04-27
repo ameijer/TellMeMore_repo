@@ -204,7 +204,7 @@ public class MainActivity extends Activity {
 						context,
 						"created example DB, server returns: "
 								+ getEntireDbAsJSON(EXAMPLE_CARD_SERVER),
-						Toast.LENGTH_LONG).show();
+								Toast.LENGTH_LONG).show();
 
 			}
 		});
@@ -275,7 +275,7 @@ public class MainActivity extends Activity {
 						context,
 						"created poster DB, server returns: "
 								+ getEntireDbAsJSON(POSTER_CARD_SERVER),
-						Toast.LENGTH_LONG).show();
+								Toast.LENGTH_LONG).show();
 
 			}
 
@@ -929,7 +929,7 @@ public class MainActivity extends Activity {
 
 	private boolean uploadCardAttachments(TMMCard toAdd, JSONObject jsonObject,
 			String serverURLsansPort, int port, String dbName)
-			throws IOException {
+					throws IOException {
 		// will need case statement for each subclass of TMMCard
 		if (toAdd instanceof VideoCard) {
 			if (((VideoCard) toAdd).hasScreenshot()) {
@@ -1696,27 +1696,27 @@ public class MainActivity extends Activity {
 
 		// declare the basic cards that we will be using
 		TextCard authors = new TextCard(10, "About the Authors", source1);         //DONE
-		
+
 		VideoCard glassIntro = new VideoCard(20, "Watch a Glass Video", source1); // source
-																					// vid:
-																					// v1uyQZNg2vE
-																					// //DONE
+		// vid:
+		// v1uyQZNg2vE
+		// //DONE
 		TextCard useCases = new TextCard(200, "Possible Use Cases", source1);      //DONE
-		
+
 		AudioCard narrate = new AudioCard(40, "Hear a Student Narration", dir.toString() + "/narration.mp3", source1); //TODO
-		
+
 		TextCard sysFocus = new TextCard(50, "Focus: System Diagram", source1); //DONE
-	
+
 		VideoCard release = new VideoCard(60, "Watch the Glass Release Story", source1); // source: OLn0cSZfl6c //DONE
-		
+
 		TextCard future = new TextCard(70, "What the Future Holds", source1); //DONE
-		
+
 		VideoCard myGlass = new VideoCard(80, "MyGlass App Explained", source1); // source:
-																					// vrwFwl3ZVRU
-																					// //DONE
-		TextCard myGlasstxt = new TextCard(85, "The MyGlass Helper App", source1); //TODO
+		// vrwFwl3ZVRU
+		// //DONE
+		TextCard myGlasstxt = new TextCard(85, "The MyGlass Helper App", source1); //DONE
 		VideoCard hwOverview = new VideoCard(90, "Glass's Hardware Explained", source1); // source: Ee5JzKbOAaw //DONE
-		TextCard lims = new TextCard(100, "Platform Limitations", source1); //TODO
+		TextCard lims = new TextCard(100, "Glass' Unique Challenges", source1); //TODO
 		TextCard nosql = new TextCard(110, "Focus: NoSQL Databases", source1); //TODO
 
 		// set up the videocards
@@ -1889,18 +1889,114 @@ public class MainActivity extends Activity {
 		} catch (IOException e) {
 			Log.e(TAG, "IOException in second part");
 		}
-		
+
 		narrate.setBackgroundPath(file0.getPath());
-		
+
 		//system focus diagram
 		ArrayList<TextElement> sysFoucsd_contents = generateSysFocusContent();
 		sysFocus.setContents(sysFoucsd_contents);
-		
+
 		//what the future holds
 		ArrayList<TextElement> future_contents = getFutureContent();
 		future.setContents(future_contents);
-		
-		// add all the poster card to the class varaible to be uploaded
+
+		//text card for the myglass
+		file0 = new File(dir, "myglassic.png");
+		fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.myglassic);
+		buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+
+		ArrayList<TextElement> myGlass_contents = getMyGlassContent();
+		myGlasstxt.setContents(myGlass_contents);
+		myGlasstxt.setIconPath(file0.getPath());
+
+		//limitations
+		ArrayList<TextElement> limitations_contents = getLimitationsContent();
+		lims.setContents(limitations_contents);
+
+		file0 = new File(dir, "noglassic.png");
+		fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.noglassic);
+		buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+
+		lims.setIconPath(file0.getPath());
+
+		//focus on nosqls
+		ArrayList<TextElement> nosql_contents = getnosql_contents();
+		nosql.setContents(nosql_contents);
+
+		file0 = new File(dir, "nosqlic.png");
+		fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.nosqlic);
+		buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+
+		nosql.setIconPath(file0.getPath());
+
+
+		// add all the poster card to the class variable to be uploaded
 		cardz = new ArrayList<TMMCard>();
 		cardz.add(authors);
 		cardz.add(glassIntro);
@@ -1918,19 +2014,215 @@ public class MainActivity extends Activity {
 		Log.i(TAG, "size of cardz array: " + cardz.size());
 
 	}
+
+	private ArrayList<TextElement> getnosql_contents(){
+		ArrayList<TextElement> toReturn = new ArrayList<TextElement>();
+
+		
+
+		return toReturn;
+	}
+	private ArrayList<TextElement> getLimitationsContent(){
+		ArrayList<TextElement> toReturn = new ArrayList<TextElement>();
+		File dir = new File(Environment.getExternalStorageDirectory()
+				.getAbsolutePath() + "/tmm");
+		TextElement t1 = new TextElement(Type.TEXT_, "The wearable technology available in Google Glass is still in development. It does have a number of limitations which will need to be addressed before the technology can become ubuquitous.");
+		
+		TextElement t2 = new TextElement(Type.TEXT_, "The first issue is the high cost of google glass. Currently, one set of Google Glass costs abut $1,500. This is due to the high engineering cost of the device. Google hopes to reduce this by the time the product is released.");
+		
+		TextElement t3 = new TextElement(Type.TEXT_, "Another issue is the privacy of people around the glass user. Surrounding individuals cannot tell if the device is recording or not; this creates fears of government or corporate surveillance. The issues surrounding the privacy of glass has yet to be resolved. ");
+		
+		File file0 = new File(dir, "googleglassbigbrother.png");
+
+		// manually write the audio file to the external to emulate it being
+		// downloaded
+		InputStream fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.googleglassbrother);
+		byte[] buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		FileOutputStream save0;
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+		
+		TextElement t3_1 = new TextElement(Type.IMAGE, "", file0.getPath());
+		TextElement t4 = new TextElement(Type.TEXT_, "Finally, the small size of Google glass places serious constraints on the battery life of the product - in practice, the battery only lasts for around 30 minutes.");
+		
+		toReturn.add(t1);
+		toReturn.add(t2);
+		toReturn.add(t3);
+		toReturn.add(t3_1);
+		toReturn.add(t4);
+		
+		return toReturn; 
+	}
 	
+	private ArrayList<TextElement> getMyGlassContent(){
+		ArrayList<TextElement> toReturn = new ArrayList<TextElement>();
+		File dir = new File(Environment.getExternalStorageDirectory()
+				.getAbsolutePath() + "/tmm");
+		File file0 = new File(dir, "myglassheader.jpg");
+		InputStream fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.myglassheader);
+		byte[] buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		FileOutputStream save0;
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+
+		TextElement t1 = new TextElement(Type.IMAGE, "About the MyGlass App", file0.getPath());
+		toReturn.add(t1);
+
+		TextElement t2 = new TextElement(Type.TEXT_, "Since Google Glass itself has very limited ways to receive input, Google has released an app called MyGlass that unlocks the full potential of the platform. ");
+		toReturn.add(t2);
+
+		TextElement t3 = new TextElement(Type.TEXT_, "\n The MyGlass app is available for installation via the Google Play and Apple App Stores. Once installed, set it up and connect to the glass device.");
+		toReturn.add(t3);
+
+		TextElement t4 = new TextElement(Type.TEXT_, "Once the app is installed, it offers a number of useful features to get the most out of your glass.\n");
+		toReturn.add(t4);
+
+
+		file0 = new File(dir, "glasstxt1.png");
+		fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.glasstxt1);
+		buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+
+
+		TextElement t5 = new TextElement(Type.IMAGE, "You can view your contacts stored on the Glass device", file0.getPath());
+		toReturn.add(t5);
+
+
+		file0 = new File(dir, "glasstxt2.png");
+		fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.glasstxt2);
+		buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+
+		TextElement t6 = new TextElement(Type.IMAGE, "You can install new glassware on the device using the app", file0.getPath());
+		toReturn.add(t6);
+
+
+		file0 = new File(dir, "glasstxt3.png");
+		fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.glasstxt3);
+		buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+
+		TextElement t7 = new TextElement(Type.IMAGE, "You can view the status of the glass device using the MyGlass App", file0.getPath());
+		toReturn.add(t7);
+
+		return toReturn; 
+	}
+
 	private ArrayList<TextElement> getFutureContent(){
 		ArrayList<TextElement> toReturn = new ArrayList<TextElement>();
 		File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm");
-		
+
 		TextElement t1 = new TextElement(Type.TEXT_, "There are a number of improvments planned for the near future of TellMeMore: \n");
-		
+
 		TextElement t2 = new TextElement(Type.TEXT_, "The NoSQL databases used by the system can support 2 way synchronization. This allows for analytical information to be uploaded to the master database about how each user uses their glass.");
-		
+
 		TextElement t3 = new TextElement(Type.TEXT_, "Such analytics can include: \n -Time spent on each card \n-Number of views per card");
-		
+
 		TextElement t3_2 = new TextElement(Type.TEXT_, "MapReduce applications can be added to the master database making aggregate analyitics generation easy and fast.");
-		
+
 		File file0 = new File(dir, "mapreduce.jpg");
 
 		// manually write the audio file to the external to emulate it being
@@ -1960,13 +2252,13 @@ public class MainActivity extends Activity {
 		} catch (IOException e) {
 			Log.e(TAG, "IOException in second part");
 		}
-		
+
 		TextElement t3_3 = new TextElement(Type.IMAGE, "How MapReduce works", file0.getPath());
-		
+
 		TextElement t4 = new TextElement(Type.TEXT_, "TellMeMore will also use other methods to determine context in the future, such as RFID tags, WiFi localization, or Geo-Fencing");
-		
+
 		TextElement t5 = new TextElement(Type.TEXT_, "TellmeMore cards will be able to be created in many different ways. The most popular will undoubtedly be web-based card creation tools, but mobile and desktop apps can also be created to push new content. For example, an Android app can be used to make a video using the built-in phone camera, and the resulting video will automatically be added to the database using the mobile app.");
-		
+
 		toReturn.add(t1);
 		toReturn.add(t2);
 		toReturn.add(t3);
@@ -1974,7 +2266,7 @@ public class MainActivity extends Activity {
 		toReturn.add(t3_3);
 		toReturn.add(t4);
 		toReturn.add(t5);
-		
+
 		return toReturn;
 	}
 
@@ -2011,14 +2303,14 @@ public class MainActivity extends Activity {
 		} catch (IOException e) {
 			Log.e(TAG, "IOException in second part");
 		}
-		
+
 		TextElement t1 = new TextElement(Type.TEXT_, "We envision a number of possible uses from TellMeMore: \n");
 		TextElement t2 = new TextElement(Type.TEXT_, "First of all, it can be used to deliver more information for things like this poster. TellMeMore allows sound and video to be added to posters, just by addign a QR code. ");
 		TextElement t3 = new TextElement(Type.IMAGE, "TellMeMore QR code", file0.getPath());
 		toReturn.add(t1);
 		toReturn.add(t2);
 		toReturn.add(t3);
-		
+
 		file0 = new File(dir, "geofence.jpg");
 		TextElement t4 = new TextElement(Type.TEXT_, "TellMeMore can be used in the context of the real world, to tell you more about the place you are in. It can accomplish this using the concept of GeoFencing, using the GPS location to pick out relevant cards.");
 		fIn0 = getBaseContext().getResources().openRawResource(
@@ -2045,21 +2337,21 @@ public class MainActivity extends Activity {
 		} catch (IOException e) {
 			Log.e(TAG, "IOException in second part");
 		}
-		
+
 		TextElement t5 = new TextElement(Type.IMAGE, "A Geofence", file0.getPath());
 		toReturn.add(t4);
 		toReturn.add(t5);
-		
+
 		//talk about opportunities created by synchronization
-		
+
 		TextElement t6 = new TextElement(Type.TEXT_, "The databases used by TellMeMore can be set to synchronize with each other constantly. This capability brings up a whole range of other possible applications: Interactive cards, cards controlled by a central server, or cards that change their content based on the individual user.  ");
 		toReturn.add(t6);
-		
+
 		//talk about image recognition and step-by-step guides
-		
+
 		TextElement t7 = new TextElement(Type.TEXT_, "TellMeMore can be used with any method of determining context. If integrated with computer vision technology, for example, it can detect an osilliscope in the user's view and even ascertain the model and state (ON, OFF, and etcetera). Using this context information, TellMeMore can provide cards prepared by an instructor or the manufacturer containing text and videos on how to use the osilliscope properly.");
 		toReturn.add(t7);
-		
+
 		file0 = new File(dir, "oscope.jpg");
 		fIn0 = getBaseContext().getResources().openRawResource(
 				R.raw.oscope);
@@ -2085,13 +2377,13 @@ public class MainActivity extends Activity {
 		} catch (IOException e) {
 			Log.e(TAG, "IOException in second part");
 		}
-		
+
 		TextElement t8 = new TextElement(Type.IMAGE, "Computer Vision In Use", file0.getPath());
 		toReturn.add(t8);
-		
+
 		TextElement t9 = new TextElement(Type.TEXT_, "There are, of course, mmany more applications and extensions in this space, we have provided only a sample here of the most fasible in the near term.");
 		toReturn.add(t9);
-		
+
 		return toReturn;
 	}
 
@@ -2137,15 +2429,16 @@ public class MainActivity extends Activity {
 				"Alexander Meijer is a Computer Engineering major from the town of Groton, Massachusetts. Alex enjoys tinkering with the UNIX Operating System in all of its various forms and flavors, and can be relied upon to have the latest version running on at least one computer.\n");
 
 		toReturn.add(t2);
-		
+
 		TextElement t3 = new TextElement(Type.TEXT_, "<insert dan bio here");
+		toReturn.add(t3);
 		return toReturn;
 
 	}
-	
+
 	private ArrayList<TextElement> generateSysFocusContent(){
 		ArrayList<TextElement> toReturn = new ArrayList<TextElement>();
-		
+
 		TextElement t1 = new TextElement(Type.TEXT_, "The TellMeMore System uses a QR code with a plaintext string encoded in it to determine what the user is looking at. In this example, the string \"project_1\" has been encoded into the QR code. The system does not scan a URL from the QR code, which allows for improved security. ");
 		//qr code + string here 
 		File dir = new File(Environment.getExternalStorageDirectory()
@@ -2179,11 +2472,11 @@ public class MainActivity extends Activity {
 		} catch (IOException e) {
 			Log.e(TAG, "IOException in second part");
 		}
-		
+
 		TextElement t1_1 = new TextElement(Type.IMAGE, "", file0.getPath());
 		toReturn.add(t1);
 		toReturn.add(t1_1);
-		
+
 		TextElement t2 = new TextElement(Type.TEXT_, "The QR Scanner and Reader system uses the Glass' camera and the Zbar library to read the QR code and parse the contents. This library then passes the string contained in the QR code to the remainder of the system. ");
 		//qr code scanner block, maybe with approaching and leaving arrows
 		file0 = new File(dir, "qrscannerd.jpg");
@@ -2211,12 +2504,12 @@ public class MainActivity extends Activity {
 		} catch (IOException e) {
 			Log.e(TAG, "IOException in second part");
 		}
-		
+
 		TextElement t2_1 = new TextElement(Type.IMAGE, "", file0.getPath());
-		
+
 		toReturn.add(t2);
 		toReturn.add(t2_1);
-		
+
 		TextElement t3 = new TextElement(Type.TEXT_, "Using the name of the database obtained from the QR scanner, the NoSQL database on the Glass establishes a connection with the master NoSQL database over HTTP. It makes a request for all the cards for porject 1, and receives them back in JSON from the master. ");
 		//middle rectange part here showing data moving in multiple directions
 		file0 = new File(dir, "midpart.jpg");
@@ -2244,12 +2537,12 @@ public class MainActivity extends Activity {
 		} catch (IOException e) {
 			Log.e(TAG, "IOException in second part");
 		}
-		
+
 		TextElement t3_1 = new TextElement(Type.IMAGE, "", file0.getPath());
-		
+
 		toReturn.add(t3);
 		toReturn.add(t3_1);
-		
+
 		TextElement t4 = new TextElement(Type.TEXT_, "The card adapters and the assocated players and viewers for each type of card then acces the local database directly. This allows for fast access of card content once the local database has been synchronized. Also, the local database functions as a cache for recent card data, so in the event that network connectivity is lost, the cards stored locally can still be accessed.");
 		//bottom part under client DB goes here
 		file0 = new File(dir, "cardadapter.jpg");
@@ -2277,12 +2570,12 @@ public class MainActivity extends Activity {
 		} catch (IOException e) {
 			Log.e(TAG, "IOException in second part");
 		}
-		
+
 		TextElement t4_1 = new TextElement(Type.IMAGE, "", file0.getPath());
-		
+
 		toReturn.add(t4);
 		toReturn.add(t4_1);
-		
+
 		TextElement t5 = new TextElement(Type.TEXT_, "New cards can be created from a wide variety of platorms, and uploaded to the master database easily. Cards can also be easily updated in the same manner.");
 		//bottom new card addition part goes here
 		file0 = new File(dir, "newcards.jpg");
@@ -2310,13 +2603,13 @@ public class MainActivity extends Activity {
 		} catch (IOException e) {
 			Log.e(TAG, "IOException in second part");
 		}
-		
-		
+
+
 		TextElement t5_1 = new TextElement(Type.IMAGE, "", file0.getPath());
-		
+
 		toReturn.add(t5);
 		toReturn.add(t5_1);
-		
+
 		return toReturn;
 	}
 }
