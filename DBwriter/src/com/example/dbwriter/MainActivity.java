@@ -1695,19 +1695,26 @@ public class MainActivity extends Activity {
 				.getAbsolutePath() + "/tmm");
 
 		// declare the basic cards that we will be using
-		TextCard authors = new TextCard(10, "About the Authors", source1);
+		TextCard authors = new TextCard(10, "About the Authors", source1);         //DONE
+		
 		VideoCard glassIntro = new VideoCard(20, "Watch a Glass Video", source1); // source
 																					// vid:
 																					// v1uyQZNg2vE
 																					// //DONE
-		TextCard useCases = new TextCard(30, "Possible Use Cases", source1);
+		TextCard useCases = new TextCard(200, "Possible Use Cases", source1);      //DONE
+		
 		AudioCard narrate = new AudioCard(40, "Hear a Student Narration",
 				dir.toString() + "/narration.mp3", source1);
+		
 		TextCard sysFocus = new TextCard(50, "Focus: System Diagram", source1);
+	
 		VideoCard release = new VideoCard(60, "Watch the Glass Release Story",
 				source1); // source: OLn0cSZfl6c //DONE
-		TextCard future = new TextCard(70, "The Future of Wearable Tech",
+		
+		TextCard future = new TextCard(70, "What the Future Holds",
 				source1);
+		
+		//analytics via synchrniiztion 
 		VideoCard myGlass = new VideoCard(80, "MyGlass App Explained", source1); // source:
 																					// vrwFwl3ZVRU
 																					// //DONE
@@ -1954,7 +1961,46 @@ public class MainActivity extends Activity {
 		toReturn.add(t5);
 		
 		//talk about opportunities created by synchronization
+		
+		TextElement t6 = new TextElement(Type.TEXT_, "The databases used by TellMeMore can be set to synchronize with each other constantly. This capability brings up a whole range of other possible applications: Interactive cards, cards controlled by a central server, or cards that change their content based on the individual user.  ");
+		toReturn.add(t6);
+		
 		//talk about image recognition and step-by-step guides
+		
+		TextElement t7 = new TextElement(Type.TEXT_, "TellMeMore can be used with any method of determining context. If integrated with computer vision technology, for example, it can detect an osilliscope in the user's view and even ascertain the model and state (ON, OFF, and etcetera). Using this context information, TellMeMore can provide cards prepared by an instructor or the manufacturer containing text and videos on how to use the osilliscope properly.");
+		toReturn.add(t7);
+		
+		file0 = new File(dir, "oscope.jpg");
+		fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.oscope);
+		buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+		
+		TextElement t8 = new TextElement(Type.IMAGE, "Computer Vision In Use", file0.getPath());
+		toReturn.add(t8);
+		
+		TextElement t9 = new TextElement(Type.TEXT_, "There are, of course, mmany more applications and extensions in this space, we have provided only a sample here of the most fasible in the near term.");
+		toReturn.add(t9);
 		
 		return toReturn;
 	}
@@ -2005,5 +2051,19 @@ public class MainActivity extends Activity {
 		TextElement t3 = new TextElement(Type.TEXT_, "<insert dan bio here");
 		return toReturn;
 
+	}
+	
+	private ArrayList<TextElement> generateSysFocusContent(){
+		ArrayList<TextElement> toReturn = new ArrayList<TextElement>();
+		
+		TextElement t1 = new TextElement(Type.TEXT_, "The TellMeMore System uses a QR code with a plaintext string encoded in it to determine what the user is looking at. In this example, the string \"project_1\" has been encoded into the QR code. The system does not scan a URL from the QR code, which allows for improved security. ");
+		//qr code + string here 
+		
+		TextElement t2 = new TextElement(Type.TEXT_, "The QR Scanner and Reader system uses the Glass' camera and the Zbar library to read the QR code and parse the contents. This library then passes the string contained in the QR code to the remainder of the system. ");
+		//qr code scanner block, maybe with approaching and leaving arrows
+		
+		TextElement t3 = new TextElement(Type.TEXT_, "Using the ")
+		
+		return toReturn;
 	}
 }
