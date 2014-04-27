@@ -40,19 +40,10 @@ import com.couchbase.lite.Database;
 import com.couchbase.lite.Manager;
 import com.example.dbwriter.TextElement.Type;
 
-
-
-
-
-
-
-
-
-
-
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Looper;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -65,12 +56,12 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
-	public static final String TAG = "DBwriter mainactivity"; 
+	public static final String TAG = "DBwriter mainactivity";
 	public static final String EXAMPLE_CARD_SERVER = "example_card_generator";
 	public static final String POSTER_CARD_SERVER = "tellmemore_poster";
 	public static final String UUID_GETTER_PATH = "_uuids";
-	public static final String SYNC_URL = "http://192.168.1.2:5984"; 
-	private Context context; 
+	public static final String SYNC_URL = "http://192.168.1.2:5984";
+	private Context context;
 	/**
 	 * The Constant MASTER_SERVER_URL. This URL is for the server containing all
 	 * the cards to synchronize with.
@@ -83,9 +74,7 @@ public class MainActivity extends Activity {
 
 	JSONObject jo = null;
 
-
-
-	public void findViews(){
+	public void findViews() {
 		deleteExample = (Button) findViewById(R.id.deleteExampleDB);
 		deletePoster = (Button) findViewById(R.id.deletePosterDB);
 		makeExample = (Button) findViewById(R.id.makeExampleDB);
@@ -93,19 +82,20 @@ public class MainActivity extends Activity {
 
 	}
 
-	public void setListeners(){
-		deleteExample.setOnClickListener(new View.OnClickListener()   
-		{
-			public void onClick(View view) 
-			{
-
+	public void setListeners() {
+		deleteExample.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View view) {
 
 				Thread t1 = new Thread(new Runnable() {
 					public void run() {
 						try {
-							boolean result = deleteDB(MASTER_SERVER_URL, 5984, EXAMPLE_CARD_SERVER, true);
-							Toast.makeText(context,"deleted example DB, result is: " + result, Toast.LENGTH_LONG).show();
-						} catch (IllegalStateException e) { 
+							Looper.prepare();
+							boolean result = deleteDB(MASTER_SERVER_URL, 5984,
+									EXAMPLE_CARD_SERVER, true);
+							Toast.makeText(context,
+									"deleted example DB, result is: " + result,
+									Toast.LENGTH_LONG).show();
+						} catch (IllegalStateException e) {
 							e.printStackTrace();
 						}
 					}
@@ -117,23 +107,24 @@ public class MainActivity extends Activity {
 				} catch (InterruptedException e1) {
 					e1.printStackTrace();
 				}
-
 
 			}
 		});
 
 		deletePoster.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View view) 
-			{
-
+			public void onClick(View view) {
 
 				Thread t1 = new Thread(new Runnable() {
 					public void run() {
 						try {
 							boolean result = false;
-							result = deleteDB(MASTER_SERVER_URL, 5984, POSTER_CARD_SERVER, true);
-							Toast.makeText(context,"deleted poster DB, result is: " + result, Toast.LENGTH_LONG).show();
-						} catch (IllegalStateException e) { 
+							Looper.prepare();
+							result = deleteDB(MASTER_SERVER_URL, 5984,
+									POSTER_CARD_SERVER, true);
+							Toast.makeText(context,
+									"deleted poster DB, result is: " + result,
+									Toast.LENGTH_LONG).show();
+						} catch (IllegalStateException e) {
 							e.printStackTrace();
 						}
 					}
@@ -146,20 +137,18 @@ public class MainActivity extends Activity {
 					e1.printStackTrace();
 				}
 
-
 			}
 		});
 
-		makeExample.setOnClickListener(new View.OnClickListener()   
-		{
-			public void onClick(View view) 
-			{
+		makeExample.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View view) {
 
 				Thread t1 = new Thread(new Runnable() {
 					public void run() {
 						try {
-							createNewDB(MASTER_SERVER_URL, 5984, EXAMPLE_CARD_SERVER);
-						} catch (IllegalStateException e) { 
+							createNewDB(MASTER_SERVER_URL, 5984,
+									EXAMPLE_CARD_SERVER);
+						} catch (IllegalStateException e) {
 							e.printStackTrace();
 						} catch (IOException e) {
 							e.printStackTrace();
@@ -173,26 +162,30 @@ public class MainActivity extends Activity {
 				} catch (InterruptedException e1) {
 					e1.printStackTrace();
 				}
-
 
 				loadExampleCards();
 
-
-				//phase 2: add the cards from the DB
+				// phase 2: add the cards from the DB
 
 				Thread t4 = new Thread(new Runnable() {
 					public void run() {
 						try {
 
 							TMMCard temp = null;
-							//try to add an object that doesn't yet exist, but has a valid UUID
-							for(int i = 0; i < cardz.size(); i++){
+							// try to add an object that doesn't yet exist, but
+							// has a valid UUID
+							for (int i = 0; i < cardz.size(); i++) {
 								temp = cardz.get(i);
 								temp.setuuId(getUUID(MASTER_SERVER_URL, 5984));
-								Log.i(TAG, "Thread t4, call addcardtoDB returns: " + addCardToDB(temp, MASTER_SERVER_URL, 5984, EXAMPLE_CARD_SERVER));
+								Log.i(TAG,
+										"Thread t4, call addcardtoDB returns: "
+												+ addCardToDB(temp,
+														MASTER_SERVER_URL,
+														5984,
+														EXAMPLE_CARD_SERVER));
 							}
 
-						} catch (IllegalStateException e) { 
+						} catch (IllegalStateException e) {
 							e.printStackTrace();
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -207,21 +200,23 @@ public class MainActivity extends Activity {
 					e.printStackTrace();
 				}
 
-				Toast.makeText(context,"created example DB, server returns: " + getEntireDbAsJSON(EXAMPLE_CARD_SERVER) , Toast.LENGTH_LONG).show();
+				Toast.makeText(
+						context,
+						"created example DB, server returns: "
+								+ getEntireDbAsJSON(EXAMPLE_CARD_SERVER),
+						Toast.LENGTH_LONG).show();
 
 			}
 		});
-		makePoster.setOnClickListener(new View.OnClickListener()   
-		{
-			public void onClick(View view) 
-			{
-
+		makePoster.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View view) {
 
 				Thread t1 = new Thread(new Runnable() {
 					public void run() {
 						try {
-							createNewDB(MASTER_SERVER_URL, 5984, POSTER_CARD_SERVER);
-						} catch (IllegalStateException e) { 
+							createNewDB(MASTER_SERVER_URL, 5984,
+									POSTER_CARD_SERVER);
+						} catch (IllegalStateException e) {
 							e.printStackTrace();
 						} catch (IOException e) {
 							e.printStackTrace();
@@ -236,25 +231,32 @@ public class MainActivity extends Activity {
 					e1.printStackTrace();
 				}
 
-
 				loadPosterCards();
 
-
-				//phase 2: add the cards from the DB
+				// phase 2: add the cards from the DB
 
 				Thread t4 = new Thread(new Runnable() {
 					public void run() {
 						try {
 
 							TMMCard temp = null;
-							//try to add an object that doesn't yet exist, but has a valid UUID
-							for(int i = 0; i < cardz.size(); i++){
+							// try to add an object that doesn't yet exist, but
+							// has a valid UUID
+							Log.i(TAG,
+									"about to add to DB in thread, cardz.size is: "
+											+ cardz.size());
+							for (int i = 0; i < cardz.size(); i++) {
 								temp = cardz.get(i);
 								temp.setuuId(getUUID(MASTER_SERVER_URL, 5984));
-								Log.i(TAG, "Thread t4, call addcardtoDB returns: " + addCardToDB(temp, MASTER_SERVER_URL, 5984, POSTER_CARD_SERVER));
+								Log.i(TAG,
+										"Thread t4, call addcardtoDB returns: "
+												+ addCardToDB(temp,
+														MASTER_SERVER_URL,
+														5984,
+														POSTER_CARD_SERVER));
 							}
 
-						} catch (IllegalStateException e) { 
+						} catch (IllegalStateException e) {
 							e.printStackTrace();
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -269,13 +271,16 @@ public class MainActivity extends Activity {
 					e.printStackTrace();
 				}
 
-				Toast.makeText(context,"created poster DB, server returns: " + getEntireDbAsJSON(POSTER_CARD_SERVER) , Toast.LENGTH_LONG).show();
+				Toast.makeText(
+						context,
+						"created poster DB, server returns: "
+								+ getEntireDbAsJSON(POSTER_CARD_SERVER),
+						Toast.LENGTH_LONG).show();
 
 			}
 
 		});
 	}
-
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -285,13 +290,7 @@ public class MainActivity extends Activity {
 		findViews();
 		setListeners();
 
-
-
-
-
-
 	}
-
 
 	public static final String DB_ARRAY = "rows";
 	public static final String DOC_ID = "id";
@@ -321,15 +320,22 @@ public class MainActivity extends Activity {
 
 	/**
 	 * Obtains every document in a couchDB in the form of a JSON object
-	 * @param serverURLsansPort the URL of the server (without the port)
-	 * @param port the port number of the server
-	 * @param dbName the name of the database (in this case project)
+	 * 
+	 * @param serverURLsansPort
+	 *            the URL of the server (without the port)
+	 * @param port
+	 *            the port number of the server
+	 * @param dbName
+	 *            the name of the database (in this case project)
 	 * @return all documents associated with a given database
 	 */
-	public JSONObject[] getEntireDbAsJSON(String serverURLsansPort, int port, String dbName){
+	public JSONObject[] getEntireDbAsJSON(String serverURLsansPort, int port,
+			String dbName) {
 		try {
-			// Get the raw JSON of all the names and IDs of each document in a database
-			String json = getRawJSON(serverURLsansPort + ":" + port + "/" + dbName + "/_all_docs");
+			// Get the raw JSON of all the names and IDs of each document in a
+			// database
+			String json = getRawJSON(serverURLsansPort + ":" + port + "/"
+					+ dbName + "/_all_docs");
 
 			// Obtain the UUIDs of each document in the database by JSON parsing
 			JSONObject tempJSON = new JSONObject(json);
@@ -337,12 +343,13 @@ public class MainActivity extends Activity {
 			String[] dbUUID = new String[contents.length()];
 			for (int i = 0; i < contents.length(); i++) {
 				dbUUID[i] = contents.getJSONObject(i).getString(DOC_ID);
-			}		
+			}
 
 			// Get the raw JSON of all the documents in a database
 			JSONObject[] result = new JSONObject[dbUUID.length];
 			for (int i = 0; i < dbUUID.length; i++) {
-				result[i] = getDocumentAsJSON(serverURLsansPort, port, dbName, dbUUID[i]);
+				result[i] = getDocumentAsJSON(serverURLsansPort, port, dbName,
+						dbUUID[i]);
 			}
 			return result;
 		} catch (JSONException e) {
@@ -385,8 +392,8 @@ public class MainActivity extends Activity {
 			// then we must have a good UUID
 			// Create a new HttpClient and get Header
 			HttpClient httpclient = new DefaultHttpClient();
-			HttpGet everythingGetter = new HttpGet(MASTER_SERVER_URL + ":" + 5984
-					+ "/" + dbName);
+			HttpGet everythingGetter = new HttpGet(MASTER_SERVER_URL + ":"
+					+ 5984 + "/" + dbName);
 			// execute the put and record the response
 			HttpResponse response = null;
 			try {
@@ -460,32 +467,27 @@ public class MainActivity extends Activity {
 
 	}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 	/**
-	 * Obtains a single document from a couchDB with a given
-	 * database name and UUID
-	 * @param serverURLsansPort the URL of the server (without the port)
-	 * @param port the port number of the server
-	 * @param dbName the name of the database (in this case project)
-	 * @param UUID the ID of the requested document
-	 * @return the requested document in the form of a JSON Object. Returns null if creation fails.
+	 * Obtains a single document from a couchDB with a given database name and
+	 * UUID
+	 * 
+	 * @param serverURLsansPort
+	 *            the URL of the server (without the port)
+	 * @param port
+	 *            the port number of the server
+	 * @param dbName
+	 *            the name of the database (in this case project)
+	 * @param UUID
+	 *            the ID of the requested document
+	 * @return the requested document in the form of a JSON Object. Returns null
+	 *         if creation fails.
 	 */
-	public JSONObject getDocumentAsJSON(String serverURLsansPort, int port, String dbName, String UUID) {
+	public JSONObject getDocumentAsJSON(String serverURLsansPort, int port,
+			String dbName, String UUID) {
 		try {
 			// Get the raw JSON of the requested document
-			String json = getRawJSON(serverURLsansPort + ":" + port + "/" + dbName + "/" + UUID);
+			String json = getRawJSON(serverURLsansPort + ":" + port + "/"
+					+ dbName + "/" + UUID);
 
 			// Convert the raw JSON string into a JSON object
 			JSONObject result;
@@ -499,10 +501,13 @@ public class MainActivity extends Activity {
 
 	/**
 	 * Retrieves an unparsed JSON string from a couchDB database
-	 * @param URL the URL of the document wanted from a database
-	 * @return the requested raw, unparsed JSON string. Returns null if retrieval fails.
+	 * 
+	 * @param URL
+	 *            the URL of the document wanted from a database
+	 * @return the requested raw, unparsed JSON string. Returns null if
+	 *         retrieval fails.
 	 */
-	public String getRawJSON (String URL) {
+	public String getRawJSON(String URL) {
 		// Create a new HttpClient and get Header
 		HttpClient httpclient = new DefaultHttpClient();
 		HttpGet everythingGetter = new HttpGet(URL);
@@ -521,7 +526,7 @@ public class MainActivity extends Activity {
 
 		Log.i(TAG, "server response to all database get: " + response);
 
-		// Parse the response into a String 
+		// Parse the response into a String
 		HttpEntity resEntityGet = response.getEntity();
 		String json;
 		try {
@@ -537,140 +542,18 @@ public class MainActivity extends Activity {
 		return json;
 	}
 
-	/**
-	 * Creates a TMMCard object from the JSONObject
-	 * @param obj the JSONObject to create the TMMCard
-	 * @return the TMMCard created from parsing the JSONObject. Returns null if creation fails.
-	 */
-	public TMMCard convertJSONToCard (JSONObject obj) {
-		TMMCard result = null;
-
-		// Obtain type of card to be created
-		String type;
-		try {
-			type = obj.getString(TYPE);
-		} catch (JSONException e) {
-			e.printStackTrace();
-			Log.e(TAG,"Cast failed");
-			return null;
-		}
-
-		// Create correct type of card
-		if (type.equalsIgnoreCase("AUDIO"))
-			result = convertJSONToAudioCard(obj);
-		if (type.equalsIgnoreCase("VIDEO"))
-			result = convertJSONToVideoCard(obj);
-		if (type.equalsIgnoreCase("TEXT"))
-			result = convertJSONToTextCard(obj);
-
-		// Correctly put attachments in internal storage
-		getAllAttachments(obj, result);
-
-		return result;
-	}
-
-	/**
-	 * Creates a VideoCard object from the JSONObject
-	 * @param obj the JSONObject to create the VideoCard
-	 * @return the VideoCard created from parsing the JSONObject. Returns null if creation fails.
-	 */
-	public VideoCard convertJSONToVideoCard (JSONObject obj) {
-		try {
-			// Get the Server Object by JSON parsing because Java doesn't like casting
-			JSONObject JSONServer = obj.getJSONObject(SOURCE);
-			Server sourceServer = new Server(JSONServer.getString(SERVER_NAME), JSONServer.getString(SERVER_API_INFO),
-					Long.parseLong(JSONServer.getString(SERVER_FIRST_USED)), Long.parseLong(JSONServer.getString(SERVER_LAST_USED)));
-
-			VideoCard result = new VideoCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
-					obj.getString(VIDEO_SS_PATH), obj.getInt(VIDEO_PLAY_COUNT), obj.getString(VIDEO_YOUTUBE_TAG), sourceServer);
-
-			return result;
-		} catch (JSONException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-	/**
-	 * Creates an AudioCard object from the JSONObject
-	 * @param obj the JSONObject to create the AudioCard
-	 * @return the AudioCard created from parsing the JSONObject. Returns null if creation fails.
-	 */
-	public AudioCard convertJSONToAudioCard (JSONObject obj) {
-		try {
-			// Get the Server Object by JSON parsing because Java doesn't like casting
-			JSONObject JSONServer = obj.getJSONObject(SOURCE);
-			Server sourceServer = new Server(JSONServer.getString(SERVER_NAME), JSONServer.getString(SERVER_API_INFO),
-					Long.parseLong(JSONServer.getString(SERVER_FIRST_USED)), Long.parseLong(JSONServer.getString(SERVER_LAST_USED)));
-
-			AudioCard result = new AudioCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
-					obj.getInt(AUDIO_LENGTH), obj.getString(AUDIO_BG_PATH), obj.getString(AUDIO_CLIP_PATH), sourceServer);
-
-			return result;
-		} catch (JSONException e) {
-			Log.e(TAG, "AudioCard creation crashed and burned");
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-	/**
-	 * Creates a TextCard object from the JSONObject
-	 * @param obj the JSONObject to create the TextCard
-	 * @return the TextCard created from parsing the JSONObject. Returns null if creation fails.
-	 */
-	public TextCard convertJSONToTextCard (JSONObject obj) {
-		try {
-			// Get array of contents for the TextCard
-			JSONArray contents = obj.getJSONArray(TEXT_CONTENTS);
-			ArrayList<TextElement> cardContent = new ArrayList<TextElement>();
-
-			// Create all cardContents for the text card from JSON
-			for (int i = 0; i < contents.length(); i++) {
-				// Get the contentType by string parsing because Java doesn't like casting an object from obj.get to an enum
-				JSONObject temp = contents.getJSONObject(i);
-				Type contentType;
-				if (temp.getString(TEXT_CONTENT_TYPE).equals("IMAGE"))
-					contentType = Type.IMAGE;
-				else
-					contentType = Type.TEXT_;
-
-				cardContent.add(new TextElement(contentType, 
-						temp.getString(TEXT_CONTENT_TEXT), temp.getString(TEXT_CONTENT_IMG)));
-			}
-
-			// Get the Server Object by JSON parsing because Java doesn't like casting
-			JSONObject JSONServer = obj.getJSONObject(SOURCE);
-			Server sourceServer = new Server(JSONServer.getString(SERVER_NAME), JSONServer.getString(SERVER_API_INFO),
-					Long.parseLong(JSONServer.getString(SERVER_FIRST_USED)), Long.parseLong(JSONServer.getString(SERVER_LAST_USED)));
-
-			// Create actual TextCard
-			TextCard result = new TextCard(obj.getInt(HANDLE), obj.getString(UUID), obj.getInt(PRIORITY), obj.getString(TITLE),
-					obj.getString(TEXT_LINE1), obj.getString(TEXT_LINE2), obj.getString(TEXT_LINE3), cardContent, sourceServer);
-			return result;
-		} catch (JSONException e) {
-			Log.i(TAG,"TextCard creation crashed and burned");
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-	private boolean getAllAttachments(JSONObject cardToGet, TMMCard cardWithNoAttachments){
-		return true;
-	}
-
-
-
-	public boolean deleteDB(String serverURLsansPort, int port, String dbName, boolean areYouSure){
-		if(!areYouSure){
+	public boolean deleteDB(String serverURLsansPort, int port, String dbName,
+			boolean areYouSure) {
+		if (!areYouSure) {
 			Log.d(TAG, "User wasn't sure");
 			return false;
 		}
 
 		HttpClient httpclient = new DefaultHttpClient();
-		HttpDelete dbdeleter = new HttpDelete(serverURLsansPort + ":" + port + "/" + dbName);
+		HttpDelete dbdeleter = new HttpDelete(serverURLsansPort + ":" + port
+				+ "/" + dbName);
 
-		//execute the delete and record the response
+		// execute the delete and record the response
 		HttpResponse response = null;
 		try {
 			response = httpclient.execute(dbdeleter);
@@ -682,10 +565,11 @@ public class MainActivity extends Activity {
 			return false;
 		}
 
-		//parse the reponse 
+		// parse the reponse
 		BufferedReader reader = null;
 		try {
-			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+			reader = new BufferedReader(new InputStreamReader(response
+					.getEntity().getContent(), "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
@@ -706,24 +590,26 @@ public class MainActivity extends Activity {
 
 	}
 
-	public JSONObject getJSONRepresentation(TMMCard toCheck, String serverURLsansPort, int port, String dbName){
+	public JSONObject getJSONRepresentation(TMMCard toCheck,
+			String serverURLsansPort, int port, String dbName) {
 
-		if(toCheck.getuuId() == null){
+		if (toCheck.getuuId() == null) {
 			return null;
 		}
 
-		final String exampleUUID = "f2abdb8f1fb14601b9e149cd67035d8a"; 
+		final String exampleUUID = "f2abdb8f1fb14601b9e149cd67035d8a";
 
-		if(toCheck.getuuId().length() != exampleUUID.length()){
+		if (toCheck.getuuId().length() != exampleUUID.length()) {
 			return null;
 		}
 
-		//then we must have a good UUID
+		// then we must have a good UUID
 		// Create a new HttpClient and get Header
 		HttpClient httpclient = new DefaultHttpClient();
-		HttpGet cardGetter = new HttpGet(serverURLsansPort + ":" + port + "/" + dbName + "/" + toCheck.getuuId());
+		HttpGet cardGetter = new HttpGet(serverURLsansPort + ":" + port + "/"
+				+ dbName + "/" + toCheck.getuuId());
 
-		//execute the put and record the response
+		// execute the put and record the response
 		HttpResponse response = null;
 		try {
 			response = httpclient.execute(cardGetter);
@@ -736,10 +622,11 @@ public class MainActivity extends Activity {
 
 		Log.i(TAG, "server response to card get: " + response);
 
-		//parse the reponse 
+		// parse the reponse
 		BufferedReader reader = null;
 		try {
-			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+			reader = new BufferedReader(new InputStreamReader(response
+					.getEntity().getContent(), "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
@@ -761,8 +648,6 @@ public class MainActivity extends Activity {
 		} catch (JSONException e1) {
 			Log.e(TAG, "error making json object", e1);
 		}
-
-
 
 		String errorResult = null;
 		String reason = null;
@@ -780,33 +665,36 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	public boolean addCardToDB(TMMCard toAdd, String serverURLsansPort, int port, String dbName) throws Exception{
+	public boolean addCardToDB(TMMCard toAdd, String serverURLsansPort,
+			int port, String dbName) throws Exception {
 
-		//check to make sure card doesn't already exist in DB
-		if(this.getJSONRepresentation(toAdd, serverURLsansPort, port, dbName) != null){
-			//maybe we could update the card or something
-			//I'm going to punt on this, leave it as a TODO
-			throw new Exception("The card already exists in the DB, please use the update method instead");
+		// check to make sure card doesn't already exist in DB
+		if (this.getJSONRepresentation(toAdd, serverURLsansPort, port, dbName) != null) {
+			// maybe we could update the card or something
+			// I'm going to punt on this, leave it as a TODO
+			throw new Exception(
+					"The card already exists in the DB, please use the update method instead");
 
 		}
 
-		//if we made it here, safe to assume that the card doesn't exist in the DB
-		//get a UUID to use from couch
+		// if we made it here, safe to assume that the card doesn't exist in the
+		// DB
+		// get a UUID to use from couch
 		String uuid = getUUID(serverURLsansPort, port);
 		toAdd.setuuId(uuid);
 
 		ObjectMapper mapper = new ObjectMapper();
 		Log.d(TAG, "JSON'd value: " + mapper.writeValueAsString(toAdd));
 
-
 		// Create a new HttpClient and put Header
 		HttpClient httpclient = new DefaultHttpClient();
-		HttpPut cardMaker = new HttpPut(serverURLsansPort + ":" + port + "/" + dbName + "/" + uuid);
+		HttpPut cardMaker = new HttpPut(serverURLsansPort + ":" + port + "/"
+				+ dbName + "/" + uuid);
 		cardMaker.addHeader("Content-Type", "application/json");
 		cardMaker.addHeader("Accept", "application/json");
 		cardMaker.setEntity(new StringEntity(mapper.writeValueAsString(toAdd)));
 
-		//execute the put and record the response
+		// execute the put and record the response
 		HttpResponse response = null;
 		try {
 			response = httpclient.execute(cardMaker);
@@ -819,10 +707,11 @@ public class MainActivity extends Activity {
 
 		Log.i(TAG, "server response to put: " + response);
 
-		//parse the reponse 
+		// parse the reponse
 		BufferedReader reader = null;
 		try {
-			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+			reader = new BufferedReader(new InputStreamReader(response
+					.getEntity().getContent(), "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
@@ -845,14 +734,15 @@ public class MainActivity extends Activity {
 			Log.e(TAG, "error making json object", e1);
 		}
 
-		//upload attachments
-		uploadCardAttachments(toAdd, jsonObject, serverURLsansPort, port, dbName);
+		// upload attachments
+		uploadCardAttachments(toAdd, jsonObject, serverURLsansPort, port,
+				dbName);
 
 		String okResult = "";
 		try {
 			okResult = jsonObject.getString("ok");
 		} catch (JSONException e) {
-			//e.printStackTrace();
+			// e.printStackTrace();
 			Log.i(TAG, "DB reports creation did not go well...");
 		}
 
@@ -869,39 +759,42 @@ public class MainActivity extends Activity {
 		Log.d(TAG, "ok result is: " + okResult);
 		Log.d(TAG, "error result is: " + errorResult);
 
-		if(okResult.equalsIgnoreCase("true")){
+		if (okResult.equalsIgnoreCase("true")) {
 			return true;
-		}else {
+		} else {
 			Log.w(TAG, "CREATION FAILURE -" + reason);
-			return false; 
+			return false;
 		}
 
 	}
 
-	public boolean deleteCardfromDB(TMMCard todel, String serverURLsansPort, int port, String dbName){
+	public boolean deleteCardfromDB(TMMCard todel, String serverURLsansPort,
+			int port, String dbName) {
 
-		//perform sanity checks on the UUID
+		// perform sanity checks on the UUID
 		final String exUUID = "c629e32ea1c54b9b0840f0161000706e";
 
-		if(todel.getuuId() == null) {
+		if (todel.getuuId() == null) {
 			Log.w(TAG, "bad UUID passed to deletecardfromdb");
 			return false;
 		}
 
-
-		if(todel.getuuId().length() != exUUID.length()){
+		if (todel.getuuId().length() != exUUID.length()) {
 			Log.w(TAG, "bad UUID passed to deletecardfromdb");
 			return false;
 		}
 
-		//use the UUID to get the current REV
-		JSONObject jsonObject =  getJSONRepresentation(todel, serverURLsansPort, port, dbName);
+		// use the UUID to get the current REV
+		JSONObject jsonObject = getJSONRepresentation(todel, serverURLsansPort,
+				port, dbName);
 
-		if(jsonObject == null){
-			Log.e(TAG, "no JSON retreived for the card with UUID " + todel.getuuId() + " in deletecardfromDB");
+		if (jsonObject == null) {
+			Log.e(TAG,
+					"no JSON retreived for the card with UUID "
+							+ todel.getuuId() + " in deletecardfromDB");
 		}
 
-		//parse the JSONObject to get the info that we need
+		// parse the JSONObject to get the info that we need
 
 		Log.i(TAG, "delete card from DB, card to delete info: " + jsonObject);
 		String uuid;
@@ -930,9 +823,10 @@ public class MainActivity extends Activity {
 
 		}
 		HttpClient httpclient = new DefaultHttpClient();
-		HttpDelete uuidGetter = new HttpDelete(serverURLsansPort + ":" + port + "/" + dbName + "/" + uuid + "?rev=" + revNo);
+		HttpDelete uuidGetter = new HttpDelete(serverURLsansPort + ":" + port
+				+ "/" + dbName + "/" + uuid + "?rev=" + revNo);
 
-		//execute the delete and record the response
+		// execute the delete and record the response
 		HttpResponse response = null;
 		try {
 			response = httpclient.execute(uuidGetter);
@@ -942,10 +836,11 @@ public class MainActivity extends Activity {
 			Log.e(TAG, "IO error delting document", e);
 		}
 
-		//parse the reponse 
+		// parse the reponse
 		BufferedReader reader = null;
 		try {
-			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+			reader = new BufferedReader(new InputStreamReader(response
+					.getEntity().getContent(), "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
@@ -964,16 +859,16 @@ public class MainActivity extends Activity {
 
 		return true;
 
-
 	}
 
-	private String getUUID(String serverURLsansPort, int port){
+	private String getUUID(String serverURLsansPort, int port) {
 
 		// Create a new HttpClient and get Header
 		HttpClient httpclient = new DefaultHttpClient();
-		HttpGet uuidGetter = new HttpGet(serverURLsansPort + ":" + port + "/" + UUID_GETTER_PATH);
+		HttpGet uuidGetter = new HttpGet(serverURLsansPort + ":" + port + "/"
+				+ UUID_GETTER_PATH);
 
-		//execute the put and record the response
+		// execute the put and record the response
 		HttpResponse response = null;
 		try {
 			response = httpclient.execute(uuidGetter);
@@ -986,10 +881,11 @@ public class MainActivity extends Activity {
 
 		Log.i(TAG, "server response to uuid get: " + response);
 
-		//parse the reponse 
+		// parse the reponse
 		BufferedReader reader = null;
 		try {
-			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+			reader = new BufferedReader(new InputStreamReader(response
+					.getEntity().getContent(), "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
@@ -1018,7 +914,7 @@ public class MainActivity extends Activity {
 			e.printStackTrace();
 		}
 
-		String uuidToRet="";
+		String uuidToRet = "";
 		try {
 			uuidToRet = uuids.getString(0);
 		} catch (JSONException e) {
@@ -1031,88 +927,113 @@ public class MainActivity extends Activity {
 
 	}
 
-
-	private boolean uploadCardAttachments(TMMCard toAdd, JSONObject jsonObject, String serverURLsansPort, int port, String dbName) throws IOException{
-		//will need case statement for each subclass of TMMCard
-		if(toAdd instanceof VideoCard){
-			if(((VideoCard) toAdd).hasScreenshot()){
-				Bitmap bmp = BitmapFactory.decodeFile(((VideoCard)toAdd).getScreenshotPath());
+	private boolean uploadCardAttachments(TMMCard toAdd, JSONObject jsonObject,
+			String serverURLsansPort, int port, String dbName)
+			throws IOException {
+		// will need case statement for each subclass of TMMCard
+		if (toAdd instanceof VideoCard) {
+			if (((VideoCard) toAdd).hasScreenshot()) {
+				Bitmap bmp = BitmapFactory.decodeFile(((VideoCard) toAdd)
+						.getScreenshotPath());
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
 				bmp.compress(Bitmap.CompressFormat.JPEG, 90, out);
-				Log.d(TAG, "video card background image being uploaded: " + ((VideoCard) toAdd).getScrenshotname());
-				uploadSingleAttachment(out.toByteArray(), jsonObject, serverURLsansPort, port, ((VideoCard) toAdd).getScrenshotname(), dbName, "image/jpg");
+				Log.d(TAG, "video card background image being uploaded: "
+						+ ((VideoCard) toAdd).getScrenshotname());
+				uploadSingleAttachment(out.toByteArray(), jsonObject,
+						serverURLsansPort, port,
+						((VideoCard) toAdd).getScrenshotname(), dbName,
+						"image/jpg");
 			}
 			return true;
-		} else if(toAdd instanceof AudioCard) {
-			if(((AudioCard) toAdd).hasBackground()){
-				Log.i(TAG, "Audiocard attachment found, path: " + ((AudioCard)toAdd).getBackgroundPath());
-				Bitmap bmp = BitmapFactory.decodeFile(((AudioCard)toAdd).getBackgroundPath());
+		} else if (toAdd instanceof AudioCard) {
+			if (((AudioCard) toAdd).hasBackground()) {
+				Log.i(TAG, "Audiocard attachment found, path: "
+						+ ((AudioCard) toAdd).getBackgroundPath());
+				Bitmap bmp = BitmapFactory.decodeFile(((AudioCard) toAdd)
+						.getBackgroundPath());
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
 				bmp.compress(Bitmap.CompressFormat.JPEG, 90, out);
-				Log.d(TAG, "filename audio background image being uploaded: " + ((AudioCard) toAdd).getBackground_name());
-				uploadSingleAttachment(out.toByteArray(), jsonObject, serverURLsansPort, port, ((AudioCard) toAdd).getBackground_name(), dbName, "image/jpg");
-				//update the parameter
-				jsonObject = getJSONRepresentation(toAdd, serverURLsansPort, port, dbName);
+				Log.d(TAG, "filename audio background image being uploaded: "
+						+ ((AudioCard) toAdd).getBackground_name());
+				uploadSingleAttachment(out.toByteArray(), jsonObject,
+						serverURLsansPort, port,
+						((AudioCard) toAdd).getBackground_name(), dbName,
+						"image/jpg");
+				// update the parameter
+				jsonObject = getJSONRepresentation(toAdd, serverURLsansPort,
+						port, dbName);
 			}
 
-			if(((AudioCard) toAdd).hasAudio()){
+			if (((AudioCard) toAdd).hasAudio()) {
 				File audio = new File(((AudioCard) toAdd).getAudioClipPath());
 				FileInputStream fileInputStream = new FileInputStream(audio);
 				byte[] b = new byte[(int) audio.length()];
 				fileInputStream.read(b);
 				fileInputStream.close();
-				uploadSingleAttachment(b, jsonObject, serverURLsansPort, port, ((AudioCard) toAdd).getAudioClipName(), dbName, "audio/mpeg");
+				uploadSingleAttachment(b, jsonObject, serverURLsansPort, port,
+						((AudioCard) toAdd).getAudioClipName(), dbName,
+						"audio/mpeg");
 			}
-
 
 			return true;
-		} else if(toAdd instanceof TextCard) {
-			//for a text card, first we store the icon if it exists
-			if(((TextCard) toAdd).hasIcon()){
-				Bitmap bmp = BitmapFactory.decodeFile(((TextCard)toAdd).getIconPath());
+		} else if (toAdd instanceof TextCard) {
+			// for a text card, first we store the icon if it exists
+			if (((TextCard) toAdd).hasIcon()) {
+				Bitmap bmp = BitmapFactory.decodeFile(((TextCard) toAdd)
+						.getIconPath());
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
 				bmp.compress(Bitmap.CompressFormat.JPEG, 90, out);
-				Log.d(TAG, "filename of icon image being uploaded: " + ((TextCard) toAdd).getIcFileName());
-				uploadSingleAttachment(out.toByteArray(), jsonObject, serverURLsansPort, port, ((TextCard) toAdd).getIcFileName(), dbName, "image/jpg");
+				Log.d(TAG, "filename of icon image being uploaded: "
+						+ ((TextCard) toAdd).getIcFileName());
+				uploadSingleAttachment(out.toByteArray(), jsonObject,
+						serverURLsansPort, port,
+						((TextCard) toAdd).getIcFileName(), dbName, "image/jpg");
 
 			}
 
-			//now, we need to upload any images in this file
-			//start by getting the JSON representation
+			// now, we need to upload any images in this file
+			// start by getting the JSON representation
 
-			JSONObject respObj = getJSONRepresentation(toAdd, serverURLsansPort, port, dbName);
+			JSONObject respObj = getJSONRepresentation(toAdd,
+					serverURLsansPort, port, dbName);
 
-			for(int i = 0; i < ((TextCard) toAdd).getContents().size(); i++){
+			for (int i = 0; i < ((TextCard) toAdd).getContents().size(); i++) {
 				TextElement temp = ((TextCard) toAdd).getContents().get(i);
-				//we only care about uploading images
-				if(temp.getType() == Type.IMAGE){
+				// we only care about uploading images
+				if (temp.getType() == Type.IMAGE) {
 					Bitmap bmp = BitmapFactory.decodeFile(temp.getImg());
 					ByteArrayOutputStream out = new ByteArrayOutputStream();
 					bmp.compress(Bitmap.CompressFormat.JPEG, 90, out);
-					Log.d(TAG, "filename of textelement image being uploaded: " + temp.getImgFilename());
-					uploadSingleAttachment(out.toByteArray(), respObj, serverURLsansPort, port, temp.getImgFilename(), dbName, "image/jpg");
-					//confirm revision occured, and update our rev number
-					respObj = getJSONRepresentation(toAdd, serverURLsansPort, port, dbName); 
+					Log.d(TAG, "filename of textelement image being uploaded: "
+							+ temp.getImgFilename());
+					uploadSingleAttachment(out.toByteArray(), respObj,
+							serverURLsansPort, port, temp.getImgFilename(),
+							dbName, "image/jpg");
+					// confirm revision occured, and update our rev number
+					respObj = getJSONRepresentation(toAdd, serverURLsansPort,
+							port, dbName);
 				}
 
 			}
 
-
 			return true;
-		} else return false;
+		} else
+			return false;
 
 	}
 
-	private boolean uploadSingleAttachment(byte[] data, JSONObject jsonObject, String serverURLsansPort, int port, String fileName, String dbName, String contentType){
+	private boolean uploadSingleAttachment(byte[] data, JSONObject jsonObject,
+			String serverURLsansPort, int port, String fileName, String dbName,
+			String contentType) {
 
 		final String exRev = "1-4ce605cd9fac335e98662dd4645cd332";
 		final String exUUID = "c629e32ea1c54b9b0840f0161000706e";
 
-		if(jsonObject == null) {
+		if (jsonObject == null) {
 			Log.w(TAG, "null jsonobject passed to uploadsingleattachmnet");
 			return false;
 		}
-		//parse the JSONObject to get the info that we need
+		// parse the JSONObject to get the info that we need
 
 		Log.i(TAG, "ul single attach, raw json object passed in: " + jsonObject);
 		String uuid;
@@ -1141,28 +1062,29 @@ public class MainActivity extends Activity {
 
 		}
 
-		if(revNo.length() != exRev.length()){
+		if (revNo.length() != exRev.length()) {
 			Log.w(TAG, "No revision found in uploadsingleattachment");
 			return false;
 		}
 
-		if(uuid.length() != exUUID.length()){
+		if (uuid.length() != exUUID.length()) {
 			Log.w(TAG, "No UUID found in uploadsingleattachment");
 			return false;
 		}
 
 		// Create a new HttpClient and put Header
 		HttpClient httpclient = new DefaultHttpClient();
-		HttpPut attachmentAdder = new HttpPut(serverURLsansPort + ":" + port + "/" + dbName + "/" + uuid + "/" + fileName + "?rev=" + revNo);
+		HttpPut attachmentAdder = new HttpPut(serverURLsansPort + ":" + port
+				+ "/" + dbName + "/" + uuid + "/" + fileName + "?rev=" + revNo);
 
-		if(contentType != null && !contentType.equalsIgnoreCase("")){
+		if (contentType != null && !contentType.equalsIgnoreCase("")) {
 			attachmentAdder.addHeader("Content-Type", contentType);
 		}
 
 		ByteArrayEntity attachEnt = new ByteArrayEntity(data);
 		attachmentAdder.setEntity(attachEnt);
 
-		//execute the put and record the response
+		// execute the put and record the response
 		HttpResponse response = null;
 		try {
 			response = httpclient.execute(attachmentAdder);
@@ -1175,10 +1097,11 @@ public class MainActivity extends Activity {
 
 		Log.i(TAG, "server response to put: " + response);
 
-		//parse the reponse 
+		// parse the reponse
 		BufferedReader reader = null;
 		try {
-			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+			reader = new BufferedReader(new InputStreamReader(response
+					.getEntity().getContent(), "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
@@ -1201,7 +1124,6 @@ public class MainActivity extends Activity {
 			Log.e(TAG, "error making json object", e1);
 		}
 
-
 		String okResult = "";
 		try {
 			okResult = jsonObjectresp.getString("ok");
@@ -1223,20 +1145,22 @@ public class MainActivity extends Activity {
 		Log.d(TAG, "ok result is: " + okResult);
 		Log.d(TAG, "error result is: " + errorResult);
 
-		if(okResult.equalsIgnoreCase("true")){
+		if (okResult.equalsIgnoreCase("true")) {
 			return true;
-		}else {
+		} else {
 			Log.w(TAG, "CREATION FAILURE -" + reason);
-			return false; 
+			return false;
 		}
 	}
 
-	public boolean createNewDB(String serverURLsansPort, int port, String dbname) throws IllegalStateException, IOException{
+	public boolean createNewDB(String serverURLsansPort, int port, String dbname)
+			throws IllegalStateException, IOException {
 		// Create a new HttpClient and put Header
 		HttpClient httpclient = new DefaultHttpClient();
-		HttpPut dbMaker = new HttpPut(serverURLsansPort + ":" + port + "/" + dbname);
+		HttpPut dbMaker = new HttpPut(serverURLsansPort + ":" + port + "/"
+				+ dbname);
 
-		//execute the put and record the response
+		// execute the put and record the response
 		HttpResponse response = null;
 		try {
 			response = httpclient.execute(dbMaker);
@@ -1249,10 +1173,11 @@ public class MainActivity extends Activity {
 
 		Log.i(TAG, "server response to put: " + response);
 
-		//parse the reponse 
+		// parse the reponse
 		BufferedReader reader = null;
 		try {
-			reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+			reader = new BufferedReader(new InputStreamReader(response
+					.getEntity().getContent(), "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
@@ -1297,34 +1222,42 @@ public class MainActivity extends Activity {
 		Log.d(TAG, "ok result is: " + okResult);
 		Log.d(TAG, "error result is: " + errorResult);
 
-		if(okResult.equalsIgnoreCase("true")){
+		if (okResult.equalsIgnoreCase("true")) {
 			return true;
-		}else {
+		} else {
 			Log.w(TAG, "CREATION FAILURE -" + reason);
-			return false; 
+			return false;
 		}
-
 
 	}
 
-
-
 	private void loadExampleCards() {
+		cardz = new ArrayList<TMMCard>();
+		Server source1 = new Server(EXAMPLE_CARD_SERVER,
+				"none-its not a network server", System.currentTimeMillis(),
+				System.currentTimeMillis());
+		// Server source2 = new
+		// Server("CardloaderService's sample card generator second 'server'",
+		// "none-its not a network server", System.currentTimeMillis(),
+		// System.currentTimeMillis());
+		File dir = new File(Environment.getExternalStorageDirectory()
+				.getAbsolutePath() + "/tmm");
+		TextCard textCard1 = new TextCard(100, "About the Author",
+				"A. Student", "", "Tap to read more", getSampleArr1(), source1);
 
-		Server source1 = new Server(EXAMPLE_CARD_SERVER, "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
-		//Server source2 = new Server("CardloaderService's sample card generator second 'server'", "none-its not a network server", System.currentTimeMillis(), System.currentTimeMillis());
-		File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm");
-		TextCard textCard1 = new TextCard(0, 100, "About the Author", "A. Student", "", "Tap to read more", getSampleArr1(), source1);
-
-		//			Bitmap bmp2 = BitmapFactory.decodeResource(contexts[0].getResources(), R.raw.acmicon);
-		//			ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
-		//			bmp2.compress(Bitmap.CompressFormat.PNG, 100, stream2);
-		//			byte[] iconArray = stream2.toByteArray();
+		// Bitmap bmp2 =
+		// BitmapFactory.decodeResource(contexts[0].getResources(),
+		// R.raw.acmicon);
+		// ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
+		// bmp2.compress(Bitmap.CompressFormat.PNG, 100, stream2);
+		// byte[] iconArray = stream2.toByteArray();
 
 		File file0 = new File(dir, "acmicon.jpg");
 
-		//manually write the audio file to the external to emulate it being downloaded
-		InputStream fIn0 = getBaseContext().getResources().openRawResource(R.raw.acmicon);
+		// manually write the audio file to the external to emulate it being
+		// downloaded
+		InputStream fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.acmicon);
 		byte[] buffer0 = null;
 		try {
 			int size0 = fIn0.available();
@@ -1349,20 +1282,25 @@ public class MainActivity extends Activity {
 			Log.e(TAG, "IOException in second part");
 		}
 
-
-		TextCard textCard2 = new TextCard(0, 99, "Read Paper Abstract", "From ACM PAUC", "A. Student and Dr. XYZ", "Published 1 Mar 2009",  file0.getAbsolutePath(), getSampleArr2(), source1);
+		TextCard textCard2 = new TextCard(99, "Read Paper Abstract",
+				"From ACM PAUC", "A. Student and Dr. XYZ",
+				"Published 1 Mar 2009", file0.getAbsolutePath(),
+				getSampleArr2(), source1);
 
 		Log.d(TAG, "text card 2 added, returned: " + cardz.add(textCard2));
 		Log.d(TAG, "text card 1 added, returned: " + cardz.add(textCard1));
 
-		String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm/powerpointdemo.mp3";
+		String path = Environment.getExternalStorageDirectory()
+				.getAbsolutePath() + "/tmm/powerpointdemo.mp3";
 
 		dir.mkdirs();
 
 		File file = new File(dir, "powerpointdemo.mp3");
 
-		//manually write the audio file to the external to emulate it being downloaded
-		InputStream fIn = getBaseContext().getResources().openRawResource(R.raw.powerpointdemo);
+		// manually write the audio file to the external to emulate it being
+		// downloaded
+		InputStream fIn = getBaseContext().getResources().openRawResource(
+				R.raw.powerpointdemo);
 		byte[] buffer = null;
 		try {
 			int size = fIn.available();
@@ -1386,17 +1324,18 @@ public class MainActivity extends Activity {
 		} catch (IOException e1) {
 			Log.e(TAG, "IOException in second part");
 
-		}    
+		}
 
-		AudioCard audioCard1 = new AudioCard(0, 97, "Hear A Student Narration", file.getAbsolutePath(), source1);
+		AudioCard audioCard1 = new AudioCard(97, "Hear A Student Narration",
+				file.getAbsolutePath(), source1);
 		Log.d(TAG, "audio card 1 added, returned: " + cardz.add(audioCard1));
-
-
 
 		File file11 = new File(dir, "chartreading.mp3");
 
-		//manually write the audio file to the external to emulate it being downloaded
-		InputStream fIn11 = getBaseContext().getResources().openRawResource(R.raw.chartreading);
+		// manually write the audio file to the external to emulate it being
+		// downloaded
+		InputStream fIn11 = getBaseContext().getResources().openRawResource(
+				R.raw.chartreading);
 		byte[] buffer11 = null;
 		try {
 			int size11 = fIn11.available();
@@ -1420,12 +1359,14 @@ public class MainActivity extends Activity {
 		} catch (IOException e1) {
 			Log.e(TAG, "IOException in second part");
 
-		}    
+		}
 
 		File file12 = new File(dir, "chartreadbkgrnd.png");
 
-		//manually write the audio file to the external to emulate it being downloaded
-		InputStream fIn12 = getBaseContext().getResources().openRawResource(R.raw.chartreadbkgrnd);
+		// manually write the audio file to the external to emulate it being
+		// downloaded
+		InputStream fIn12 = getBaseContext().getResources().openRawResource(
+				R.raw.chartreadbkgrnd);
 		byte[] buffer12 = null;
 		try {
 			int size12 = fIn12.available();
@@ -1449,19 +1390,22 @@ public class MainActivity extends Activity {
 		} catch (IOException e1) {
 			Log.e(TAG, "IOException in second part");
 
-		} 
+		}
 
-
-		AudioCard audioCard2 = new AudioCard(0, 96, "Focus: Immigration Chart", file11.getAbsolutePath(), source1);
+		AudioCard audioCard2 = new AudioCard(96, "Focus: Immigration Chart",
+				file11.getAbsolutePath(), source1);
 		audioCard2.setBackgroundPath(file12.getPath());
 
 		Log.d(TAG, "audio card 2 added, returned: " + cardz.add(audioCard2));
 
-		VideoCard videoCard1 = new VideoCard(0, 90, "Watch the Experiment", "wtnI3kyCnmA", source1);
+		VideoCard videoCard1 = new VideoCard(90, "Watch the Experiment",
+				"wtnI3kyCnmA", source1);
 		File file9 = new File(dir, "reactor.png");
 
-		//manually write the audio file to the external to emulate it being downloaded
-		InputStream fIn9 = getBaseContext().getResources().openRawResource(R.raw.reactor);
+		// manually write the audio file to the external to emulate it being
+		// downloaded
+		InputStream fIn9 = getBaseContext().getResources().openRawResource(
+				R.raw.reactor);
 		byte[] buffer9 = null;
 		try {
 			int size9 = fIn9.available();
@@ -1485,21 +1429,18 @@ public class MainActivity extends Activity {
 		} catch (IOException e1) {
 			Log.e(TAG, "IOException in second part");
 
-		} 
-
-
+		}
 
 		videoCard1.setScreenshot(file9.getPath());
-		VideoCard videoCard2 = new VideoCard(0, 89, "View the presentation", "cn5mMJiPYmw", source1);
+		VideoCard videoCard2 = new VideoCard(89, "View the presentation",
+				"cn5mMJiPYmw", source1);
 		Log.d(TAG, "video card 1 added, returned: " + cardz.add(videoCard1));
 		Log.d(TAG, "video card 2 added, returned: " + cardz.add(videoCard2));
 
 		Log.d(TAG, "server source 1 added, returned: " + servz.add(source1));
 	}
 
-
-
-	private ArrayList<TextElement> getSampleArr1(){
+	private ArrayList<TextElement> getSampleArr1() {
 
 		String text_above_pic = "A. Student was born in blah blah blah. It is a very interesting place. One of his passions has always been lightning. When he was just 6, he shot a famous photo of a lightning strike which is used on Wikipedia.";
 		String text_below_pic = "Later in life, A. Student went to Africa where he photographed all manner of things. In the western sahara, he captured another famous photo of the setting african sun that won him a prize.";
@@ -1512,25 +1453,22 @@ public class MainActivity extends Activity {
 		e1 = new TextElement(TextElement.Type.TEXT_, text_above_pic);
 		retVals.add(e1);
 
+		// Bitmap bmp1 = BitmapFactory.decodeResource(this.getResources(),
+		// R.raw.pic1);
+		// ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		// bmp1.compress(Bitmap.CompressFormat.PNG, 100, stream);
+		// byte[] byteArray = stream.toByteArray();
 
-
-
-
-
-
-
-		//Bitmap bmp1 = BitmapFactory.decodeResource(this.getResources(), R.raw.pic1);
-		//ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		//bmp1.compress(Bitmap.CompressFormat.PNG, 100, stream);
-		//byte[] byteArray = stream.toByteArray();
-
-		File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm");
+		File dir = new File(Environment.getExternalStorageDirectory()
+				.getAbsolutePath() + "/tmm");
 		dir.mkdirs();
 
 		File file = new File(dir, "pic1.jpg");
 
-		//manually write the audio file to the external to emulate it being downloaded
-		InputStream fIn = getBaseContext().getResources().openRawResource(R.raw.pic1);
+		// manually write the audio file to the external to emulate it being
+		// downloaded
+		InputStream fIn = getBaseContext().getResources().openRawResource(
+				R.raw.pic1);
 		byte[] buffer = null;
 		try {
 			int size = fIn.available();
@@ -1556,26 +1494,26 @@ public class MainActivity extends Activity {
 
 		}
 
-
-
-		TextElement e2 = new TextElement(TextElement.Type.IMAGE, caption1, file.getAbsolutePath());
+		TextElement e2 = new TextElement(TextElement.Type.IMAGE, caption1,
+				file.getAbsolutePath());
 		retVals.add(e2);
 
 		TextElement e3;
 		e3 = new TextElement(TextElement.Type.TEXT_, text_below_pic);
 		retVals.add(e3);
 
-
-		//		Bitmap bmp2 = BitmapFactory.decodeResource(this.getResources(), R.raw.pic2);
-		//		ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
-		//		bmp2.compress(Bitmap.CompressFormat.PNG, 100, stream2);
-		//		byte[] byteArray2 = stream2.toByteArray();
-
+		// Bitmap bmp2 = BitmapFactory.decodeResource(this.getResources(),
+		// R.raw.pic2);
+		// ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
+		// bmp2.compress(Bitmap.CompressFormat.PNG, 100, stream2);
+		// byte[] byteArray2 = stream2.toByteArray();
 
 		File file2 = new File(dir, "pic2.jpg");
 
-		//manually write the audio file to the external to emulate it being downloaded
-		InputStream fIn2 = getBaseContext().getResources().openRawResource(R.raw.pic2);
+		// manually write the audio file to the external to emulate it being
+		// downloaded
+		InputStream fIn2 = getBaseContext().getResources().openRawResource(
+				R.raw.pic2);
 		byte[] buffer2 = null;
 		try {
 			int size2 = fIn2.available();
@@ -1601,15 +1539,14 @@ public class MainActivity extends Activity {
 
 		}
 
-
-		TextElement e4 = new TextElement(TextElement.Type.IMAGE, caption2, file2.getAbsolutePath());
+		TextElement e4 = new TextElement(TextElement.Type.IMAGE, caption2,
+				file2.getAbsolutePath());
 		retVals.add(e4);
 
 		return retVals;
 	}
 
-
-	private ArrayList<TextElement> getSampleArr2(){
+	private ArrayList<TextElement> getSampleArr2() {
 
 		String text_above_pic = "In modern systems today, there is not really a good way to differentiate between blah and blahblah. In this paper, we present such and such novel solution. In inital testing, our solution provides several benefits while only incurring a 98% performance overhead.";
 		String caption1 = "The experimental data.";
@@ -1621,16 +1558,20 @@ public class MainActivity extends Activity {
 
 		e1 = new TextElement(TextElement.Type.TEXT_, text_above_pic);
 		retVals.add(e1);
-		File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm");
-		//		Bitmap bmp1 = BitmapFactory.decodeResource(this.getResources(), R.raw.graph_1);
-		//		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		//		bmp1.compress(Bitmap.CompressFormat.PNG, 100, stream);
-		//		byte[] byteArray = stream.toByteArray();
+		File dir = new File(Environment.getExternalStorageDirectory()
+				.getAbsolutePath() + "/tmm");
+		// Bitmap bmp1 = BitmapFactory.decodeResource(this.getResources(),
+		// R.raw.graph_1);
+		// ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		// bmp1.compress(Bitmap.CompressFormat.PNG, 100, stream);
+		// byte[] byteArray = stream.toByteArray();
 
 		File file2 = new File(dir, "graph_1.jpg");
 
-		//manually write the audio file to the external to emulate it being downloaded
-		InputStream fIn2 = getBaseContext().getResources().openRawResource(R.raw.graph_1);
+		// manually write the audio file to the external to emulate it being
+		// downloaded
+		InputStream fIn2 = getBaseContext().getResources().openRawResource(
+				R.raw.graph_1);
 		byte[] buffer2 = null;
 		try {
 			int size2 = fIn2.available();
@@ -1656,19 +1597,22 @@ public class MainActivity extends Activity {
 
 		}
 
-		TextElement e2 = new TextElement(TextElement.Type.IMAGE, caption1, file2.getAbsolutePath());
+		TextElement e2 = new TextElement(TextElement.Type.IMAGE, caption1,
+				file2.getAbsolutePath());
 		retVals.add(e2);
 
-
-		//		Bitmap bmp2 = BitmapFactory.decodeResource(this.getResources(), R.raw.chart2);
-		//		ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
-		//		bmp2.compress(Bitmap.CompressFormat.PNG, 100, stream2);
-		//		byte[] byteArray2 = stream2.toByteArray();
+		// Bitmap bmp2 = BitmapFactory.decodeResource(this.getResources(),
+		// R.raw.chart2);
+		// ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
+		// bmp2.compress(Bitmap.CompressFormat.PNG, 100, stream2);
+		// byte[] byteArray2 = stream2.toByteArray();
 
 		File file3 = new File(dir, "chart2.png");
 
-		//manually write the audio file to the external to emulate it being downloaded
-		InputStream fIn3 = getBaseContext().getResources().openRawResource(R.raw.chart2);
+		// manually write the audio file to the external to emulate it being
+		// downloaded
+		InputStream fIn3 = getBaseContext().getResources().openRawResource(
+				R.raw.chart2);
 		byte[] buffer3 = null;
 		try {
 			int size3 = fIn3.available();
@@ -1694,18 +1638,22 @@ public class MainActivity extends Activity {
 
 		}
 
-		TextElement e4 = new TextElement(TextElement.Type.IMAGE, caption2, file3.getAbsolutePath());
+		TextElement e4 = new TextElement(TextElement.Type.IMAGE, caption2,
+				file3.getAbsolutePath());
 		retVals.add(e4);
 
-		//		Bitmap bmp3 = BitmapFactory.decodeResource(this.getResources(), R.raw.figure_3);
-		//		ByteArrayOutputStream stream3 = new ByteArrayOutputStream();
-		//		bmp3.compress(Bitmap.CompressFormat.PNG, 100, stream3);
-		//		byte[] byteArray3 = stream3.toByteArray();
+		// Bitmap bmp3 = BitmapFactory.decodeResource(this.getResources(),
+		// R.raw.figure_3);
+		// ByteArrayOutputStream stream3 = new ByteArrayOutputStream();
+		// bmp3.compress(Bitmap.CompressFormat.PNG, 100, stream3);
+		// byte[] byteArray3 = stream3.toByteArray();
 
 		File file4 = new File(dir, "figure_3.png");
 
-		//manually write the audio file to the external to emulate it being downloaded
-		InputStream fIn4 = getBaseContext().getResources().openRawResource(R.raw.figure_3);
+		// manually write the audio file to the external to emulate it being
+		// downloaded
+		InputStream fIn4 = getBaseContext().getResources().openRawResource(
+				R.raw.figure_3);
 		byte[] buffer4 = null;
 		try {
 			int size4 = fIn4.available();
@@ -1731,42 +1679,53 @@ public class MainActivity extends Activity {
 
 		}
 
-		TextElement e5 = new TextElement(TextElement.Type.IMAGE, caption3, file4.getAbsolutePath());
+		TextElement e5 = new TextElement(TextElement.Type.IMAGE, caption3,
+				file4.getAbsolutePath());
 		retVals.add(e5);
 
 		return retVals;
 	}
 
-
-
-
 	private void loadPosterCards() {
 
-		Server source1 = new Server(POSTER_CARD_SERVER, "null", System.currentTimeMillis(), System.currentTimeMillis());
+		Server source1 = new Server(POSTER_CARD_SERVER, "null",
+				System.currentTimeMillis(), System.currentTimeMillis());
 
-		File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm");
+		File dir = new File(Environment.getExternalStorageDirectory()
+				.getAbsolutePath() + "/tmm");
 
-		//declare the basic cards that we will be using
+		// declare the basic cards that we will be using
 		TextCard authors = new TextCard(10, "About the Authors", source1);
-		VideoCard glassIntro = new VideoCard(20, "Watch a Glass Video", source1); // source vid: v1uyQZNg2vE //DONE
+		VideoCard glassIntro = new VideoCard(20, "Watch a Glass Video", source1); // source
+																					// vid:
+																					// v1uyQZNg2vE
+																					// //DONE
 		TextCard useCases = new TextCard(30, "Possible Use Cases", source1);
-		AudioCard narrate = new AudioCard(40, "Hear a Student Narration", dir.toString() + "/narration.mp3", source1);
+		AudioCard narrate = new AudioCard(40, "Hear a Student Narration",
+				dir.toString() + "/narration.mp3", source1);
 		TextCard sysFocus = new TextCard(50, "Focus: System Diagram", source1);
-		VideoCard release = new VideoCard(60, "Watch the Glass Release Story", source1); //source: OLn0cSZfl6c  //DONE
-		TextCard future = new TextCard(70, "The Future of Wearable Tech", source1);
-		VideoCard myGlass = new VideoCard(80, "MyGlass App Explained", source1); //source: vrwFwl3ZVRU //DONE
-		TextCard myGlasstxt = new TextCard(85, "The MyGlass Helper App", source1);
-		VideoCard hwOverview = new VideoCard(90, "Glass's Hardware Explained", source1); //source: Ee5JzKbOAaw //DONE
+		VideoCard release = new VideoCard(60, "Watch the Glass Release Story",
+				source1); // source: OLn0cSZfl6c //DONE
+		TextCard future = new TextCard(70, "The Future of Wearable Tech",
+				source1);
+		VideoCard myGlass = new VideoCard(80, "MyGlass App Explained", source1); // source:
+																					// vrwFwl3ZVRU
+																					// //DONE
+		TextCard myGlasstxt = new TextCard(85, "The MyGlass Helper App",
+				source1);
+		VideoCard hwOverview = new VideoCard(90, "Glass's Hardware Explained",
+				source1); // source: Ee5JzKbOAaw //DONE
 		TextCard lims = new TextCard(100, "Platform Limitations", source1);
-		TextCard nosql = new TextCard (110, "Focus: NoSQL Databases", source1);
+		TextCard nosql = new TextCard(110, "Focus: NoSQL Databases", source1);
 
-
-		//set up the videocards
-		//video: a look through glass
+		// set up the videocards
+		// video: a look through glass
 		File file0 = new File(dir, "glassintrobkgrnd.jpg");
 
-		//manually write the audio file to the external to emulate it being downloaded
-		InputStream fIn0 = getBaseContext().getResources().openRawResource(R.raw.glassintrobkgrnd);
+		// manually write the audio file to the external to emulate it being
+		// downloaded
+		InputStream fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.glassintrobkgrnd);
 		byte[] buffer0 = null;
 		try {
 			int size0 = fIn0.available();
@@ -1791,18 +1750,16 @@ public class MainActivity extends Activity {
 			Log.e(TAG, "IOException in second part");
 		}
 
-
-
 		glassIntro.setYTtag("v1uyQZNg2vE");
 		glassIntro.setScreenshot(file0.getPath());
 
-
-
-		//video: news story 
+		// video: news story
 		file0 = new File(dir, "newsstorybkgrnd.jpg");
 
-		//manually write the audio file to the external to emulate it being downloaded
-		fIn0 = getBaseContext().getResources().openRawResource(R.raw.newsstorybkgrnd);
+		// manually write the audio file to the external to emulate it being
+		// downloaded
+		fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.newsstorybkgrnd);
 		buffer0 = null;
 		try {
 			int size0 = fIn0.available();
@@ -1813,7 +1770,6 @@ public class MainActivity extends Activity {
 			Log.e(TAG, "IOException first part");
 
 		}
-
 
 		try {
 			save0 = new FileOutputStream(file0);
@@ -1827,16 +1783,16 @@ public class MainActivity extends Activity {
 			Log.e(TAG, "IOException in second part");
 		}
 
-
-
 		release.setYTtag("OLn0cSZfl6c");
 		release.setScreenshot(file0.getPath());
 
-		//video: myglass app explained
+		// video: myglass app explained
 		file0 = new File(dir, "myglassbkgrnd.jpg");
 
-		//manually write the audio file to the external to emulate it being downloaded
-		fIn0 = getBaseContext().getResources().openRawResource(R.raw.myglassbkgrnd);
+		// manually write the audio file to the external to emulate it being
+		// downloaded
+		fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.myglassbkgrnd);
 		buffer0 = null;
 		try {
 			int size0 = fIn0.available();
@@ -1847,7 +1803,6 @@ public class MainActivity extends Activity {
 			Log.e(TAG, "IOException first part");
 
 		}
-
 
 		try {
 			save0 = new FileOutputStream(file0);
@@ -1864,11 +1819,13 @@ public class MainActivity extends Activity {
 		myGlass.setYTtag("vrwFwl3ZVRU");
 		myGlass.setScreenshot(file0.getPath());
 
-		//video: glass Hardware
+		// video: glass Hardware
 		file0 = new File(dir, "glasshwbkgrnd.jpg");
 
-		//manually write the audio file to the external to emulate it being downloaded
-		fIn0 = getBaseContext().getResources().openRawResource(R.raw.glasshwbkgrnd);
+		// manually write the audio file to the external to emulate it being
+		// downloaded
+		fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.glasshwbkgrnd);
 		buffer0 = null;
 		try {
 			int size0 = fIn0.available();
@@ -1879,7 +1836,6 @@ public class MainActivity extends Activity {
 			Log.e(TAG, "IOException first part");
 
 		}
-
 
 		try {
 			save0 = new FileOutputStream(file0);
@@ -1896,24 +1852,45 @@ public class MainActivity extends Activity {
 		hwOverview.setYTtag("Ee5JzKbOAaw");
 		hwOverview.setScreenshot(file0.getPath());
 
+		// set up text cards
 
-		//set up text cards
-		
-		//About the authors
+		// About the authors
 		ArrayList<TextElement> aboutAuthor_contents = getAuthorInfo();
-		
+		authors.setContents(aboutAuthor_contents);
 
+		// use cases
+		ArrayList<TextElement> useCases_contents = getUseCases();
+		useCases.setContents(useCases_contents);
+
+		// add all the poster card to the class varaible to be uploaded
+		cardz = new ArrayList<TMMCard>();
+		cardz.add(authors);
+		cardz.add(glassIntro);
+		cardz.add(useCases);
+		cardz.add(narrate);
+		cardz.add(sysFocus);
+		cardz.add(release);
+		cardz.add(future);
+		cardz.add(myGlass);
+		cardz.add(myGlasstxt);
+		cardz.add(hwOverview);
+		cardz.add(hwOverview);
+		cardz.add(lims);
+		cardz.add(nosql);
+		Log.i(TAG, "size of cardz array: " + cardz.size());
 
 	}
-	
-	
-	private ArrayList<TextElement> getAuthorInfo(){
-		ArrayList<TextElement> toReturn = new ArrayList<TextElement>();
-		File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmm");
-		File file0 = new File(dir, "buic.png");
 
-		//manually write the audio file to the external to emulate it being downloaded
-		InputStream fIn0 = getBaseContext().getResources().openRawResource(R.raw.buic);
+	private ArrayList<TextElement> getUseCases() {
+		ArrayList<TextElement> toReturn = new ArrayList<TextElement>();
+
+		File dir = new File(Environment.getExternalStorageDirectory()
+				.getAbsolutePath() + "/tmm");
+		File file0 = new File(dir, "markedposter.jpg");
+
+		// manually write the audio file to the external to emulate it being
+		// downloaded
+		InputStream fIn0 = getBaseContext().getResources().openRawResource(R.raw.markedposter);
 		byte[] buffer0 = null;
 		try {
 			int size0 = fIn0.available();
@@ -1938,13 +1915,95 @@ public class MainActivity extends Activity {
 			Log.e(TAG, "IOException in second part");
 		}
 		
+		TextElement t1 = new TextElement(Type.TEXT_, "We envision a number of possible uses from TellMeMore: \n");
+		TextElement t2 = new TextElement(Type.TEXT_, "First of all, it can be used to deliver more information for things like this poster. TellMeMore allows sound and video to be added to posters, just by addign a QR code. ");
+		TextElement t3 = new TextElement(Type.IMAGE, "TellMeMore QR code", file0.getPath());
+		toReturn.add(t1);
+		toReturn.add(t2);
+		toReturn.add(t3);
 		
+		file0 = new File(dir, "geofence.jpg");
+		TextElement t4 = new TextElement(Type.TEXT_, "TellMeMore can be used in the context of the real world, to tell you more about the place you are in. It can accomplish this using the concept of GeoFencing, using the GPS location to pick out relevant cards.");
+		fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.geofence);
+		buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+		
+		TextElement t5 = new TextElement(Type.IMAGE, "A Geofence", file0.getPath());
+		toReturn.add(t4);
+		toReturn.add(t5);
+		
+		//talk about opportunities created by synchronization
+		//talk about image recognition and step-by-step guides
+		
+		return toReturn;
+	}
+
+	private ArrayList<TextElement> getAuthorInfo() {
+		ArrayList<TextElement> toReturn = new ArrayList<TextElement>();
+		File dir = new File(Environment.getExternalStorageDirectory()
+				.getAbsolutePath() + "/tmm");
+		File file0 = new File(dir, "buic.png");
+
+		// manually write the audio file to the external to emulate it being
+		// downloaded
+		InputStream fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.buic);
+		byte[] buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		FileOutputStream save0;
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+
 		TextElement t1 = new TextElement(Type.IMAGE, "", file0.getPath());
 		toReturn.add(t1);
+
+		TextElement t2 = new TextElement(
+				Type.TEXT_,
+				"Alexander Meijer is a Computer Engineering major from the town of Groton, Massachusetts. Alex enjoys tinkering with the UNIX Operating System in all of its various forms and flavors, and can be relied upon to have the latest version running on at least one computer.\n");
+
+		toReturn.add(t2);
 		
-		TextElement t2 
-		
-		
-		
+		TextElement t3 = new TextElement(Type.TEXT_, "<insert dan bio here");
+		return toReturn;
+
 	}
 }
