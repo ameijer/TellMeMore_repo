@@ -2563,7 +2563,7 @@ public class MainActivity extends Activity {
 
 		toReturn.add(t2);
 
-		TextElement t3 = new TextElement(Type.TEXT_, "<insert dan bio here");
+		TextElement t3 = new TextElement(Type.TEXT_, "Daniel Prudente is a senior at Bucknell University. He is a computer engineering major and has a minor in mathematics. After graduation, he plans on working for IBM as a software developer in Littleton, MA.");
 		toReturn.add(t3);
 		return toReturn;
 
