@@ -1703,8 +1703,6 @@ public class MainActivity extends Activity {
 		// //DONE
 		TextCard useCases = new TextCard(200, "Possible Use Cases", source1);      //DONE
 
-		AudioCard narrate = new AudioCard(40, "Hear a Student Narration", dir.toString() + "/narration.mp3", source1); //TODO
-
 		TextCard sysFocus = new TextCard(50, "Focus: System Diagram", source1); //DONE
 
 		VideoCard release = new VideoCard(60, "Watch the Glass Release Story", source1); // source: OLn0cSZfl6c //DONE
@@ -1716,7 +1714,7 @@ public class MainActivity extends Activity {
 		// //DONE
 		TextCard myGlasstxt = new TextCard(85, "The MyGlass Helper App", source1); //DONE
 		VideoCard hwOverview = new VideoCard(90, "Glass's Hardware Explained", source1); // source: Ee5JzKbOAaw //DONE
-		TextCard lims = new TextCard(100, "Glass' Unique Challenges", source1); //TODO
+		TextCard lims = new TextCard(100, "Glass' Unique Challenges", source1); //DONE
 		TextCard nosql = new TextCard(110, "Focus: NoSQL Databases", source1); //TODO
 
 		// set up the videocards
@@ -1863,35 +1861,6 @@ public class MainActivity extends Activity {
 		ArrayList<TextElement> useCases_contents = getUseCases();
 		useCases.setContents(useCases_contents);
 
-		//narration
-		file0 = new File(dir, "poster_full.jpg");
-		fIn0 = getBaseContext().getResources().openRawResource(
-				R.raw.poster_full);
-		buffer0 = null;
-		try {
-			int size0 = fIn0.available();
-			buffer0 = new byte[size0];
-			fIn0.read(buffer0);
-			fIn0.close();
-		} catch (IOException e) {
-			Log.e(TAG, "IOException first part");
-
-		}
-
-		try {
-			save0 = new FileOutputStream(file0);
-			save0.write(buffer0);
-			save0.flush();
-			save0.close();
-		} catch (FileNotFoundException e) {
-			Log.e(TAG, "FileNotFoundException in second part");
-
-		} catch (IOException e) {
-			Log.e(TAG, "IOException in second part");
-		}
-
-		narrate.setBackgroundPath(file0.getPath());
-
 		//system focus diagram
 		ArrayList<TextElement> sysFoucsd_contents = generateSysFocusContent();
 		sysFocus.setContents(sysFoucsd_contents);
@@ -2001,7 +1970,6 @@ public class MainActivity extends Activity {
 		cardz.add(authors);
 		cardz.add(glassIntro);
 		cardz.add(useCases);
-		cardz.add(narrate);
 		cardz.add(sysFocus);
 		cardz.add(release);
 		cardz.add(future);
@@ -2017,11 +1985,157 @@ public class MainActivity extends Activity {
 
 	private ArrayList<TextElement> getnosql_contents(){
 		ArrayList<TextElement> toReturn = new ArrayList<TextElement>();
-
+		File dir = new File(Environment.getExternalStorageDirectory()
+				.getAbsolutePath() + "/tmm");
 		
+		TextElement t1 = new TextElement(Type.TEXT_, "The following has been adapted from the introductory section on NoSQl databases from Apache's website. The origial copy of this information can be found at http://docs.couchdb.org/en/latest/intro/why.html. ");
+		
+		TextElement t2 = new TextElement(Type.TEXT_, "TellMeMore uses two NoSQL databases working together to serve content. The master database is an instance of Apache CouchDB, and the smaller, mobile client databases are running the Couchbase Lit NoSQL database.");
+		
+		//couchdb pic
+		File file0 = new File(dir, "couchdb.jpg");
 
+		InputStream fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.couchdb);
+		byte[] buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		FileOutputStream save0;
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+		
+		TextElement t3 = new TextElement(Type.IMAGE, "", file0.getPath());
+		
+		//couchbase lite pic
+		
+		file0 = new File(dir, "cblite.jpg");
+		fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.cblite);
+		buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+		
+		TextElement t4 = new TextElement(Type.IMAGE, "", file0.getPath());
+
+		TextElement t5 = new TextElement(Type.TEXT_, "NoSQL databases are a great fit for common applications like this because they embrace the natural idea of evolving, self-contained documents as the very core of its data model (Apache).");
+		TextElement t6 = new TextElement(Type.TEXT_, "This meshes well with the goal of TellMeMore, which uses many self-contained documents called cards.");
+		
+		TextElement t7 = new TextElement(Type.TEXT_, "Apache's Example: An Invoice\n\"An invoice contains all the pertinent information about a single transaction: the seller, the buyer, the date, and a list of the items or services sold. As shown below, there’s no abstract reference on this piece of paper that points to some other piece of paper with the seller’s name and address. Accountants appreciate the simplicity of having everything in one place. And given the choice, programmers appreciate that, too.\"");
+		
+		file0 = new File(dir, "selfcontained.png");
+		fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.selfcontained);
+		buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+		
+		TextElement t8 = new TextElement(Type.IMAGE, "Self-contained documents", file0.getPath());
+		
+		TextElement t9 = new TextElement(Type.TEXT_, "While a traditional relational database requires you to model your data up front, the NoSQL database's schema-free design provides a powerful way to aggregate your data after the fact, just as is done with real-world documents (Apache).");
+		
+		TextElement t10 = new TextElement(Type.TEXT_, "This allows many different card types to be created later on, not just the three types of cards used currently in TellMeMore. ");
+		
+		TextElement t11 = new TextElement(Type.TEXT_, "Finally, NoSQL databases are very flexible, and can be used for many different types of storage depending on the needs of the system at the time. This will allow TellMeMore to expand in the future to cover all types of data, whether it be traditinal tabulated data or analytics graphs. ");
+		
+		file0 = new File(dir, "nosqlcapa.png");
+		fIn0 = getBaseContext().getResources().openRawResource(
+				R.raw.nosqlcapa);
+		buffer0 = null;
+		try {
+			int size0 = fIn0.available();
+			buffer0 = new byte[size0];
+			fIn0.read(buffer0);
+			fIn0.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IOException first part");
+
+		}
+
+		try {
+			save0 = new FileOutputStream(file0);
+			save0.write(buffer0);
+			save0.flush();
+			save0.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "FileNotFoundException in second part");
+
+		} catch (IOException e) {
+			Log.e(TAG, "IOException in second part");
+		}
+		
+		TextElement t12 = new TextElement(Type.IMAGE, "The capabilities of NoSQL", file0.getPath());
+		//t1 last?
+		
+		toReturn.add(t1);
+		toReturn.add(t2);
+		toReturn.add(t3);
+		toReturn.add(t4);
+		toReturn.add(t5);
+		toReturn.add(t6);
+		toReturn.add(t7);
+		toReturn.add(t8);
+		toReturn.add(t9);
+		toReturn.add(t10);
+		toReturn.add(t11);
+		toReturn.add(t12);
 		return toReturn;
 	}
+	
 	private ArrayList<TextElement> getLimitationsContent(){
 		ArrayList<TextElement> toReturn = new ArrayList<TextElement>();
 		File dir = new File(Environment.getExternalStorageDirectory()
