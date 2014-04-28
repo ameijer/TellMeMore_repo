@@ -183,7 +183,7 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 				final ImageView img = (ImageView) convertView
 						.findViewById(R.id.background_txt_no_ic);
 
-				img.setBackgroundResource(R.drawable.green);
+				img.setBackgroundResource(R.color.black);
 				img.setAlpha(ALPHA_VALUE);
 
 				final TextView view = (TextView) convertView
@@ -211,7 +211,7 @@ public class SelectCardScrollAdapter extends CardScrollAdapter {
 				}
 				final ImageView img = (ImageView) convertView
 						.findViewById(R.id.background_txt_ic);
-				img.setBackgroundResource(R.drawable.green);
+				img.setBackgroundResource(R.color.black);
 				img.setAlpha(ALPHA_VALUE);
 
 				final TextView view = (TextView) convertView

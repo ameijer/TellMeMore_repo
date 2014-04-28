@@ -1705,7 +1705,7 @@ public class MainActivity extends Activity {
 
 		TextCard sysFocus = new TextCard(50, "Focus: System Diagram", source1); //DONE
 
-		VideoCard release = new VideoCard(60, "Watch the Glass Release Story", source1); // source: OLn0cSZfl6c //DONE
+		VideoCard release = new VideoCard(60, "Watch the Release Story", source1); // source: OLn0cSZfl6c //DONE
 
 		TextCard future = new TextCard(70, "What the Future Holds", source1); //DONE
 
@@ -1856,18 +1856,29 @@ public class MainActivity extends Activity {
 		// About the authors
 		ArrayList<TextElement> aboutAuthor_contents = getAuthorInfo();
 		authors.setContents(aboutAuthor_contents);
+		authors.setLine1("Alex Meijer");
+		authors.setLine2("Dan Prudente");
+		authors.setLine3("Tap to learn more");
 
 		// use cases
 		ArrayList<TextElement> useCases_contents = getUseCases();
 		useCases.setContents(useCases_contents);
+		useCases.setLine1("-Learning about posters");
+		useCases.setLine2("-Learning about the world");
+		useCases.setLine3("-Learning how to do things");
 
 		//system focus diagram
 		ArrayList<TextElement> sysFoucsd_contents = generateSysFocusContent();
 		sysFocus.setContents(sysFoucsd_contents);
-
+		sysFocus.setLine2("An in-depth focus on the central figure in this poster");
+		sysFocus.setLine1("");
+		sysFocus.setLine3("");
 		//what the future holds
 		ArrayList<TextElement> future_contents = getFutureContent();
 		future.setContents(future_contents);
+		future.setLine1("-Two way information flow");
+		future.setLine2("-New ways to determine context");
+		future.setLine3("-Complex analytics");
 
 		//text card for the myglass
 		file0 = new File(dir, "myglassic.png");
@@ -1899,12 +1910,16 @@ public class MainActivity extends Activity {
 		ArrayList<TextElement> myGlass_contents = getMyGlassContent();
 		myGlasstxt.setContents(myGlass_contents);
 		myGlasstxt.setIconPath(file0.getPath());
+		
+		myGlasstxt.setLine1("Install the app on your phone");
+		myGlasstxt.setLine2("Then use this guide");
+		myGlasstxt.setLine3("");
 
 		//limitations
 		ArrayList<TextElement> limitations_contents = getLimitationsContent();
 		lims.setContents(limitations_contents);
 
-		file0 = new File(dir, "noglassic.png");
+		file0 = new File(dir, "noglassic.jpg");
 		fIn0 = getBaseContext().getResources().openRawResource(
 				R.raw.noglassic);
 		buffer0 = null;
@@ -1931,6 +1946,9 @@ public class MainActivity extends Activity {
 		}
 
 		lims.setIconPath(file0.getPath());
+		lims.setLine1("-Privacy");
+		lims.setLine3("-Battery life");
+		lims.setLine2("");
 
 		//focus on nosqls
 		ArrayList<TextElement> nosql_contents = getnosql_contents();
@@ -1963,7 +1981,9 @@ public class MainActivity extends Activity {
 		}
 
 		nosql.setIconPath(file0.getPath());
-
+		nosql.setLine2("Information about the NoSQL databases that form \nthe core of \nTellMeMore");
+		nosql.setLine1("");
+		nosql.setLine3("");
 
 		// add all the poster card to the class variable to be uploaded
 		cardz = new ArrayList<TMMCard>();
@@ -1975,7 +1995,6 @@ public class MainActivity extends Activity {
 		cardz.add(future);
 		cardz.add(myGlass);
 		cardz.add(myGlasstxt);
-		cardz.add(hwOverview);
 		cardz.add(hwOverview);
 		cardz.add(lims);
 		cardz.add(nosql);
@@ -2119,8 +2138,8 @@ public class MainActivity extends Activity {
 		}
 		
 		TextElement t12 = new TextElement(Type.IMAGE, "The capabilities of NoSQL", file0.getPath());
-		//t1 last?
 		
+		//t1 last?
 		toReturn.add(t1);
 		toReturn.add(t2);
 		toReturn.add(t3);

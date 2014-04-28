@@ -377,7 +377,7 @@ YouTubePlayer.OnInitializedListener {
 		@Override
 		public void onPaused() {
 			Log.i(TAG, "onPause called");
-
+			onKeyUp(KEY_SWIPE_DOWN, new KeyEvent(1, 1));
 		}
 
 		/*

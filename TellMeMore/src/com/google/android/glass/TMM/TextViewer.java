@@ -164,6 +164,8 @@ public class TextViewer extends Activity {
 	 * text.
 	 */
 	private int lastPos;
+	
+	private boolean narrate = false;
 
 	/**
 	 * A reference to the text card containing all the information used in this
@@ -218,7 +220,6 @@ public class TextViewer extends Activity {
 
 		this.mGestureDetector = createGestureDetector(this);
 		act_context = this;
-		;
 
 		mView = (LinearLayout) findViewById(R.id.innertextList);
 
@@ -230,8 +231,10 @@ public class TextViewer extends Activity {
 			@Override
 			public void onInit(int status) {
 
+				if(narrate){
 				// Alert the user to the presence of the narrator
 				mSpeech.speak("Narrator Ready", TextToSpeech.QUEUE_FLUSH, null);
+				}
 			}
 		});
 
@@ -297,7 +300,7 @@ public class TextViewer extends Activity {
 		cardId = getIntent().getStringExtra(EXTRA_SELECTED_ID);
 		lastPos = getIntent()
 				.getIntExtra(EXTRA_LAST_TEXT_POS, DEFAULT_TEXT_POS);
-		boolean narrate = getIntent().getBooleanExtra(
+	 narrate = getIntent().getBooleanExtra(
 				EXTRA_REQUESTED_NARRATION, DEFAULT_NARR);
 
 		// if the user wanted narration, then play the clip
