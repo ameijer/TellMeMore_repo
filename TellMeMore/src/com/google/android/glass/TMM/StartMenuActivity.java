@@ -84,6 +84,7 @@ public class StartMenuActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection.
+		// TODO: Insert location context handling here
 		switch (item.getItemId()) {
 		case R.id.start_scan_item:
 			Log.i("TMM", "start scan menu item selected");

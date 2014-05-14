@@ -220,7 +220,7 @@ public abstract class TMMCard implements Comparable<TMMCard>, Serializable{
 	/**
 	 * Gets the JSON type of this card. Used in the translation of this card to/from JSON. 
 	 *
-	 * @return THe type of this card - either TEXT, AUDIO, or VIDEO.
+	 * @return The type of this card - either TEXT, AUDIO, or VIDEO.
 	 */
 	public String getJsontype() {
 		return jsontype;
