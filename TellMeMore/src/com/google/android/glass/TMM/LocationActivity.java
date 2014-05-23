@@ -33,7 +33,9 @@ package com.google.android.glass.TMM;
 
 
 import java.util.HashMap;
+
 import com.google.android.glass.media.Sounds;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -42,10 +44,12 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.WindowManager;
+import android.widget.Toast;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.location.LocationProvider;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -184,7 +188,10 @@ public class LocationActivity extends Activity {
 			
 			// No suitable provider found meeting the criteria.  Ask user to enable 
 			// location services.
-			// TODO implement user interface to prompt user to enable gps
+			
+			Toast.makeText(this, "Cannot locate Glass.  Please ensure location services are enabled.", 
+					Toast.LENGTH_LONG).show();
+			
 			Log.e(TAG, "No location providers.  Enable location services to allow "
 					+ "location based content.");
 			return null;

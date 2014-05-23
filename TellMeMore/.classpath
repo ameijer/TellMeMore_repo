@@ -17,5 +17,8 @@
 	<classpathentry kind="lib" path="libs/servlet-2-3.jar"/>
 	<classpathentry kind="lib" path="libs/webserver-2-3.jar"/>
 	<classpathentry kind="lib" path="libs/zbar.jar"/>
+	<classpathentry kind="lib" path="/home/jpkale/Desktop/mirror/google-api-services-mirror-v1-rev47-1.18.0-rc.jar"/>
+	<classpathentry kind="lib" path="/home/jpkale/Desktop/mirror/google-api-services-mirror-v1-rev47-1.18.0-rc-javadoc.jar"/>
+	<classpathentry kind="lib" path="/home/jpkale/Desktop/mirror/google-api-services-mirror-v1-rev47-1.18.0-rc-sources.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

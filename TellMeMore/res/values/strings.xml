@@ -34,6 +34,7 @@
     <string name="narrate_txt">Read Aloud</string>
     <string name="retData">Retrieving card data... </string>
     <string name="audio_help_txt">Tap to pause</string>
+    <string name="location_waiting">Retrieving location data...</string>
     
 
 </resources>
